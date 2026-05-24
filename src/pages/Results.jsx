@@ -1,12 +1,49 @@
-import { useContext } from "react"
+import { useContext, useEffect, useState } from "react"
 import { ResumeContext } from "../context/ResumeContext"
+
 function Results() {
-    const {
-  resumeFile,
-  jobDescription,
-  atsScore
-} = useContext(ResumeContext)
+
+  const {
+    resumeFile,
+    jobDescription,
+  } = useContext(ResumeContext)
+
+  const [backendData, setBackendData] = useState(null)
+
+  useEffect(() => {
+
+    if (!resumeFile) return
+
+    const formData = new FormData()
+
+    formData.append("resume", resumeFile)
+
+    formData.append("job_description", jobDescription)
+
+    fetch("http://127.0.0.1:8000/analyze", {
+      method: "POST",
+      body: formData
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setBackendData(data)
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+
+  }, [])
+
+  if (!backendData) {
+    return (
+      <div className="min-h-screen bg-[#050816] text-white flex items-center justify-center text-2xl">
+        Loading analysis...
+      </div>
+    )
+  }
+
   return (
+
     <div className="min-h-screen bg-[#050816] text-white p-6 md:p-10 relative overflow-hidden">
 
       {/* Background Glow */}
@@ -14,32 +51,46 @@ function Results() {
 
       <div className="absolute bottom-[-200px] right-[-100px] w-[500px] h-[500px] bg-blue-600 rounded-full blur-[150px] opacity-20"></div>
 
-      {/* Heading */}
       <div className="relative z-10">
 
+        {/* Heading */}
         <h1 className="text-5xl font-bold">
           ATS Analysis Results
         </h1>
 
-        <div className="mt-6 space-y-2">
+        {/* Backend Message */}
+        <div className="mt-6 bg-green-500/20 border border-green-500/30 text-green-300 px-5 py-4 rounded-2xl">
+          {backendData?.message}
+        </div>
 
-  <p className="text-purple-300">
-    Uploaded Resume:
-    <span className="text-white ml-2">
-      {resumeFile ? resumeFile.name : "No file uploaded"}
-    </span>
-  </p>
+        {/* Resume Info */}
+        <div className="mt-8 bg-white/5 border border-white/10 rounded-3xl p-6">
 
-  <p className="text-blue-300">
-    Job Description Length:
-    <span className="text-white ml-2">
-      {jobDescription.length} characters
-    </span>
-  </p>
+          <p className="text-purple-300">
+            Uploaded Resume:
+            <span className="text-white ml-2">
+              {resumeFile?.name}
+            </span>
+          </p>
 
-</div>
+          <p className="text-blue-300 mt-4">
+            Job Description Length:
+            <span className="text-white ml-2">
+              {backendData?.job_description_length}
+            </span>
+          </p>
 
-        {/* Dashboard Grid */}
+          <p className="text-green-300 mt-4">
+            Resume Preview:
+          </p>
+
+          <div className="mt-3 bg-black/30 border border-white/10 rounded-xl p-4 text-gray-300 max-h-64 overflow-y-auto whitespace-pre-wrap">
+            {backendData?.resume_text_preview}
+          </div>
+
+        </div>
+
+        {/* Dashboard */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-12">
 
           {/* ATS Score */}
@@ -52,90 +103,70 @@ function Results() {
             <div className="mt-8 flex items-center justify-center">
 
               <div className="w-44 h-44 rounded-full border-[12px] border-purple-500 flex items-center justify-center text-5xl font-bold">
-                {atsScore}%
+                {backendData?.ats_score || 0}%
               </div>
 
             </div>
 
-            <p className="text-green-400 text-center mt-6">
-              Excellent Resume Strength
+            <p className="text-yellow-300 mt-6">
+              Keyword Match Score:
+              <span className="text-white ml-2">
+                {backendData?.keyword_score || 0}%
+              </span>
             </p>
+
+            <p className="text-cyan-300 mt-3">
+              Semantic Similarity Score:
+              <span className="text-white ml-2">
+                {backendData?.semantic_score || 0}%
+              </span>
+            </p>
+
+          </div>
+
+          {/* Matched Keywords */}
+          <div className="bg-white/5 border border-white/10 backdrop-blur-2xl rounded-3xl p-8">
+
+            <h2 className="text-green-300 text-2xl font-bold">
+              Matched Keywords
+            </h2>
+
+            <div className="flex flex-wrap gap-3 mt-6">
+
+              {backendData?.matched_keywords?.map((keyword, index) => (
+
+                <span
+                  key={index}
+                  className="bg-green-500/20 text-green-300 px-4 py-2 rounded-full border border-green-500/30"
+                >
+                  {keyword}
+                </span>
+
+              ))}
+
+            </div>
 
           </div>
 
           {/* Missing Keywords */}
           <div className="bg-white/5 border border-white/10 backdrop-blur-2xl rounded-3xl p-8">
 
-            <h2 className="text-gray-400 text-lg">
+            <h2 className="text-red-300 text-2xl font-bold">
               Missing Keywords
             </h2>
 
-            <div className="flex flex-wrap gap-3 mt-8">
+            <div className="flex flex-wrap gap-3 mt-6">
 
-              <span className="bg-purple-500/20 text-purple-300 px-4 py-2 rounded-full">
-                Docker
-              </span>
+              {backendData?.missing_keywords?.map((keyword, index) => (
 
-              <span className="bg-blue-500/20 text-blue-300 px-4 py-2 rounded-full">
-                Kubernetes
-              </span>
+                <span
+                  key={index}
+                  className="bg-red-500/20 text-red-300 px-4 py-2 rounded-full border border-red-500/30"
+                >
+                  {keyword}
+                </span>
 
-              <span className="bg-pink-500/20 text-pink-300 px-4 py-2 rounded-full">
-                CI/CD
-              </span>
-
-              <span className="bg-green-500/20 text-green-300 px-4 py-2 rounded-full">
-                AWS
-              </span>
-
-            </div>
-
-          </div>
-
-          {/* Resume Strength */}
-          <div className="bg-white/5 border border-white/10 backdrop-blur-2xl rounded-3xl p-8">
-
-            <h2 className="text-gray-400 text-lg">
-              Resume Strength
-            </h2>
-
-            <div className="mt-8 space-y-5">
-
-              <div>
-                <p className="text-white">
-                  Keyword Match
-                </p>
-
-                <div className="w-full h-3 bg-white/10 rounded-full mt-2 overflow-hidden">
-
-                  <div className="w-[90%] h-full bg-purple-500 rounded-full"></div>
-
-                </div>
-              </div>
-
-              <div>
-                <p className="text-white">
-                  Formatting
-                </p>
-
-                <div className="w-full h-3 bg-white/10 rounded-full mt-2 overflow-hidden">
-
-                  <div className="w-[80%] h-full bg-blue-500 rounded-full"></div>
-
-                </div>
-              </div>
-
-              <div>
-                <p className="text-white">
-                  Readability
-                </p>
-
-                <div className="w-full h-3 bg-white/10 rounded-full mt-2 overflow-hidden">
-
-                  <div className="w-[85%] h-full bg-pink-500 rounded-full"></div>
-
-                </div>
-              </div>
+              ))}
 
             </div>
 
@@ -144,51 +175,15 @@ function Results() {
         </div>
 
         {/* AI Suggestions */}
-        <div className="bg-white/5 border border-white/10 backdrop-blur-2xl rounded-3xl p-8 mt-8">
+        <div className="mt-12 bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-2xl">
 
-          <h2 className="text-3xl font-bold">
+          <h2 className="text-3xl font-bold text-purple-300">
             AI Resume Suggestions
           </h2>
 
-          <div className="space-y-6 mt-8">
-
-            <div className="border border-white/10 rounded-2xl p-5 bg-black/20">
-
-              <h3 className="text-purple-300 font-semibold text-lg">
-                Improve Action Verbs
-              </h3>
-
-              <p className="text-gray-300 mt-3 leading-7">
-                Replace weak phrases like “Worked on” with stronger achievement-oriented verbs such as “Developed”, “Implemented”, or “Engineered”.
-              </p>
-
-            </div>
-
-            <div className="border border-white/10 rounded-2xl p-5 bg-black/20">
-
-              <h3 className="text-blue-300 font-semibold text-lg">
-                Quantify Achievements
-              </h3>
-
-              <p className="text-gray-300 mt-3 leading-7">
-                Add measurable impact metrics such as percentages, performance improvements, or project scale.
-              </p>
-
-            </div>
-
-            <div className="border border-white/10 rounded-2xl p-5 bg-black/20">
-
-              <h3 className="text-pink-300 font-semibold text-lg">
-                Add Missing Technologies
-              </h3>
-
-              <p className="text-gray-300 mt-3 leading-7">
-                Include Docker, CI/CD pipelines, and Kubernetes to improve ATS matching for backend engineering roles.
-              </p>
-
-            </div>
-
-          </div>
+          <pre className="mt-6 text-gray-300 whitespace-pre-wrap font-sans leading-8">
+            {backendData?.ai_suggestions || "Generating AI suggestions..."}
+          </pre>
 
         </div>
 
