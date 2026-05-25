@@ -22,7 +22,7 @@ function Loading() {
 
     return () => clearTimeout(timer)
 
-  }, [])
+  }, [navigate, resumeFile, jobDescription])
 
   return (
     <div className="min-h-screen bg-[#050816] flex flex-col items-center justify-center text-white relative overflow-hidden">
