@@ -22,7 +22,7 @@ function Results() {
 
     formData.append("job_description", jobDescription)
 
-    fetch("https://ai-resume-analyzer-3sa6.onrender.com/analyze", {
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/analyze`, {
       method: "POST",
       body: formData
     })
