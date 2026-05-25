@@ -20,7 +20,7 @@ function Results() {
 
     formData.append("job_description", jobDescription)
 
-    fetch("http://127.0.0.1:8000/analyze", {
+    fetch("https://ai-resume-analyzer-3sa6.onrender.com/analyze", {
       method: "POST",
       body: formData
     })
