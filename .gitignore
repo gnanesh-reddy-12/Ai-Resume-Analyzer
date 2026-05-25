@@ -29,4 +29,6 @@ backend/venv/
 venv/
 node_modules/
 .env
+backend/.env
+.env.local
 __pycache__/
