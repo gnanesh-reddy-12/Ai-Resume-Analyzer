@@ -6,3 +6,4 @@ scikit-learn
 nltk
 pdfplumber
 python-docx
+python-multipart
