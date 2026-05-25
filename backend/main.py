@@ -34,10 +34,7 @@ app = FastAPI()
 # Allow frontend connection
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "https://ai-resume-analyzer-two-red.vercel.app"
-    ],
+    allow_origins=["*"],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
