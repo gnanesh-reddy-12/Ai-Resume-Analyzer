@@ -20,5 +20,5 @@ COPY backend ./backend
 # Expose port
 EXPOSE 8080
 
-# Use the PORT environment variable from Railway
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8080"]
+# Use the PORT environment variable from Railway if available
+CMD ["/bin/sh", "-lc", "uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
