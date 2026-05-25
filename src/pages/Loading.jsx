@@ -1,14 +1,23 @@
 import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { useContext } from "react"
+import { ResumeContext } from "../context/ResumeContext"
 
 function Loading() {
 
   const navigate = useNavigate()
 
+  const { resumeFile, jobDescription } = useContext(ResumeContext)
+
   useEffect(() => {
 
     const timer = setTimeout(() => {
-      navigate("/results")
+      navigate("/results", {
+      state: {
+        resumeFile,
+        jobDescription
+      }
+    })
     }, 3000)
 
     return () => clearTimeout(timer)

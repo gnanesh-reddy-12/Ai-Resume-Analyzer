@@ -12,6 +12,8 @@ function Results() {
 
   useEffect(() => {
 
+    console.log(resumeFile)
+
     if (!resumeFile) return
 
     const formData = new FormData()
