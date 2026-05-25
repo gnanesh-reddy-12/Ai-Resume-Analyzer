@@ -23,7 +23,7 @@ model = genai.GenerativeModel("gemini-2.0-flash")
 
 import nltk
 
-nltk.download("punkt")
+nltk.download("punkt_tab")
 nltk.download("stopwords")
 
 from nltk.corpus import stopwords
