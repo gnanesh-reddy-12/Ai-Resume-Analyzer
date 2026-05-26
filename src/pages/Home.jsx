@@ -5,7 +5,7 @@ import JobDescription from "../components/JobDescription"
 
 function Home() {
   return (
-    <div className="min-h-screen bg-[#050816] relative overflow-hidden">
+    <div className="min-h-screen bg-[#7ea56b] relative overflow-hidden">
 
       <div className="absolute top-[-200px] left-[-100px] w-[500px] h-[500px] bg-purple-600 rounded-full blur-[150px] opacity-20"></div>
 
