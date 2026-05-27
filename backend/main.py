@@ -72,7 +72,6 @@ async def analyze_resume(
     extracted_text = extracted_text.strip()
 
     # Dynamic keyword extraction from job description
-    stop_words = set(stopwords.words("english"))
 
     keywords = kw_model.extract_keywords(
         job_description,
