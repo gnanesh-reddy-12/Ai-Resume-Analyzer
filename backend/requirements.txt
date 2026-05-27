@@ -7,3 +7,6 @@ nltk
 pdfplumber
 python-docx
 python-multipart
+sentence-transformers
+keybert
+torch

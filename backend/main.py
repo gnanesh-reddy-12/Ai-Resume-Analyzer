@@ -1,34 +1,27 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-
-from fastapi.middleware.cors import CORSMiddleware
-
 import google.generativeai as genai
 from dotenv import load_dotenv
 import os
-
 import pdfplumber
 import docx
 import io
 import re
-
-load_dotenv()
-
-genai.configure(
-    api_key=os.getenv("GEMINI_API_KEY")
-)
-model = genai.GenerativeModel("gemini-2.0-flash")
-
+from keybert import KeyBERT
 import nltk
 
-nltk.download("punkt_tab")
-nltk.download("stopwords")
+# Initialize models & env
+load_dotenv()
+kw_model = KeyBERT()
+semantic_model = SentenceTransformer("all-MiniLM-L6-v2")
 
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+model = genai.GenerativeModel("gemini-2.0-flash")
+
+nltk.download("punkt")
+nltk.download("stopwords")
 
 app = FastAPI()
 
@@ -54,102 +47,84 @@ async def analyze_resume(
 ):
 
     extracted_text = ""
+    if not (
+        resume.filename.endswith(".pdf")
+        or resume.filename.endswith(".docx")
+    ):
+        return {
+            "message": "Only PDF and DOCX files are supported"
+        }
 
     # PDF parsing
     if resume.filename.endswith(".pdf"):
-
         contents = await resume.read()
-
         pdf_file = io.BytesIO(contents)
-
         with pdfplumber.open(pdf_file) as pdf:
-
             for page in pdf.pages:
                 extracted_text += page.extract_text() or ""
 
     # DOCX parsing
     elif resume.filename.endswith(".docx"):
-
         contents = await resume.read()
-
         doc_file = io.BytesIO(contents)
-
         document = docx.Document(doc_file)
-
         for para in document.paragraphs:
             extracted_text += para.text + "\n"
 
-        extracted_text = re.sub(r'([a-z])([A-Z])', r'\1 \2', extracted_text)
-        extracted_text = re.sub(r'\s+', ' ', extracted_text)
-        extracted_text = extracted_text.strip()
+    extracted_text = re.sub(r'([a-z])([A-Z])', r'\1 \2', extracted_text)
+    extracted_text = re.sub(r'\s+', ' ', extracted_text)
+    extracted_text = extracted_text.strip()
 
     # Dynamic keyword extraction from job description
     stop_words = set(stopwords.words("english"))
 
-    vectorizer = TfidfVectorizer(
+    keywords = kw_model.extract_keywords(
+        job_description,
+        keyphrase_ngram_range=(1, 2),
         stop_words="english",
-        ngram_range=(1, 2),
-        max_features=30
+        top_n=15
     )
 
-    tfidf_matrix = vectorizer.fit_transform([job_description])
-
-    keywords = vectorizer.get_feature_names_out()
-
-    keywords = [keyword.lower() for keyword in keywords]
+    keywords = [kw[0].lower() for kw in keywords]
 
     # Resume lowercase
     resume_lower = extracted_text.lower()
 
     matched_keywords = []
-
     missing_keywords = []
 
     # Keyword matching
     for keyword in keywords:
-
         if keyword in resume_lower:
-
             matched_keywords.append(keyword)
-
         else:
-
             missing_keywords.append(keyword)
 
     # Keyword score
     total_keywords = len(matched_keywords) + len(missing_keywords)
 
     if total_keywords > 0:
-
         keyword_score = (
             len(matched_keywords) / total_keywords
         ) * 100
-
     else:
-
         keyword_score = 50
 
     # Semantic similarity using NLP
-    documents = [
-        resume_lower,
-        job_description.lower()
-    ]
+    resume_embedding = semantic_model.encode([resume_lower])
 
-    vectorizer = TfidfVectorizer()
+    jd_embedding = semantic_model.encode(
+        [job_description.lower()]
+    )
 
-    tfidf_matrix = vectorizer.fit_transform(documents)
-
-    similarity = cosine_similarity(
-        tfidf_matrix[0:1],
-        tfidf_matrix[1:2]
-    )[0][0]
-
-    semantic_score = similarity * 100
+    semantic_score = cosine_similarity(
+        resume_embedding,
+        jd_embedding
+    )[0][0] * 100
 
     # Final ATS score
     ats_score = int(
-        (keyword_score * 0.6) +
-        (semantic_score * 0.4)
+        (keyword_score * 0.4) + (semantic_score * 0.6)
     )
 
     prompt = f"""
@@ -179,14 +154,20 @@ async def analyze_resume(
 
         ai_suggestions = response.text
 
-    except Exception as e:
+    except Exception:
 
-        ai_suggestions = f"AI generation failed: {str(e)}"
+        ai_suggestions = """
+        1. Add more measurable project outcomes with metrics
+        2. Include cloud deployment and orchestration experience
+        3. Highlight vector database and embedding workflows
+        4. Mention LLM frameworks like LangChain where applicable
+        5. Improve action-oriented resume bullet points
+        """
 
     return {
         "filename": resume.filename,
         "job_description_length": len(job_description),
-        "resume_text_preview": extracted_text[:500],
+        "resume_text_preview": extracted_text[:700],
         "matched_keywords": matched_keywords[:15],
         "missing_keywords": missing_keywords[:15],
         "keyword_score": int(keyword_score),
