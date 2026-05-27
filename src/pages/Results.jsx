@@ -38,7 +38,7 @@ function Results() {
 
   if (!backendData) {
     return (
-      <div className="min-h-screen bg-[#050816] text-white flex items-center justify-center text-2xl">
+      <div className="min-h-screen bg-[#2F4F4F] text-white flex items-center justify-center text-2xl">
         Loading analysis...
       </div>
     )
@@ -46,7 +46,7 @@ function Results() {
 
   return (
 
-    <div className="min-h-screen bg-[#050816] text-white p-6 md:p-10 relative overflow-hidden">
+    <div className="min-h-screen bg-[#2F4F4F] text-white p-6 md:p-10 relative overflow-hidden">
 
       {/* Background Glow */}
       <div className="absolute top-[-200px] left-[-100px] w-[500px] h-[500px] bg-purple-600 rounded-full blur-[150px] opacity-20"></div>

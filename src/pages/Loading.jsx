@@ -25,7 +25,7 @@ function Loading() {
   }, [navigate, resumeFile, jobDescription])
 
   return (
-    <div className="min-h-screen bg-[#050816] flex flex-col items-center justify-center text-white relative overflow-hidden">
+    <div className="min-h-screen bg-[#2F4F4F] flex flex-col items-center justify-center text-white relative overflow-hidden">
 
       {/* Glow */}
       <div className="absolute w-[400px] h-[400px] bg-purple-600 opacity-20 blur-[120px] rounded-full"></div>
