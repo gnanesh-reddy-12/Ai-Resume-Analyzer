@@ -10,7 +10,6 @@ import docx
 import io
 import re
 from keybert import KeyBERT
-import nltk
 
 # Initialize models & env
 load_dotenv()
@@ -19,9 +18,6 @@ semantic_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel("gemini-2.0-flash")
-
-nltk.download("punkt_tab")
-nltk.download("stopwords")
 
 app = FastAPI()
 
