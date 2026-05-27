@@ -13,6 +13,7 @@ import os
 import pdfplumber
 import docx
 import io
+import re
 
 load_dotenv()
 
@@ -78,24 +79,24 @@ async def analyze_resume(
         for para in document.paragraphs:
             extracted_text += para.text + "\n"
 
+        extracted_text = re.sub(r'([a-z])([A-Z])', r'\1 \2', extracted_text)
+        extracted_text = re.sub(r'\s+', ' ', extracted_text)
+        extracted_text = extracted_text.strip()
+
     # Dynamic keyword extraction from job description
     stop_words = set(stopwords.words("english"))
 
-    words = word_tokenize(job_description.lower())
+    vectorizer = TfidfVectorizer(
+        stop_words="english",
+        ngram_range=(1, 2),
+        max_features=30
+    )
 
-    keywords = []
+    tfidf_matrix = vectorizer.fit_transform([job_description])
 
-    for word in words:
+    keywords = vectorizer.get_feature_names_out()
 
-        if (
-            word.isalnum()
-            and word not in stop_words
-            and len(word) > 2
-        ):
-
-            keywords.append(word)
-
-    keywords = list(set(keywords))
+    keywords = [keyword.lower() for keyword in keywords]
 
     # Resume lowercase
     resume_lower = extracted_text.lower()
