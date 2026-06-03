@@ -1,30 +1,30 @@
 function Navbar() {
   return (
-    <nav className="w-full flex items-center justify-between px-8 py-6">
-      
-      <h1 className="text-2xl font-bold text-white">
-        ResumeAI
-      </h1>
+    <div className="px-6 pt-5">
 
-      <ul className="hidden md:flex gap-8 text-gray-300">
-        <li className="hover:text-white cursor-pointer transition">
-          Features
-        </li>
+      <nav className="max-w-6xl mx-auto bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl px-6 py-3 flex items-center justify-between shadow-lg">
 
-        <li className="hover:text-white cursor-pointer transition">
-          Dashboard
-        </li>
+        <h1 className="text-xl font-bold text-slate-900">
+          ResumeAI
+        </h1>
 
-        <li className="hover:text-white cursor-pointer transition">
-          About
-        </li>
-      </ul>
+        <ul className="hidden md:flex gap-8 text-slate-700 font-medium">
+          <li className="cursor-pointer hover:text-slate-900 transition">
+            Features
+          </li>
 
-      <button className="bg-white text-black px-5 py-2 rounded-full font-medium hover:scale-105 transition">
-        Upload Resume
-      </button>
+          <li className="cursor-pointer hover:text-slate-900 transition">
+            Dashboard
+          </li>
 
-    </nav>
+          <li className="cursor-pointer hover:text-slate-900 transition">
+            About
+          </li>
+        </ul>
+
+      </nav>
+
+    </div>
   )
 }
 

@@ -25,40 +25,41 @@ function UploadBox() {
   }
 
   return (
-    <div className="mt-20 flex justify-center px-6">
+    <div className="px-6">
 
-      <div className="w-full max-w-3xl h-72 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-2xl flex flex-col items-center justify-center text-center hover:border-purple-400 hover:shadow-[0_0_50px_rgba(168,85,247,0.3)] transition duration-300">
+      <div className="max-w-5xl mx-auto rounded-[32px] border border-white/30 bg-white/20 backdrop-blur-2xl shadow-[0_8px_32px_rgba(31,38,135,0.15)] p-10">
+        <div className="flex items-center justify-between flex-wrap gap-6">
 
-        <div className="text-6xl mb-4">
-          📄
+          <div>
+            <h2 className="text-3xl font-semibold text-white">
+              Upload Your Resume
+            </h2>
+
+            <p className="text-gray-400 mt-2">
+              PDF or DOCX only
+            </p>
+          </div>
+
+          <label className="border border-teal-400 text-white px-8 py-4 rounded-2xl cursor-pointer hover:bg-teal-400/10 transition">
+
+            Choose File
+
+            <input
+              type="file"
+              accept=".pdf,.docx"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+
+          </label>
+
         </div>
 
-        <h2 className="text-2xl text-white font-semibold">
-          Upload Your Resume
-        </h2>
-
-        <p className="text-gray-400 mt-3">
-          PDF or DOCX only
-        </p>
-
-        <label className="mt-6 bg-white text-black px-6 py-3 rounded-full font-medium hover:scale-105 transition cursor-pointer">
-
-          Choose File
-
-          <input
-            type="file"
-            accept=".pdf,.docx"
-            className="hidden"
-            onChange={handleFileChange}
-          />
-
-        </label>
-
         {resumeFile && (
-  <p className="text-green-400 mt-5">
-    Uploaded: {resumeFile.name}
-  </p>
-)}
+          <p className="text-green-400 mt-6">
+            ✓ {resumeFile.name}
+          </p>
+        )}
 
       </div>
 
