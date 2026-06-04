@@ -1,7 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
 import google.generativeai as genai
 from dotenv import load_dotenv
 import os
@@ -9,19 +7,15 @@ import pdfplumber
 import docx
 import io
 import re
-from keybert import KeyBERT
-
-# Initialize models & env
+import json
+ 
 load_dotenv()
-kw_model = KeyBERT()
-semantic_model = SentenceTransformer("all-MiniLM-L6-v2")
-
+ 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel("gemini-2.0-flash")
-
+ 
 app = FastAPI()
-
-# Allow frontend connection
+ 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -29,145 +23,151 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
+ 
+ 
 @app.get("/")
 def home():
     return {"message": "Backend is working"}
-
-
+ 
+ 
+def extract_text_from_file(filename: str, contents: bytes) -> str:
+    """Extract plain text from PDF or DOCX bytes."""
+    text = ""
+ 
+    if filename.endswith(".pdf"):
+        pdf_file = io.BytesIO(contents)
+        with pdfplumber.open(pdf_file) as pdf:
+            for page in pdf.pages:
+                text += page.extract_text() or ""
+ 
+    elif filename.endswith(".docx"):
+        doc_file = io.BytesIO(contents)
+        document = docx.Document(doc_file)
+        for para in document.paragraphs:
+            text += para.text + "\n"
+ 
+    # Clean up spacing artifacts from PDF parsing
+    text = re.sub(r'([a-z])([A-Z])', r'\1 \2', text)
+    text = re.sub(r'\s+', ' ', text)
+    return text.strip()
+ 
+ 
+def build_analysis_prompt(resume_text: str, job_description: str) -> str:
+    return f"""
+You are a professional ATS (Applicant Tracking System) expert and resume coach.
+ 
+Analyze the resume below against the job description and return ONLY a valid JSON object — no markdown, no extra text, no backticks.
+ 
+Resume:
+{resume_text[:3000]}
+ 
+Job Description:
+{job_description[:2000]}
+ 
+Return this exact JSON structure:
+ 
+{{
+  "ats_score": <integer 0-100, overall ATS compatibility score>,
+  "keyword_score": <integer 0-100, how well resume keywords match the JD>,
+  "semantic_score": <integer 0-100, how semantically aligned the resume is with the JD>,
+  "matched_keywords": [<list of up to 15 important keywords/skills found in BOTH resume and JD>],
+  "missing_keywords": [<list of up to 15 important keywords/skills in JD but NOT in resume>],
+  "can_apply": <true if ats_score >= 60, false otherwise>,
+  "apply_verdict": "<one line verdict like 'Strong match — apply confidently' or 'Needs improvement before applying'>",
+  "improvement_suggestions": [
+    {{
+      "section": "<resume section like Summary, Experience, Skills, etc.>",
+      "issue": "<what is weak or missing>",
+      "fix": "<specific actionable fix with example text or bullet point>"
+    }}
+  ],
+  "rewritten_bullets": [
+    "<rewritten bullet point 1 using strong action verbs and metrics>",
+    "<rewritten bullet point 2>",
+    "<rewritten bullet point 3>"
+  ],
+  "strong_action_verbs": [<list of 8 action verbs relevant to this JD>],
+  "summary_suggestion": "<a suggested 2-3 sentence professional summary tailored to this JD>"
+}}
+ 
+Scoring rules:
+- keyword_score: count exact and synonym matches of technical skills, tools, and role-specific terms
+- semantic_score: assess conceptual alignment of experience, responsibilities, and domain knowledge
+- ats_score: weighted average (keyword_score * 0.45 + semantic_score * 0.55), then adjust ±5 for formatting quality
+- Be strict and honest — a score of 75+ means genuinely competitive for the role
+"""
+ 
+ 
 @app.post("/analyze")
 async def analyze_resume(
     resume: UploadFile = File(...),
     job_description: str = Form(...)
 ):
-
-    extracted_text = ""
-    if not (
-        resume.filename.endswith(".pdf")
-        or resume.filename.endswith(".docx")
-    ):
-        return {
-            "message": "Only PDF and DOCX files are supported"
-        }
-
-    # PDF parsing
-    if resume.filename.endswith(".pdf"):
-        contents = await resume.read()
-        pdf_file = io.BytesIO(contents)
-        with pdfplumber.open(pdf_file) as pdf:
-            for page in pdf.pages:
-                extracted_text += page.extract_text() or ""
-
-    # DOCX parsing
-    elif resume.filename.endswith(".docx"):
-        contents = await resume.read()
-        doc_file = io.BytesIO(contents)
-        document = docx.Document(doc_file)
-        for para in document.paragraphs:
-            extracted_text += para.text + "\n"
-
-    extracted_text = re.sub(r'([a-z])([A-Z])', r'\1 \2', extracted_text)
-    extracted_text = re.sub(r'\s+', ' ', extracted_text)
-    extracted_text = extracted_text.strip()
-
-    # Dynamic keyword extraction from job description
-
-    keywords = kw_model.extract_keywords(
-        job_description,
-        keyphrase_ngram_range=(1, 2),
-        stop_words="english",
-        top_n=15
-    )
-
-    keywords = [kw[0].lower() for kw in keywords]
-
-    # Resume lowercase
-    resume_lower = extracted_text.lower()
-
-    matched_keywords = []
-    missing_keywords = []
-
-    # Keyword matching
-    for keyword in keywords:
-        if keyword in resume_lower:
-            matched_keywords.append(keyword)
-        else:
-            missing_keywords.append(keyword)
-
-    # Keyword score
-    total_keywords = len(matched_keywords) + len(missing_keywords)
-
-    if total_keywords > 0:
-        keyword_score = (
-            len(matched_keywords) / total_keywords
-        ) * 100
-    else:
-        keyword_score = 50
-
-    # Semantic similarity using NLP
-    resume_embedding = semantic_model.encode([resume_lower])
-
-    jd_embedding = semantic_model.encode(
-        [job_description.lower()]
-    )
-
-    semantic_score = cosine_similarity(
-        resume_embedding,
-        jd_embedding
-    )[0][0] * 100
-
-    # Final ATS score
-    ats_score = int(
-        (keyword_score * 0.4) + (semantic_score * 0.6)
-    )
-
-    prompt = f"""
-    You are an expert ATS resume optimizer.
-
-    Analyze this resume against the job description.
-
-    Resume:
-    {extracted_text[:2000]}
-
-    Job Description:
-    {job_description[:2000]}
-
-    Provide:
-
-    1. 4 ATS improvement suggestions
-    2. 3 rewritten professional resume bullet points
-    3. Missing technical skills
-    4. Strong action verbs to use
-
-    Format clearly with headings.
-    """
-
+    # Validate file type
+    if not (resume.filename.endswith(".pdf") or resume.filename.endswith(".docx")):
+        return {"error": "Only PDF and DOCX files are supported"}
+ 
+    # Parse resume
+    contents = await resume.read()
+    resume_text = extract_text_from_file(resume.filename, contents)
+ 
+    if not resume_text.strip():
+        return {"error": "Could not extract text from the resume. Make sure it is not a scanned image."}
+ 
+    # Build and send prompt to Gemini
+    prompt = build_analysis_prompt(resume_text, job_description)
+ 
     try:
-
         response = model.generate_content(prompt)
-
-        ai_suggestions = response.text
-
-    except Exception:
-
-        ai_suggestions = """
-        1. Add more measurable project outcomes with metrics
-        2. Include cloud deployment and orchestration experience
-        3. Highlight vector database and embedding workflows
-        4. Mention LLM frameworks like LangChain where applicable
-        5. Improve action-oriented resume bullet points
-        """
-
+        raw = response.text.strip()
+ 
+        # Strip markdown fences if Gemini wraps in ```json ... ```
+        if raw.startswith("```"):
+            raw = re.sub(r'^```[a-z]*\n?', '', raw)
+            raw = re.sub(r'\n?```$', '', raw)
+ 
+        data = json.loads(raw)
+ 
+    except json.JSONDecodeError:
+        # Fallback: return raw text as ai_suggestions if JSON parsing fails
+        return {
+            "filename": resume.filename,
+            "job_description_length": len(job_description),
+            "resume_text_preview": resume_text[:700],
+            "ats_score": 0,
+            "keyword_score": 0,
+            "semantic_score": 0,
+            "matched_keywords": [],
+            "missing_keywords": [],
+            "can_apply": False,
+            "apply_verdict": "Analysis failed — please try again",
+            "improvement_suggestions": [],
+            "rewritten_bullets": [],
+            "strong_action_verbs": [],
+            "summary_suggestion": "",
+            "ai_suggestions": response.text,
+            "message": "Gemini returned unstructured text — shown in ai_suggestions",
+            "error": "JSON parse failed"
+        }
+ 
+    except Exception as e:
+        return {"error": f"Gemini API error: {str(e)}"}
+ 
     return {
         "filename": resume.filename,
         "job_description_length": len(job_description),
-        "resume_text_preview": extracted_text[:700],
-        "matched_keywords": matched_keywords[:15],
-        "missing_keywords": missing_keywords[:15],
-        "keyword_score": int(keyword_score),
-        "semantic_score": int(semantic_score),
-        "ats_score": ats_score,
-        "ai_suggestions": ai_suggestions,
-        "message": "Resume parsed successfully"
+        "resume_text_preview": resume_text[:700],
+        "ats_score": data.get("ats_score", 0),
+        "keyword_score": data.get("keyword_score", 0),
+        "semantic_score": data.get("semantic_score", 0),
+        "matched_keywords": data.get("matched_keywords", [])[:15],
+        "missing_keywords": data.get("missing_keywords", [])[:15],
+        "can_apply": data.get("can_apply", False),
+        "apply_verdict": data.get("apply_verdict", ""),
+        "improvement_suggestions": data.get("improvement_suggestions", []),
+        "rewritten_bullets": data.get("rewritten_bullets", []),
+        "strong_action_verbs": data.get("strong_action_verbs", []),
+        "summary_suggestion": data.get("summary_suggestion", ""),
+        "message": "Resume analyzed successfully"
     }
+ 

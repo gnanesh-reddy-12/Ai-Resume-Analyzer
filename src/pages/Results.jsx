@@ -2,39 +2,39 @@ import { useContext, useEffect, useState } from "react"
 import { ResumeContext } from "../context/ResumeContext"
 
 function Results() {
-
-  const {
-    resumeFile,
-    jobDescription,
-  } = useContext(ResumeContext)
-
+  const { resumeFile, jobDescription } = useContext(ResumeContext)
   const [backendData, setBackendData] = useState(null)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-
-    console.log(resumeFile)
-
     if (!resumeFile) return
 
     const formData = new FormData()
-
     formData.append("resume", resumeFile)
-
     formData.append("job_description", jobDescription)
 
     fetch(`${import.meta.env.VITE_BACKEND_URL}/analyze`, {
       method: "POST",
-      body: formData
+      body: formData,
     })
-      .then((response) => response.json())
+      .then((res) => res.json())
       .then((data) => {
-        setBackendData(data)
+        if (data.error) setError(data.error)
+        else setBackendData(data)
       })
-      .catch((error) => {
-        console.log(error)
-      })
+      .catch((err) => setError(err.message))
+  }, [resumeFile, jobDescription])
 
-  }, [ resumeFile, jobDescription ])
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#2F4F4F] text-white flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-400 text-xl">{error}</p>
+          <a href="/" className="mt-4 inline-block text-purple-400 underline">Go back</a>
+        </div>
+      </div>
+    )
+  }
 
   if (!backendData) {
     return (
@@ -44,153 +44,173 @@ function Results() {
     )
   }
 
-  return (
+  const scoreColor =
+    backendData.ats_score >= 75
+      ? "border-green-400"
+      : backendData.ats_score >= 55
+      ? "border-yellow-400"
+      : "border-red-400"
 
+  const scoreTextColor =
+    backendData.ats_score >= 75
+      ? "text-green-400"
+      : backendData.ats_score >= 55
+      ? "text-yellow-400"
+      : "text-red-400"
+
+  return (
     <div className="min-h-screen bg-[#2F4F4F] text-white p-6 md:p-10 relative overflow-hidden">
 
       {/* Background Glow */}
-      <div className="absolute top-[-200px] left-[-100px] w-[500px] h-[500px] bg-purple-600 rounded-full blur-[150px] opacity-20"></div>
+      <div className="absolute top-[-200px] left-[-100px] w-[500px] h-[500px] bg-purple-600 rounded-full blur-[150px] opacity-20 pointer-events-none"></div>
+      <div className="absolute bottom-[-200px] right-[-100px] w-[500px] h-[500px] bg-blue-600 rounded-full blur-[150px] opacity-20 pointer-events-none"></div>
 
-      <div className="absolute bottom-[-200px] right-[-100px] w-[500px] h-[500px] bg-blue-600 rounded-full blur-[150px] opacity-20"></div>
+      <div className="relative z-10 max-w-6xl mx-auto">
 
-      <div className="relative z-10">
+        {/* Header */}
+        <h1 className="text-5xl font-bold">ATS Analysis Results</h1>
+        <p className="text-gray-400 mt-2">{resumeFile?.name}</p>
 
-        {/* Heading */}
-        <h1 className="text-5xl font-bold">
-          ATS Analysis Results
-        </h1>
-
-        {/* Backend Message */}
-        <div className="mt-6 bg-green-500/20 border border-green-500/30 text-green-300 px-5 py-4 rounded-2xl">
-          {backendData?.message}
+        {/* Apply Verdict Banner */}
+        <div className={`mt-6 px-5 py-4 rounded-2xl border font-semibold text-lg ${
+          backendData.can_apply
+            ? "bg-green-500/20 border-green-500/30 text-green-300"
+            : "bg-red-500/20 border-red-500/30 text-red-300"
+        }`}>
+          {backendData.can_apply ? "✅" : "⚠️"} {backendData.apply_verdict}
         </div>
 
-        {/* Resume Info */}
-        <div className="mt-8 bg-white/5 border border-white/10 rounded-3xl p-6">
+        {/* Scores Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-10">
 
-          <p className="text-purple-300">
-            Uploaded Resume:
-            <span className="text-white ml-2">
-              {resumeFile?.name}
-            </span>
-          </p>
-
-          <p className="text-blue-300 mt-4">
-            Job Description Length:
-            <span className="text-white ml-2">
-              {backendData?.job_description_length}
-            </span>
-          </p>
-
-          <p className="text-green-300 mt-4">
-            Resume Preview:
-          </p>
-
-          <div className="mt-3 bg-black/30 border border-white/10 rounded-xl p-4 text-gray-300 max-h-64 overflow-y-auto whitespace-pre-wrap">
-            {backendData?.resume_text_preview}
-          </div>
-
-        </div>
-
-        {/* Dashboard */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-12">
-
-          {/* ATS Score */}
-          <div className="bg-white/5 border border-white/10 backdrop-blur-2xl rounded-3xl p-8">
-
-            <h2 className="text-gray-400 text-lg">
-              ATS Score
-            </h2>
-
-            <div className="mt-8 flex items-center justify-center">
-
-              <div className="w-44 h-44 rounded-full border-[12px] border-purple-500 flex items-center justify-center text-5xl font-bold">
-                {backendData?.ats_score || 0}%
-              </div>
-
+          {/* ATS Score Circle */}
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-8 flex flex-col items-center">
+            <h2 className="text-gray-400 text-lg mb-6">ATS Score</h2>
+            <div className={`w-44 h-44 rounded-full border-[12px] ${scoreColor} flex items-center justify-center`}>
+              <span className={`text-5xl font-bold ${scoreTextColor}`}>{backendData.ats_score}%</span>
             </div>
-
-            <p className="text-yellow-300 mt-6">
-              Keyword Match Score:
-              <span className="text-white ml-2">
-                {backendData?.keyword_score || 0}%
-              </span>
-            </p>
-
-            <p className="text-cyan-300 mt-3">
-              Semantic Similarity Score:
-              <span className="text-white ml-2">
-                {backendData?.semantic_score || 0}%
-              </span>
-            </p>
-
+            <div className="mt-6 w-full space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-yellow-300">Keyword Score</span>
+                <span>{backendData.keyword_score}%</span>
+              </div>
+              <div className="w-full bg-white/10 rounded-full h-2">
+                <div className="bg-yellow-400 h-2 rounded-full" style={{ width: `${backendData.keyword_score}%` }}></div>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-cyan-300">Semantic Score</span>
+                <span>{backendData.semantic_score}%</span>
+              </div>
+              <div className="w-full bg-white/10 rounded-full h-2">
+                <div className="bg-cyan-400 h-2 rounded-full" style={{ width: `${backendData.semantic_score}%` }}></div>
+              </div>
+            </div>
           </div>
 
           {/* Matched Keywords */}
-          <div className="bg-white/5 border border-white/10 backdrop-blur-2xl rounded-3xl p-8">
-
-            <h2 className="text-green-300 text-2xl font-bold">
-              Matched Keywords
-            </h2>
-
-            <div className="flex flex-wrap gap-3 mt-6">
-
-              {backendData?.matched_keywords?.map((keyword, index) => (
-
-                <span
-                  key={index}
-                  className="bg-green-500/20 text-green-300 px-4 py-2 rounded-full border border-green-500/30"
-                >
-                  {keyword}
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-8">
+            <h2 className="text-green-300 text-2xl font-bold mb-6">✓ Matched Keywords</h2>
+            <div className="flex flex-wrap gap-2">
+              {backendData.matched_keywords?.map((kw, i) => (
+                <span key={i} className="bg-green-500/20 text-green-300 px-3 py-1.5 rounded-full border border-green-500/30 text-sm">
+                  {kw}
                 </span>
-
               ))}
-
+              {backendData.matched_keywords?.length === 0 && (
+                <p className="text-gray-400">No matched keywords found.</p>
+              )}
             </div>
-
           </div>
 
           {/* Missing Keywords */}
-          <div className="bg-white/5 border border-white/10 backdrop-blur-2xl rounded-3xl p-8">
-
-            <h2 className="text-red-300 text-2xl font-bold">
-              Missing Keywords
-            </h2>
-
-            <div className="flex flex-wrap gap-3 mt-6">
-
-              {backendData?.missing_keywords?.map((keyword, index) => (
-
-                <span
-                  key={index}
-                  className="bg-red-500/20 text-red-300 px-4 py-2 rounded-full border border-red-500/30"
-                >
-                  {keyword}
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-8">
+            <h2 className="text-red-300 text-2xl font-bold mb-6">✗ Missing Keywords</h2>
+            <div className="flex flex-wrap gap-2">
+              {backendData.missing_keywords?.map((kw, i) => (
+                <span key={i} className="bg-red-500/20 text-red-300 px-3 py-1.5 rounded-full border border-red-500/30 text-sm">
+                  {kw}
                 </span>
-
               ))}
-
+              {backendData.missing_keywords?.length === 0 && (
+                <p className="text-gray-400">No missing keywords — great!</p>
+              )}
             </div>
-
           </div>
-
         </div>
 
-        {/* AI Suggestions */}
-        <div className="mt-12 bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-2xl">
+        {/* Improvement Suggestions */}
+        {backendData.improvement_suggestions?.length > 0 && (
+          <div className="mt-10 bg-white/5 border border-white/10 rounded-3xl p-8">
+            <h2 className="text-purple-300 text-3xl font-bold mb-6">🛠 Improvement Suggestions</h2>
+            <div className="space-y-5">
+              {backendData.improvement_suggestions.map((item, i) => (
+                <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-5">
+                  <p className="text-purple-300 font-semibold uppercase tracking-wide text-sm">{item.section}</p>
+                  <p className="text-red-300 mt-2 text-sm">⚠ {item.issue}</p>
+                  <p className="text-green-300 mt-2 text-sm">✅ {item.fix}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-          <h2 className="text-3xl font-bold text-purple-300">
-            AI Resume Suggestions
-          </h2>
+        {/* Rewritten Bullets */}
+        {backendData.rewritten_bullets?.length > 0 && (
+          <div className="mt-10 bg-white/5 border border-white/10 rounded-3xl p-8">
+            <h2 className="text-blue-300 text-3xl font-bold mb-6">✍ Rewritten Bullet Points</h2>
+            <ul className="space-y-3">
+              {backendData.rewritten_bullets.map((bullet, i) => (
+                <li key={i} className="flex items-start gap-3 text-gray-300">
+                  <span className="text-blue-400 mt-1">▸</span>
+                  <span>{bullet}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
-          <pre className="mt-6 text-gray-300 whitespace-pre-wrap font-sans leading-8">
-            {backendData?.ai_suggestions || "Generating AI suggestions..."}
-          </pre>
+        {/* Summary Suggestion + Action Verbs */}
+        <div className="grid md:grid-cols-2 gap-6 mt-10">
 
+          {backendData.summary_suggestion && (
+            <div className="bg-white/5 border border-white/10 rounded-3xl p-8">
+              <h2 className="text-yellow-300 text-2xl font-bold mb-4">💡 Suggested Summary</h2>
+              <p className="text-gray-300 leading-7">{backendData.summary_suggestion}</p>
+            </div>
+          )}
+
+          {backendData.strong_action_verbs?.length > 0 && (
+            <div className="bg-white/5 border border-white/10 rounded-3xl p-8">
+              <h2 className="text-cyan-300 text-2xl font-bold mb-4">⚡ Strong Action Verbs</h2>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {backendData.strong_action_verbs.map((verb, i) => (
+                  <span key={i} className="bg-cyan-500/20 text-cyan-300 px-3 py-1.5 rounded-full border border-cyan-500/30 text-sm font-medium">
+                    {verb}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Resume Preview */}
+        <div className="mt-10 bg-white/5 border border-white/10 rounded-3xl p-8">
+          <h2 className="text-gray-400 text-xl font-semibold mb-4">Resume Text Preview</h2>
+          <div className="bg-black/30 border border-white/10 rounded-xl p-4 text-gray-400 max-h-48 overflow-y-auto whitespace-pre-wrap text-sm">
+            {backendData.resume_text_preview}
+          </div>
+        </div>
+
+        <div className="mt-10 text-center">
+          <a
+            href="/"
+            className="inline-block bg-purple-600 hover:bg-purple-700 text-white px-10 py-4 rounded-2xl font-semibold text-lg transition"
+          >
+            ← Analyze Another Resume
+          </a>
         </div>
 
       </div>
-
     </div>
   )
 }
