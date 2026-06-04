@@ -1,7 +1,83 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 body {
   font-family: 'Inter', sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.liquid-navbar {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255,255,255,0.22) 0%,
+            rgba(255,255,255,0.06) 45%,
+            rgba(255,255,255,0.02) 100%
+        );
+
+    backdrop-filter: blur(28px) saturate(190%);
+    -webkit-backdrop-filter: blur(28px) saturate(190%);
+
+    border: 1px solid rgba(255,255,255,0.28);
+
+    box-shadow:
+        0 8px 32px rgba(0,0,0,0.12),
+        0 2px 8px rgba(0,0,0,0.06),
+        inset 0 1px 0 rgba(255,255,255,0.45),
+        inset 0 -1px 0 rgba(255,255,255,0.06);
+
+    transition: all 0.35s ease;
+}
+
+.liquid-navbar::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+
+    background: linear-gradient(
+        180deg,
+        rgba(255,255,255,0.35) 0%,
+        rgba(255,255,255,0.08) 28%,
+        transparent 55%
+    );
+
+    pointer-events: none;
+}
+
+.liquid-navbar::after {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+
+    background: radial-gradient(
+        ellipse 80% 50% at 50% 0%,
+        rgba(255,255,255,0.12),
+        transparent 70%
+    );
+
+    pointer-events: none;
+}
+
+.liquid-navbar:hover {
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255,255,255,0.28) 0%,
+            rgba(255,255,255,0.10) 45%,
+            rgba(255,255,255,0.04) 100%
+        );
+
+    border-color: rgba(255,255,255,0.38);
 }
