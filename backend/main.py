@@ -1,6 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-import anthropic
+from groq import Groq
 from dotenv import load_dotenv
 import os
 import pdfplumber
@@ -11,7 +11,7 @@ import json
 
 load_dotenv()
 
-client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 app = FastAPI()
 
@@ -52,7 +52,7 @@ def extract_text_from_file(filename: str, contents: bytes) -> str:
 def build_analysis_prompt(resume_text: str, job_description: str) -> str:
     return f"""You are a professional ATS (Applicant Tracking System) expert and resume coach.
 
-Analyze the resume below against the job description and return ONLY a valid JSON object — no markdown, no extra text, no backticks, no preamble.
+Analyze the resume below against the job description and return ONLY a valid JSON object — no markdown, no extra text, no backticks, no preamble. Start your response with {{ and end with }}.
 
 Resume:
 {resume_text[:3000]}
@@ -89,7 +89,7 @@ Return this exact JSON structure:
 Scoring rules:
 - keyword_score: count exact and synonym matches of technical skills, tools, and role-specific terms
 - semantic_score: assess conceptual alignment of experience, responsibilities, and domain knowledge
-- ats_score: weighted average (keyword_score * 0.45 + semantic_score * 0.55), adjust ±5 for formatting quality
+- ats_score: weighted average (keyword_score * 0.45 + semantic_score * 0.55), adjust +-5 for formatting quality
 - Be strict and honest — 75+ means genuinely competitive for the role"""
 
 
@@ -110,15 +110,23 @@ async def analyze_resume(
     prompt = build_analysis_prompt(resume_text, job_description)
 
     try:
-        message = client.messages.create(
-            model="claude-3-5-sonnet-20241022",
-            max_tokens=2000,
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
             messages=[
-                {"role": "user", "content": prompt}
-            ]
+                {
+                    "role": "system",
+                    "content": "You are an ATS expert. Always respond with valid JSON only. No markdown, no backticks, no extra text."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.2,
+            max_tokens=2000,
         )
 
-        raw = message.content[0].text.strip()
+        raw = response.choices[0].message.content.strip()
 
         if raw.startswith("```"):
             raw = re.sub(r'^```[a-z]*\n?', '', raw)
@@ -146,8 +154,8 @@ async def analyze_resume(
             "error": "JSON parse failed"
         }
 
-    except anthropic.APIError as e:
-        return {"error": f"Claude API error: {str(e)}"}
+    except Exception as e:
+        return {"error": f"Groq API error: {str(e)}"}
 
     return {
         "filename": resume.filename,
