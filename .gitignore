@@ -30,6 +30,5 @@ venv/
 node_modules/
 .env
 backend/.env
-.env.local
 .env.production
 __pycache__/

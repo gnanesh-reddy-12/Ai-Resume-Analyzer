@@ -5,29 +5,13 @@ import PreviewCards from "../components/PreviewCards"
 
 function Home() {
   return (
-    <div className="relative">
-
-      <div
-  className="relative min-h-screen overflow-hidden"
-  style={{
-    backgroundColor: "#ADD8E6"
-  }}
->
-
-        <Navbar />
-
-        <Hero />
-
-        <AnalyzeSection />
-
-      </div>
-
-      <div className="bg-white">
-        <PreviewCards />
-      </div>
-
+    <div className="min-h-screen bg-[#F8FAFC]">
+      <Navbar />
+      <Hero />
+      <AnalyzeSection />
+      <PreviewCards />
     </div>
   )
 }
 
-export default Home 
+export default Home

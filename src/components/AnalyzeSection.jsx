@@ -1,238 +1,90 @@
 import { useContext } from "react"
 import { useNavigate } from "react-router-dom"
+import { motion } from "framer-motion"
 import { ResumeContext } from "../context/ResumeContext"
 
 function AnalyzeSection() {
-
   const navigate = useNavigate()
+  const { resumeFile, setResumeFile, jobDescription, setJobDescription } = useContext(ResumeContext)
 
-  const {
-    resumeFile,
-    setResumeFile,
-    jobDescription,
-    setJobDescription,
-    setAtsScore
-  } = useContext(ResumeContext)
-
-  const handleFileChange = (event) => {
-
-    const file = event.target.files[0]
-
+  const handleFileChange = (e) => {
+    const file = e.target.files[0]
     if (!file) return
-
-    const allowedTypes = [
-      "application/pdf",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    ]
-
-    if (!allowedTypes.includes(file.type)) {
-      alert("Only PDF and DOCX files are allowed")
-      return
-    }
-
+    const allowed = ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]
+    if (!allowed.includes(file.type)) { alert("Only PDF and DOCX files are allowed"); return }
     setResumeFile(file)
   }
 
   const handleAnalyze = () => {
-
-    if (!resumeFile) {
-      alert("Please upload a resume")
-      return
-    }
-
-    if (jobDescription.trim() === "") {
-      alert("Please paste a job description")
-      return
-    }
-
-    let score = 50
-
-    score += Math.min(jobDescription.length / 40, 30)
-
-    score += 20
-
-    score = Math.min(Math.floor(score), 98)
-
-    setAtsScore(score)
-
+    if (!resumeFile) { alert("Please upload a resume"); return }
+    if (!jobDescription.trim()) { alert("Please paste a job description"); return }
     navigate("/loading")
   }
 
   return (
-
-    <section
-      id="upload"
-      className="px-6 pb-24"
-    >
-
-      <div className="max-w-6xl mx-auto rounded-[40px] border border-white/30 bg-white/20 backdrop-blur-2xl shadow-[0_8px_32px_rgba(31,38,135,0.12)] p-10 md:p-12">
-
-        <div className="text-center">
-
-          <p className="text-sky-700 uppercase tracking-[0.25em] font-semibold">
-            Resume Analysis
-          </p>
-
-          <h2 className="text-4xl md:text-5xl font-bold text-slate-800 mt-4">
-            Analyze Your Resume
-          </h2>
-
-          <p className="text-slate-600 mt-4 max-w-2xl mx-auto">
-            Upload your resume and paste a job description
-            to receive ATS scoring, keyword analysis,
-            semantic matching and AI suggestions.
-          </p>
-
+    <section id="upload" className="max-w-6xl mx-auto px-6 pb-24">
+      <motion.div
+        initial={{ opacity: 0, y: 32 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+        className="bg-white border border-slate-200 rounded-3xl p-10 shadow-sm"
+      >
+        <div className="text-center mb-10">
+          <p className="text-blue-500 text-sm font-semibold uppercase tracking-widest">Get Started</p>
+          <h2 className="text-4xl font-bold text-slate-900 mt-3">Analyze Your Resume</h2>
+          <p className="text-slate-500 mt-3 max-w-xl mx-auto">Upload your resume and paste a job description to receive your ATS score and AI-powered improvement suggestions.</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 mt-12">
+        <div className="grid md:grid-cols-2 gap-6">
 
-          {/* Upload Card */}
-
-          <div
-            className="
-            bg-white/10
-            border border-white/20
-            rounded-3xl
-            p-8
-            min-h-[380px]
-            flex
-            flex-col
-            justify-center
-            items-center
-            text-center
-            "
-          >
-
-            <h3 className="text-3xl font-semibold text-slate-800">
-              Upload Resume
-            </h3>
-
-            <p className="text-slate-600 mt-3">
-              PDF or DOCX files only
-            </p>
-
-            <label
-              className="
-              mt-8
-              inline-flex
-              border
-              border-sky-500
-              text-slate-800
-              px-8
-              py-4
-              rounded-2xl
-              cursor-pointer
-              hover:bg-sky-500/10
-              transition
-              "
-            >
-
+          {/* Upload */}
+          <div className="border-2 border-dashed border-slate-200 hover:border-blue-300 rounded-2xl p-8 flex flex-col items-center justify-center text-center transition-colors min-h-[280px]">
+            <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-5">
+              <svg className="w-7 h-7 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+            </div>
+            <h3 className="font-semibold text-slate-900 text-lg">Upload Resume</h3>
+            <p className="text-slate-500 text-sm mt-1">PDF or DOCX, max 10MB</p>
+            <label className="mt-5 btn-primary text-sm cursor-pointer">
               Choose File
-
-              <input
-                type="file"
-                accept=".pdf,.docx"
-                className="hidden"
-                onChange={handleFileChange}
-              />
-
+              <input type="file" accept=".pdf,.docx" className="hidden" onChange={handleFileChange} />
             </label>
-
             {resumeFile && (
-
-              <div className="mt-6 p-4 rounded-2xl bg-green-500/10 border border-green-500/20 w-full">
-
-                <p className="text-green-700 font-medium break-all">
-                  ✓ {resumeFile.name}
-                </p>
-
-              </div>
-
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mt-4 flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-xl text-sm w-full justify-center">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                <span className="truncate max-w-[180px]">{resumeFile.name}</span>
+              </motion.div>
             )}
-
           </div>
 
-          {/* Job Description Card */}
-
-          <div
-            className="
-            bg-white/10
-            border border-white/20
-            rounded-3xl
-            p-8
-            min-h-[380px]
-            flex
-            flex-col
-            justify-center
-            "
-          >
-
-            <h3 className="text-3xl font-semibold text-slate-800">
-              Job Description
-            </h3>
-
-            <p className="text-slate-600 mt-3">
-              Paste the target job description
-            </p>
-
+          {/* JD */}
+          <div className="flex flex-col min-h-[280px]">
+            <h3 className="font-semibold text-slate-900 text-lg mb-1">Job Description</h3>
+            <p className="text-slate-500 text-sm mb-4">Paste the full job description</p>
             <textarea
               value={jobDescription}
-              onChange={(e) =>
-                setJobDescription(e.target.value)
-              }
+              onChange={(e) => setJobDescription(e.target.value)}
               placeholder="Paste the full job description here..."
-              className="
-              w-full
-              h-52
-              mt-6
-              bg-white/20
-              border
-              border-white/30
-              rounded-2xl
-              p-5
-              text-slate-800
-              placeholder-slate-500
-              outline-none
-              resize-none
-              focus:border-sky-500
-              "
+              className="input-field flex-1 resize-none"
             />
-
-            <p className="text-slate-500 mt-3">
-              {jobDescription.length} characters
-            </p>
-
+            <p className="text-slate-400 text-xs mt-2 text-right">{jobDescription.length} characters</p>
           </div>
-
         </div>
 
-        <div className="flex justify-center mt-12">
-
-          <button
+        <div className="flex justify-center mt-10">
+          <motion.button
             onClick={handleAnalyze}
-            className="
-            bg-sky-500
-            hover:bg-sky-600
-            text-white
-            px-12
-            py-4
-            rounded-2xl
-            font-semibold
-            text-lg
-            transition
-            shadow-lg
-            "
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="btn-primary px-12 py-4 text-base"
           >
-            Analyze Resume
-          </button>
-
+            Analyze Resume →
+          </motion.button>
         </div>
-
-      </div>
-
+      </motion.div>
     </section>
-
   )
 }
 

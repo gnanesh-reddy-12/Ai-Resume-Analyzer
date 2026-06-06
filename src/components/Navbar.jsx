@@ -1,55 +1,59 @@
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../context/useAuth"
+import { motion } from "framer-motion"
 
 function Navbar() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  const isAuthPage = location.pathname === "/login" || location.pathname === "/signup"
 
   return (
-    <div className="px-6 pt-5">
-      <nav className="liquid-navbar max-w-5xl mx-auto rounded-full px-8 py-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight text-white">
-          Resume<span className="text-cyan-500 drop-shadow-[0_0_12px_rgba(34,211,238,0.4)]">AI</span>
-        </h1>
+    <motion.header
+      initial={{ opacity: 0, y: -16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200"
+    >
+      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        <button onClick={() => navigate("/")} className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-sm">R</span>
+          </div>
+          <span className="font-bold text-lg text-slate-900">ResumeAI</span>
+        </button>
 
-        <div className="flex items-center gap-4">
-          <ul className="hidden md:flex gap-2 font-medium">
-            <li>
-              <a href="#features" className="px-4 py-2 rounded-full text-white hover:bg-white/15 transition-all duration-300">Features</a>
-            </li>
-            <li>
-              <a href="#how-it-works" className="px-4 py-2 rounded-full text-white hover:bg-white/15 transition-all duration-300">How It Works</a>
-            </li>
+        {!isAuthPage && (
+          <nav className="hidden md:flex items-center gap-1">
+            <a href="#features" className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all">Features</a>
+            <a href="#how-it-works" className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all">How It Works</a>
             {user && (
-              <li>
-                <button onClick={() => navigate("/history")} className="px-4 py-2 rounded-full text-white hover:bg-white/15 transition-all duration-300">
-                  History
-                </button>
-              </li>
+              <button onClick={() => navigate("/history")} className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all">
+                History
+              </button>
             )}
-          </ul>
+          </nav>
+        )}
 
+        <div className="flex items-center gap-3">
           {user ? (
-            <div className="flex items-center gap-3">
-              <span className="text-white/70 text-sm hidden md:block">{user.email}</span>
-              <button
-                onClick={() => { logout(); navigate("/login") }}
-                className="px-5 py-2.5 rounded-full bg-white/25 backdrop-blur-md border border-white/30 text-slate-900 font-semibold hover:bg-white/35 transition-all duration-300"
-              >
+            <>
+              <span className="hidden md:block text-sm text-slate-500">{user.email}</span>
+              <button onClick={() => { logout(); navigate("/login") }} className="btn-secondary text-sm px-4 py-2">
                 Logout
               </button>
-            </div>
+            </>
           ) : (
-            <button
-              onClick={() => navigate("/login")}
-              className="px-6 py-3 rounded-full bg-white/25 backdrop-blur-md border border-white/30 text-slate-900 font-semibold hover:bg-white/35 transition-all duration-300"
-            >
-              Sign In
-            </button>
+            !isAuthPage && (
+              <button onClick={() => navigate("/login")} className="btn-primary text-sm px-4 py-2">
+                Sign In
+              </button>
+            )
           )}
         </div>
-      </nav>
-    </div>
+      </div>
+    </motion.header>
   )
 }
 

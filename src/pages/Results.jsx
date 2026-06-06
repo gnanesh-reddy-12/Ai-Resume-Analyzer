@@ -1,18 +1,65 @@
 import { useContext, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { motion } from "framer-motion"
 import { ResumeContext } from "../context/ResumeContext"
 import { useAuth } from "../context/useAuth"
+import Navbar from "../components/Navbar"
+
+const container = { hidden: {}, show: { transition: { staggerChildren: 0.08 } } }
+const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.45 } } }
+
+function ScoreRing({ score, size = 160, stroke = 10 }) {
+  const r = (size - stroke) / 2
+  const circ = 2 * Math.PI * r
+  const offset = circ - (score / 100) * circ
+  const color = score >= 75 ? "#10B981" : score >= 55 ? "#F59E0B" : "#EF4444"
+
+  return (
+    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#E2E8F0" strokeWidth={stroke} />
+        <motion.circle
+          cx={size/2} cy={size/2} r={r} fill="none"
+          stroke={color} strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={circ}
+          initial={{ strokeDashoffset: circ }}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
+        />
+      </svg>
+      <div className="absolute text-center">
+        <div className="text-3xl font-bold text-slate-900">{score}%</div>
+        <div className="text-xs text-slate-500 mt-0.5">ATS Score</div>
+      </div>
+    </div>
+  )
+}
+
+function ProgressBar({ value, color }) {
+  return (
+    <div className="w-full bg-slate-100 rounded-full h-2">
+      <motion.div
+        className="h-2 rounded-full"
+        style={{ background: color }}
+        initial={{ width: 0 }}
+        animate={{ width: `${value}%` }}
+        transition={{ duration: 0.9, ease: "easeOut" }}
+      />
+    </div>
+  )
+}
 
 function Results() {
   const { resumeFile, jobDescription } = useContext(ResumeContext)
   const { token } = useAuth()
   const navigate = useNavigate()
-  const [backendData, setBackendData] = useState(null)
+  const [data, setData] = useState(null)
   const [error, setError] = useState(null)
 
   useEffect(() => {
     if (!resumeFile) return
-    if (!token) return navigate("/login")
+    if (!token) { navigate("/login"); return }
 
     const formData = new FormData()
     formData.append("resume", resumeFile)
@@ -24,155 +71,168 @@ function Results() {
       body: formData,
     })
       .then((r) => r.json())
-      .then((d) => { if (d.error) setError(d.error); else setBackendData(d) })
+      .then((d) => { if (d.error) setError(d.error); else setData(d) })
       .catch((e) => setError(e.message))
   }, [resumeFile, jobDescription, token, navigate])
 
   if (error) return (
-    <div className="min-h-screen bg-[#2F4F4F] text-white flex items-center justify-center">
-      <div className="text-center">
-        <p className="text-red-400 text-xl">{error}</p>
-        <button onClick={() => navigate("/")} className="mt-4 text-purple-400 underline">Go back</button>
+    <div className="min-h-screen bg-[#F8FAFC]">
+      <Navbar />
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <span className="text-2xl">⚠️</span>
+          </div>
+          <h2 className="text-xl font-semibold text-slate-900">Analysis Failed</h2>
+          <p className="text-slate-500 mt-2 max-w-sm">{error}</p>
+          <button onClick={() => navigate("/")} className="btn-primary mt-6">Try Again</button>
+        </div>
       </div>
     </div>
   )
 
-  if (!backendData) return (
-    <div className="min-h-screen bg-[#2F4F4F] text-white flex items-center justify-center text-2xl">
-      Loading analysis...
+  if (!data) return (
+    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-slate-500">Loading analysis...</p>
+      </div>
     </div>
   )
 
-  const scoreColor = backendData.ats_score >= 75 ? "border-green-400" : backendData.ats_score >= 55 ? "border-yellow-400" : "border-red-400"
-  const scoreTextColor = backendData.ats_score >= 75 ? "text-green-400" : backendData.ats_score >= 55 ? "text-yellow-400" : "text-red-400"
-
   return (
-    <div className="min-h-screen bg-[#2F4F4F] text-white p-6 md:p-10 relative overflow-hidden">
-      <div className="absolute top-[-200px] left-[-100px] w-[500px] h-[500px] bg-purple-600 rounded-full blur-[150px] opacity-20 pointer-events-none"></div>
-      <div className="absolute bottom-[-200px] right-[-100px] w-[500px] h-[500px] bg-blue-600 rounded-full blur-[150px] opacity-20 pointer-events-none"></div>
+    <div className="min-h-screen bg-[#F8FAFC]">
+      <Navbar />
+      <div className="max-w-6xl mx-auto px-6 py-10">
 
-      <div className="relative z-10 max-w-6xl mx-auto">
-
-        <div className="flex items-center justify-between flex-wrap gap-4">
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="flex items-start justify-between flex-wrap gap-4 mb-8">
           <div>
-            <h1 className="text-5xl font-bold">ATS Analysis Results</h1>
-            <p className="text-gray-400 mt-2">{resumeFile?.name}</p>
+            <p className="text-blue-500 text-sm font-semibold uppercase tracking-widest">Analysis Complete</p>
+            <h1 className="text-4xl font-bold text-slate-900 mt-1">Your ATS Report</h1>
+            <p className="text-slate-500 mt-1">{resumeFile?.name}</p>
           </div>
-          <button
-            onClick={() => navigate("/history")}
-            className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-2xl font-semibold transition"
-          >
-            View History
-          </button>
-        </div>
+          <button onClick={() => navigate("/history")} className="btn-secondary text-sm">View History</button>
+        </motion.div>
 
-        <div className={`mt-6 px-5 py-4 rounded-2xl border font-semibold text-lg ${
-          backendData.can_apply ? "bg-green-500/20 border-green-500/30 text-green-300" : "bg-red-500/20 border-red-500/30 text-red-300"
-        }`}>
-          {backendData.can_apply ? "✅" : "⚠️"} {backendData.apply_verdict}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-10">
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-8 flex flex-col items-center">
-            <h2 className="text-gray-400 text-lg mb-6">ATS Score</h2>
-            <div className={`w-44 h-44 rounded-full border-[12px] ${scoreColor} flex items-center justify-center`}>
-              <span className={`text-5xl font-bold ${scoreTextColor}`}>{backendData.ats_score}%</span>
-            </div>
-            <div className="mt-6 w-full space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-yellow-300">Keyword Score</span>
-                <span>{backendData.keyword_score}%</span>
-              </div>
-              <div className="w-full bg-white/10 rounded-full h-2">
-                <div className="bg-yellow-400 h-2 rounded-full" style={{ width: `${backendData.keyword_score}%` }}></div>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-cyan-300">Semantic Score</span>
-                <span>{backendData.semantic_score}%</span>
-              </div>
-              <div className="w-full bg-white/10 rounded-full h-2">
-                <div className="bg-cyan-400 h-2 rounded-full" style={{ width: `${backendData.semantic_score}%` }}></div>
-              </div>
-            </div>
+        {/* Verdict */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className={`flex items-center gap-3 px-6 py-4 rounded-2xl border mb-8 ${data.can_apply ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800"}`}>
+          <span className="text-2xl">{data.can_apply ? "✅" : "⚠️"}</span>
+          <div>
+            <p className="font-semibold">{data.apply_verdict}</p>
+            <p className="text-sm opacity-75 mt-0.5">{data.can_apply ? "Your resume is competitive for this role" : "Consider improving before applying"}</p>
           </div>
+        </motion.div>
 
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-8">
-            <h2 className="text-green-300 text-2xl font-bold mb-6">✓ Matched Keywords</h2>
+        {/* Score Row */}
+        <motion.div variants={container} initial="hidden" animate="show" className="grid md:grid-cols-3 gap-6 mb-8">
+
+          {/* Score Ring */}
+          <motion.div variants={item} className="card p-8 flex flex-col items-center">
+            <ScoreRing score={data.ats_score} />
+            <div className="w-full mt-6 space-y-4">
+              <div>
+                <div className="flex justify-between text-sm mb-1.5">
+                  <span className="text-slate-600">Keyword Score</span>
+                  <span className="font-semibold text-slate-900">{data.keyword_score}%</span>
+                </div>
+                <ProgressBar value={data.keyword_score} color="#3B82F6" />
+              </div>
+              <div>
+                <div className="flex justify-between text-sm mb-1.5">
+                  <span className="text-slate-600">Semantic Score</span>
+                  <span className="font-semibold text-slate-900">{data.semantic_score}%</span>
+                </div>
+                <ProgressBar value={data.semantic_score} color="#10B981" />
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Matched */}
+          <motion.div variants={item} className="card p-6">
+            <div className="flex items-center gap-2 mb-5">
+              <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+              </div>
+              <h2 className="font-semibold text-slate-900">Matched Keywords</h2>
+              <span className="ml-auto text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">{data.matched_keywords?.length}</span>
+            </div>
             <div className="flex flex-wrap gap-2">
-              {backendData.matched_keywords?.map((kw, i) => (
-                <span key={i} className="bg-green-500/20 text-green-300 px-3 py-1.5 rounded-full border border-green-500/30 text-sm">{kw}</span>
-              ))}
-              {!backendData.matched_keywords?.length && <p className="text-gray-400">No matched keywords.</p>}
+              {data.matched_keywords?.map((kw, i) => <span key={i} className="tag-green">{kw}</span>)}
+              {!data.matched_keywords?.length && <p className="text-slate-400 text-sm">No matched keywords</p>}
             </div>
-          </div>
+          </motion.div>
 
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-8">
-            <h2 className="text-red-300 text-2xl font-bold mb-6">✗ Missing Keywords</h2>
+          {/* Missing */}
+          <motion.div variants={item} className="card p-6">
+            <div className="flex items-center gap-2 mb-5">
+              <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </div>
+              <h2 className="font-semibold text-slate-900">Missing Keywords</h2>
+              <span className="ml-auto text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">{data.missing_keywords?.length}</span>
+            </div>
             <div className="flex flex-wrap gap-2">
-              {backendData.missing_keywords?.map((kw, i) => (
-                <span key={i} className="bg-red-500/20 text-red-300 px-3 py-1.5 rounded-full border border-red-500/30 text-sm">{kw}</span>
-              ))}
-              {!backendData.missing_keywords?.length && <p className="text-gray-400">No missing keywords — great!</p>}
+              {data.missing_keywords?.map((kw, i) => <span key={i} className="tag-red">{kw}</span>)}
+              {!data.missing_keywords?.length && <p className="text-slate-400 text-sm">No missing keywords</p>}
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
-        {backendData.improvement_suggestions?.length > 0 && (
-          <div className="mt-10 bg-white/5 border border-white/10 rounded-3xl p-8">
-            <h2 className="text-purple-300 text-3xl font-bold mb-6">🛠 Improvement Suggestions</h2>
+        {/* Improvements */}
+        {data.improvement_suggestions?.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="card p-8 mb-6">
+            <h2 className="font-bold text-slate-900 text-xl mb-6">🛠 Improvement Suggestions</h2>
             <div className="space-y-4">
-              {backendData.improvement_suggestions.map((item, i) => (
-                <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-5">
-                  <p className="text-purple-300 font-semibold uppercase tracking-wide text-sm">{item.section}</p>
-                  <p className="text-red-300 mt-2 text-sm">⚠ {item.issue}</p>
-                  <p className="text-green-300 mt-2 text-sm">✅ {item.fix}</p>
+              {data.improvement_suggestions.map((s, i) => (
+                <div key={i} className="bg-slate-50 border border-slate-200 rounded-xl p-5">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-blue-500">{s.section}</span>
+                  <p className="text-red-600 text-sm mt-2">⚠ {s.issue}</p>
+                  <p className="text-green-700 text-sm mt-1.5">✅ {s.fix}</p>
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
 
-        {backendData.rewritten_bullets?.length > 0 && (
-          <div className="mt-10 bg-white/5 border border-white/10 rounded-3xl p-8">
-            <h2 className="text-blue-300 text-3xl font-bold mb-6">✍ Rewritten Bullet Points</h2>
-            <ul className="space-y-3">
-              {backendData.rewritten_bullets.map((b, i) => (
-                <li key={i} className="flex items-start gap-3 text-gray-300">
-                  <span className="text-blue-400 mt-1">▸</span><span>{b}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        <div className="grid md:grid-cols-2 gap-6 mt-10">
-          {backendData.summary_suggestion && (
-            <div className="bg-white/5 border border-white/10 rounded-3xl p-8">
-              <h2 className="text-yellow-300 text-2xl font-bold mb-4">💡 Suggested Summary</h2>
-              <p className="text-gray-300 leading-7">{backendData.summary_suggestion}</p>
-            </div>
-          )}
-          {backendData.strong_action_verbs?.length > 0 && (
-            <div className="bg-white/5 border border-white/10 rounded-3xl p-8">
-              <h2 className="text-cyan-300 text-2xl font-bold mb-4">⚡ Strong Action Verbs</h2>
-              <div className="flex flex-wrap gap-2">
-                {backendData.strong_action_verbs.map((v, i) => (
-                  <span key={i} className="bg-cyan-500/20 text-cyan-300 px-3 py-1.5 rounded-full border border-cyan-500/30 text-sm font-medium">{v}</span>
+        {/* Bullets + Verbs + Summary */}
+        <motion.div variants={container} initial="hidden" animate="show" className="grid md:grid-cols-2 gap-6 mb-6">
+          {data.rewritten_bullets?.length > 0 && (
+            <motion.div variants={item} className="card p-6">
+              <h2 className="font-bold text-slate-900 text-lg mb-5">✍️ Rewritten Bullet Points</h2>
+              <ul className="space-y-3">
+                {data.rewritten_bullets.map((b, i) => (
+                  <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
+                    <span className="text-blue-500 mt-0.5 flex-shrink-0">▸</span>{b}
+                  </li>
                 ))}
-              </div>
-            </div>
+              </ul>
+            </motion.div>
           )}
-        </div>
 
-        <div className="mt-10 flex gap-4 justify-center">
-          <button onClick={() => navigate("/")} className="bg-purple-600 hover:bg-purple-700 text-white px-10 py-4 rounded-2xl font-semibold text-lg transition">
-            ← Analyze Another
-          </button>
-          <button onClick={() => navigate("/history")} className="bg-white/10 hover:bg-white/20 text-white px-10 py-4 rounded-2xl font-semibold text-lg transition">
-            View History
-          </button>
-        </div>
+          <div className="space-y-6">
+            {data.strong_action_verbs?.length > 0 && (
+              <motion.div variants={item} className="card p-6">
+                <h2 className="font-bold text-slate-900 text-lg mb-4">⚡ Action Verbs</h2>
+                <div className="flex flex-wrap gap-2">
+                  {data.strong_action_verbs.map((v, i) => <span key={i} className="tag-blue">{v}</span>)}
+                </div>
+              </motion.div>
+            )}
+            {data.summary_suggestion && (
+              <motion.div variants={item} className="card p-6">
+                <h2 className="font-bold text-slate-900 text-lg mb-3">💡 Suggested Summary</h2>
+                <p className="text-slate-600 text-sm leading-6">{data.summary_suggestion}</p>
+              </motion.div>
+            )}
+          </div>
+        </motion.div>
 
+        {/* Actions */}
+        <div className="flex gap-4 justify-center mt-10">
+          <button onClick={() => navigate("/")} className="btn-primary">← Analyze Another</button>
+          <button onClick={() => navigate("/history")} className="btn-secondary">View History</button>
+        </div>
       </div>
     </div>
   )

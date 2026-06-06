@@ -4,80 +4,139 @@
 @tailwind components;
 @tailwind utilities;
 
+* { box-sizing: border-box; }
+
 body {
+  font-family: 'Inter', sans-serif;
+  background: #F8FAFC;
+  color: #0F172A;
+  -webkit-font-smoothing: antialiased;
+}
+
+html { scroll-behavior: smooth; }
+
+:root {
+  --base: #F8FAFC;
+  --surface: #FFFFFF;
+  --border: #E2E8F0;
+  --muted: #94A3B8;
+  --text: #0F172A;
+  --text-secondary: #64748B;
+  --accent: #3B82F6;
+  --accent-hover: #2563EB;
+  --accent-light: #EFF6FF;
+  --green: #10B981;
+  --red: #EF4444;
+  --yellow: #F59E0B;
+}
+
+.glass {
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.5);
+}
+
+.card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
+}
+
+.btn-primary {
+  background: #3B82F6;
+  color: white;
+  border-radius: 12px;
+  padding: 12px 28px;
+  font-weight: 600;
+  font-size: 15px;
+  transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: #2563EB;
+  transform: scale(1.02);
+  box-shadow: 0 4px 20px rgba(59,130,246,0.35);
+}
+
+.btn-secondary {
+  background: #F1F5F9;
+  color: #0F172A;
+  border-radius: 12px;
+  padding: 12px 28px;
+  font-weight: 600;
+  font-size: 15px;
+  transition: background 0.15s, transform 0.15s;
+  border: 1px solid #E2E8F0;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: #E2E8F0;
+  transform: scale(1.01);
+}
+
+.input-field {
+  width: 100%;
+  background: #F8FAFC;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-size: 15px;
+  color: #0F172A;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
   font-family: 'Inter', sans-serif;
 }
 
-html {
-  scroll-behavior: smooth;
+.input-field:focus {
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
 }
 
-.liquid-navbar {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
+.input-field::placeholder { color: #94A3B8; }
 
-    background:
-        linear-gradient(
-            180deg,
-            rgba(255,255,255,0.22) 0%,
-            rgba(255,255,255,0.06) 45%,
-            rgba(255,255,255,0.02) 100%
-        );
-
-    backdrop-filter: blur(28px) saturate(190%);
-    -webkit-backdrop-filter: blur(28px) saturate(190%);
-
-    border: 1px solid rgba(255,255,255,0.28);
-
-    box-shadow:
-        0 8px 32px rgba(0,0,0,0.12),
-        0 2px 8px rgba(0,0,0,0.06),
-        inset 0 1px 0 rgba(255,255,255,0.45),
-        inset 0 -1px 0 rgba(255,255,255,0.06);
-
-    transition: all 0.35s ease;
+.tag-green {
+  background: #F0FDF4;
+  color: #16A34A;
+  border: 1px solid #BBF7D0;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 500;
 }
 
-.liquid-navbar::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-
-    background: linear-gradient(
-        180deg,
-        rgba(255,255,255,0.35) 0%,
-        rgba(255,255,255,0.08) 28%,
-        transparent 55%
-    );
-
-    pointer-events: none;
+.tag-red {
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid #FECACA;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 500;
 }
 
-.liquid-navbar::after {
-    content: "";
-    position: absolute;
-    inset: 1px;
-    border-radius: inherit;
-
-    background: radial-gradient(
-        ellipse 80% 50% at 50% 0%,
-        rgba(255,255,255,0.12),
-        transparent 70%
-    );
-
-    pointer-events: none;
+.tag-blue {
+  background: #EFF6FF;
+  color: #2563EB;
+  border: 1px solid #BFDBFE;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 500;
 }
 
-.liquid-navbar:hover {
-    background:
-        linear-gradient(
-            180deg,
-            rgba(255,255,255,0.28) 0%,
-            rgba(255,255,255,0.10) 45%,
-            rgba(255,255,255,0.04) 100%
-        );
-
-    border-color: rgba(255,255,255,0.38);
+.score-ring {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
