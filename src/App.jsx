@@ -5,6 +5,8 @@ import { useAuth } from "./context/useAuth"
 import Landing from "./pages/Landing"
 import Home from "./pages/Home"
 import Loading from "./pages/Loading"
+import GuestLoading from "./pages/GuestLoading"
+import GuestResults from "./pages/GuestResults"
 import Results from "./pages/Results"
 import Login from "./pages/Login"
 import Signup from "./pages/Signup"
@@ -24,6 +26,8 @@ function App() {
             <Route path="/landing" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/guest-loading" element={<GuestLoading />} />
+            <Route path="/guest-results" element={<GuestResults />} />
             <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
             <Route path="/loading" element={<ProtectedRoute><Loading /></ProtectedRoute>} />
             <Route path="/results" element={<ProtectedRoute><Results /></ProtectedRoute>} />

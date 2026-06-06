@@ -35,10 +35,14 @@ app.add_middleware(
 )
 
 
+# ── Auth Models ───────────────────────────────────────────────────────────────
+
 class AuthRequest(BaseModel):
     email: str
     password: str
 
+
+# ── JWT Helpers ───────────────────────────────────────────────────────────────
 
 def create_token(user_id: str, email: str) -> str:
     payload = {
@@ -58,6 +62,8 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) 
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
+
+# ── Auth Endpoints ────────────────────────────────────────────────────────────
 
 @app.get("/")
 def home():
@@ -124,6 +130,8 @@ async def delete_analysis(analysis_id: str, user=Depends(verify_token)):
     return {"message": "Deleted"}
 
 
+# ── Text Extraction ───────────────────────────────────────────────────────────
+
 def extract_text(filename: str, contents: bytes) -> str:
     text = ""
     if filename.endswith(".pdf"):
@@ -154,13 +162,13 @@ def compress_text(text: str, max_words: int = 300) -> str:
     words = re.findall(r'\b[a-zA-Z][a-zA-Z0-9+#.\-]{1,}\b', text)
     filtered = [w for w in words if w.lower() not in stopwords]
     seen = []
-    seen_lower = set()
     for w in filtered:
-        if w.lower() not in seen_lower:
+        if w.lower() not in [x.lower() for x in seen]:
             seen.append(w)
-            seen_lower.add(w.lower())
     return " ".join(seen[:max_words])
 
+
+# ── Groq Call 1: Extract JD Keywords ─────────────────────────────────────────
 
 def extract_jd_keywords(job_description: str) -> list:
     compressed_jd = compress_text(job_description, max_words=200)
@@ -175,11 +183,10 @@ Job Description Keywords:
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
-            {"role": "system", "content": "You extract ATS keywords. Return only a JSON array of strings. Exclude niche academic or theoretical terms. Focus only on practical, industry-standard skills."},
+            {"role": "system", "content": "You extract ATS keywords. Return only a JSON array of strings."},
             {"role": "user", "content": prompt}
         ],
-        temperature=0,
-        seed=42,
+        temperature=0.0,
         max_tokens=400,
     )
     raw = response.choices[0].message.content.strip()
@@ -187,12 +194,14 @@ Job Description Keywords:
     raw = re.sub(r'\n?```$', '', raw)
     try:
         keywords = json.loads(raw)
-        return sorted([str(k).strip() for k in keywords if k])
+        return [str(k).strip() for k in keywords if k]
     except Exception:
-        return sorted(re.findall(r'"([^"]+)"', raw))
+        return re.findall(r'"([^"]+)"', raw)
 
 
-def fuzzy_match(word: str, text: str, threshold: float = 0.78) -> bool:
+# ── Backend Scoring ───────────────────────────────────────────────────────────
+
+def fuzzy_match(word: str, text: str, threshold: float = 0.82) -> bool:
     word_lower = word.lower()
     text_lower = text.lower()
     if word_lower in text_lower:
@@ -200,7 +209,7 @@ def fuzzy_match(word: str, text: str, threshold: float = 0.78) -> bool:
     for tw in re.findall(r'\b\w[\w+#.\-]*\b', text_lower):
         if SequenceMatcher(None, word_lower, tw).ratio() >= threshold:
             return True
-    return False    
+    return False
 
 
 def calculate_scores(resume_text: str, jd_keywords: list):
@@ -216,9 +225,11 @@ def calculate_scores(resume_text: str, jd_keywords: list):
     overlap = len(jd_words & resume_words)
     semantic_score = min(int((overlap / max(len(jd_words), 1)) * 150), 100)
 
-    ats_score = max(0, min(int(keyword_score * 0.35 + semantic_score * 0.65), 100))
+    ats_score = max(0, min(int(keyword_score * 0.55 + semantic_score * 0.45), 100))
     return matched[:15], missing[:15], keyword_score, semantic_score, ats_score
 
+
+# ── Groq Call 2: Generate Suggestions ────────────────────────────────────────
 
 def generate_suggestions(resume_text: str, job_description: str, missing_keywords: list, ats_score: int) -> dict:
     compressed_resume = compress_text(resume_text, max_words=250)
@@ -249,8 +260,7 @@ Return ONLY valid JSON:
             {"role": "system", "content": "You are an ATS resume expert. Return only valid JSON. No markdown, no backticks."},
             {"role": "user", "content": prompt}
         ],
-        temperature=0.3,
-        seed=42,
+        temperature=0.1,
         max_tokens=1200,
     )
     raw = response.choices[0].message.content.strip()
@@ -267,6 +277,8 @@ Return ONLY valid JSON:
             "summary_suggestion": ""
         }
 
+
+# ── Analyze Endpoint ──────────────────────────────────────────────────────────
 
 @app.post("/analyze")
 async def analyze_resume(
@@ -310,6 +322,7 @@ async def analyze_resume(
         "message": "Resume analyzed successfully"
     }
 
+    # Save to Supabase
     try:
         supabase.table("analyses").insert({
             "user_id": user["user_id"],
@@ -330,3 +343,34 @@ async def analyze_resume(
         pass
 
     return result
+
+
+@app.post("/analyze/guest")
+async def analyze_guest(
+    resume: UploadFile = File(...),
+    job_description: str = Form(...)
+):
+    if not (resume.filename.endswith(".pdf") or resume.filename.endswith(".docx")):
+        return {"error": "Only PDF and DOCX files are supported"}
+
+    contents = await resume.read()
+    resume_text = extract_text(resume.filename, contents)
+
+    if not resume_text.strip():
+        return {"error": "Could not extract text. Make sure the resume is not a scanned image."}
+
+    try:
+        jd_keywords = extract_jd_keywords(job_description)
+        matched_keywords, missing_keywords, keyword_score, semantic_score, ats_score = calculate_scores(resume_text, jd_keywords)
+    except Exception as e:
+        return {"error": f"Analysis error: {str(e)}"}
+
+    return {
+        "ats_score": ats_score,
+        "keyword_score": keyword_score,
+        "semantic_score": semantic_score,
+        "matched_keywords": matched_keywords,
+        "missing_keywords": missing_keywords,
+        "can_apply": ats_score >= 60,
+        "message": "Guest analysis complete"
+    }
