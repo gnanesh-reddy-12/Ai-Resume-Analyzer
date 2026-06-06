@@ -1,7 +1,11 @@
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from groq import Groq
 from dotenv import load_dotenv
+from supabase import create_client, Client
+from passlib.context import CryptContext
+import jwt
 import os
 import pdfplumber
 import docx
@@ -9,10 +13,17 @@ import io
 import re
 import json
 from difflib import SequenceMatcher
+from datetime import datetime, timedelta
+from pydantic import BaseModel
 
 load_dotenv()
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+supabase: Client = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_ANON_KEY"))
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+security = HTTPBearer()
+JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key-change-this")
+JWT_EXPIRY_HOURS = 24
 
 app = FastAPI()
 
@@ -24,9 +35,103 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# ── Auth Models ───────────────────────────────────────────────────────────────
+
+class AuthRequest(BaseModel):
+    email: str
+    password: str
+
+
+# ── JWT Helpers ───────────────────────────────────────────────────────────────
+
+def create_token(user_id: str, email: str) -> str:
+    payload = {
+        "user_id": user_id,
+        "email": email,
+        "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRY_HOURS)
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+
+
+def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
+    try:
+        payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=["HS256"])
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+
+# ── Auth Endpoints ────────────────────────────────────────────────────────────
+
 @app.get("/")
 def home():
     return {"message": "Backend is working"}
+
+
+@app.post("/signup")
+async def signup(body: AuthRequest):
+    email = body.email.strip().lower()
+    password = body.password
+
+    if len(password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+
+    existing = supabase.table("users").select("id").eq("email", email).execute()
+    if existing.data:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    password_hash = pwd_context.hash(password)
+    result = supabase.table("users").insert({
+        "email": email,
+        "password_hash": password_hash
+    }).execute()
+
+    user = result.data[0]
+    token = create_token(user["id"], user["email"])
+    return {"token": token, "email": user["email"], "user_id": user["id"]}
+
+
+@app.post("/login")
+async def login(body: AuthRequest):
+    email = body.email.strip().lower()
+
+    result = supabase.table("users").select("*").eq("email", email).execute()
+    if not result.data:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    user = result.data[0]
+    if not pwd_context.verify(body.password, user["password_hash"]):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    token = create_token(user["id"], user["email"])
+    return {"token": token, "email": user["email"], "user_id": user["id"]}
+
+
+@app.get("/history")
+async def get_history(user=Depends(verify_token)):
+    result = supabase.table("analyses") \
+        .select("*") \
+        .eq("user_id", user["user_id"]) \
+        .order("created_at", desc=True) \
+        .limit(20) \
+        .execute()
+    return {"analyses": result.data}
+
+
+@app.delete("/history/{analysis_id}")
+async def delete_analysis(analysis_id: str, user=Depends(verify_token)):
+    supabase.table("analyses") \
+        .delete() \
+        .eq("id", analysis_id) \
+        .eq("user_id", user["user_id"]) \
+        .execute()
+    return {"message": "Deleted"}
+
+
+# ── Text Extraction ───────────────────────────────────────────────────────────
 
 def extract_text(filename: str, contents: bytes) -> str:
     text = ""
@@ -64,10 +169,10 @@ def compress_text(text: str, max_words: int = 300) -> str:
     return " ".join(seen[:max_words])
 
 
+# ── Groq Call 1: Extract JD Keywords ─────────────────────────────────────────
 
-def extract_jd_keywords(job_description: str) -> list[str]:
+def extract_jd_keywords(job_description: str) -> list:
     compressed_jd = compress_text(job_description, max_words=200)
-
     prompt = f"""Extract the most important ATS keywords from this job description.
 Focus on: technical skills, tools, programming languages, frameworks, certifications, methodologies, and role-specific terms.
 Return ONLY a JSON array of strings. No explanation, no markdown, no backticks.
@@ -85,98 +190,69 @@ Job Description Keywords:
         temperature=0.1,
         max_tokens=400,
     )
-
     raw = response.choices[0].message.content.strip()
     raw = re.sub(r'^```[a-z]*\n?', '', raw)
     raw = re.sub(r'\n?```$', '', raw)
-
     try:
         keywords = json.loads(raw)
         return [str(k).strip() for k in keywords if k]
     except Exception:
-        words = re.findall(r'"([^"]+)"', raw)
-        return words if words else []
+        return re.findall(r'"([^"]+)"', raw)
 
 
+# ── Backend Scoring ───────────────────────────────────────────────────────────
 
 def fuzzy_match(word: str, text: str, threshold: float = 0.82) -> bool:
     word_lower = word.lower()
     text_lower = text.lower()
-
     if word_lower in text_lower:
         return True
-
-    text_words = re.findall(r'\b\w[\w+#.\-]*\b', text_lower)
-    for tw in text_words:
-        ratio = SequenceMatcher(None, word_lower, tw).ratio()
-        if ratio >= threshold:
+    for tw in re.findall(r'\b\w[\w+#.\-]*\b', text_lower):
+        if SequenceMatcher(None, word_lower, tw).ratio() >= threshold:
             return True
-
     return False
 
 
-def calculate_scores(
-    resume_text: str,
-    jd_keywords: list[str]
-) -> tuple[list, list, int, int, int]:
-
-    matched = []
-    missing = []
-
+def calculate_scores(resume_text: str, jd_keywords: list):
+    matched, missing = [], []
     for kw in jd_keywords:
-        if fuzzy_match(kw, resume_text):
-            matched.append(kw)
-        else:
-            missing.append(kw)
+        (matched if fuzzy_match(kw, resume_text) else missing).append(kw)
 
     total = len(jd_keywords)
     keyword_score = int((len(matched) / total) * 100) if total > 0 else 50
 
-    # Semantic score: check how many compressed JD meaningful words appear in resume
-    jd_words = set(re.findall(r'\b[a-zA-Z][a-zA-Z0-9+#.\-]{2,}\b', compress_text(jd_keywords.__str__(), 300)))
+    jd_words = set(re.findall(r'\b[a-zA-Z][a-zA-Z0-9+#.\-]{2,}\b', " ".join(jd_keywords).lower()))
     resume_words = set(re.findall(r'\b[a-zA-Z][a-zA-Z0-9+#.\-]{2,}\b', resume_text.lower()))
-    overlap = len(jd_words & {w.lower() for w in resume_words})
+    overlap = len(jd_words & resume_words)
     semantic_score = min(int((overlap / max(len(jd_words), 1)) * 150), 100)
 
-    # Weighted ATS score
-    ats_score = int(keyword_score * 0.55 + semantic_score * 0.45)
-    ats_score = max(0, min(ats_score, 100))
-
+    ats_score = max(0, min(int(keyword_score * 0.55 + semantic_score * 0.45), 100))
     return matched[:15], missing[:15], keyword_score, semantic_score, ats_score
 
 
+# ── Groq Call 2: Generate Suggestions ────────────────────────────────────────
 
-def generate_suggestions(
-    resume_text: str,
-    job_description: str,
-    missing_keywords: list[str],
-    ats_score: int
-) -> dict:
-
+def generate_suggestions(resume_text: str, job_description: str, missing_keywords: list, ats_score: int) -> dict:
     compressed_resume = compress_text(resume_text, max_words=250)
     compressed_jd = compress_text(job_description, max_words=150)
     missing_str = ", ".join(missing_keywords[:12]) if missing_keywords else "None"
 
-    prompt = f"""You are an expert ATS resume coach helping students and professionals pass ATS scanners.
+    prompt = f"""You are an expert ATS resume coach helping students and professionals pass ATS scanners and reach recruiters.
 
 Resume (compressed): {compressed_resume}
 Job Description (compressed): {compressed_jd}
 ATS Score: {ats_score}/100
 Missing Keywords: {missing_str}
 
-Return ONLY valid JSON with this structure:
+Return ONLY valid JSON:
 {{
-  "apply_verdict": "<one line: 'Strong match — apply confidently' OR 'Good match — minor fixes needed' OR 'Needs improvement before applying' OR 'Not a match — significant gaps'>",
+  "apply_verdict": "<one line verdict>",
   "improvement_suggestions": [
     {{"section": "<Summary/Experience/Skills/Education>", "issue": "<specific problem>", "fix": "<exact actionable fix with example>"}}
   ],
-  "rewritten_bullets": [
-    "<rewritten bullet with action verb + metric + impact>",
-    "<rewritten bullet 2>",
-    "<rewritten bullet 3>"
-  ],
-  "strong_action_verbs": ["<verb1>","<verb2>","<verb3>","<verb4>","<verb5>","<verb6>","<verb7>","<verb8>"],
-  "summary_suggestion": "<2-3 sentence tailored professional summary for this specific JD>"
+  "rewritten_bullets": ["<bullet 1>", "<bullet 2>", "<bullet 3>"],
+  "strong_action_verbs": ["<v1>","<v2>","<v3>","<v4>","<v5>","<v6>","<v7>","<v8>"],
+  "summary_suggestion": "<2-3 sentence tailored professional summary>"
 }}"""
 
     response = client.chat.completions.create(
@@ -188,11 +264,9 @@ Return ONLY valid JSON with this structure:
         temperature=0.3,
         max_tokens=1200,
     )
-
     raw = response.choices[0].message.content.strip()
     raw = re.sub(r'^```[a-z]*\n?', '', raw)
     raw = re.sub(r'\n?```$', '', raw)
-
     try:
         return json.loads(raw)
     except Exception:
@@ -205,11 +279,16 @@ Return ONLY valid JSON with this structure:
         }
 
 
+# ── Analyze Endpoint ──────────────────────────────────────────────────────────
+
 @app.post("/analyze")
 async def analyze_resume(
     resume: UploadFile = File(...),
-    job_description: str = Form(...)
+    job_description: str = Form(...),
+    credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
+    user = verify_token(credentials)
+
     if not (resume.filename.endswith(".pdf") or resume.filename.endswith(".docx")):
         return {"error": "Only PDF and DOCX files are supported"}
 
@@ -220,23 +299,13 @@ async def analyze_resume(
         return {"error": "Could not extract text. Make sure the resume is not a scanned image."}
 
     try:
-        # Call 1: Extract JD keywords (~400 tokens)
         jd_keywords = extract_jd_keywords(job_description)
-
-        # Backend: Calculate all scores (no AI, pure Python)
-        matched_keywords, missing_keywords, keyword_score, semantic_score, ats_score = calculate_scores(
-            resume_text, jd_keywords
-        )
-
-        # Call 2: Generate suggestions (~1200 tokens)
-        suggestions = generate_suggestions(
-            resume_text, job_description, missing_keywords, ats_score
-        )
-
+        matched_keywords, missing_keywords, keyword_score, semantic_score, ats_score = calculate_scores(resume_text, jd_keywords)
+        suggestions = generate_suggestions(resume_text, job_description, missing_keywords, ats_score)
     except Exception as e:
         return {"error": f"Analysis error: {str(e)}"}
 
-    return {
+    result = {
         "filename": resume.filename,
         "job_description_length": len(job_description),
         "resume_text_preview": resume_text[:700],
@@ -253,3 +322,25 @@ async def analyze_resume(
         "summary_suggestion": suggestions.get("summary_suggestion", ""),
         "message": "Resume analyzed successfully"
     }
+
+    # Save to Supabase
+    try:
+        supabase.table("analyses").insert({
+            "user_id": user["user_id"],
+            "filename": resume.filename,
+            "ats_score": ats_score,
+            "keyword_score": keyword_score,
+            "semantic_score": semantic_score,
+            "matched_keywords": matched_keywords,
+            "missing_keywords": missing_keywords,
+            "apply_verdict": suggestions.get("apply_verdict", ""),
+            "improvement_suggestions": suggestions.get("improvement_suggestions", []),
+            "rewritten_bullets": suggestions.get("rewritten_bullets", []),
+            "strong_action_verbs": suggestions.get("strong_action_verbs", []),
+            "summary_suggestion": suggestions.get("summary_suggestion", ""),
+            "job_description_preview": job_description[:300]
+        }).execute()
+    except Exception:
+        pass
+
+    return result
