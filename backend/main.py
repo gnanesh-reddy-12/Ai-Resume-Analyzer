@@ -200,7 +200,7 @@ def fuzzy_match(word: str, text: str, threshold: float = 0.78) -> bool:
     for tw in re.findall(r'\b\w[\w+#.\-]*\b', text_lower):
         if SequenceMatcher(None, word_lower, tw).ratio() >= threshold:
             return True
-    return False
+    return False    
 
 
 def calculate_scores(resume_text: str, jd_keywords: list):

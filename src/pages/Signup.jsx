@@ -1,9 +1,10 @@
 import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
-import { motion } from "framer-motion"
 import { useAuth } from "../context/useAuth"
+import { motion } from "framer-motion"
 
-function Signup() {
+export default function Signup() {
+  const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -13,7 +14,7 @@ function Signup() {
 
   const handleSubmit = async () => {
     setError("")
-    if (!email || !password) return setError("All fields required")
+    if (!name || !email || !password) return setError("All fields required")
     if (password.length < 6) return setError("Password must be at least 6 characters")
     setLoading(true)
     try {
@@ -24,6 +25,7 @@ function Signup() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail || "Signup failed")
+      localStorage.setItem("display_name", name)
       login(data)
       navigate("/")
     } catch (err) {
@@ -34,55 +36,101 @@ function Signup() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex">
-      <div className="hidden lg:flex flex-1 bg-blue-500 p-12 flex-col justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">R</span>
-            </div>
-            <span className="font-bold text-lg text-white">ResumeAI</span>
-          </div>
-        </div>
-        <div>
-          <h2 className="text-4xl font-bold text-white leading-tight">Start for free.<br />Get hired faster.</h2>
-          <p className="text-blue-100 mt-4 text-lg">Join thousands of job seekers who use ResumeAI to beat ATS filters.</p>
-        </div>
-        <p className="text-blue-200 text-sm">© 2025 ResumeAI</p>
-      </div>
+    <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", flexDirection: "column" }}>
+      <nav style={{
+        padding: "0 40px", height: 64,
+        display: "flex", alignItems: "center",
+        borderBottom: "1px solid var(--border)"
+      }}>
+        <Link to="/landing" style={{ fontWeight: 800, fontSize: 20, letterSpacing: "-0.5px", textDecoration: "none", color: "var(--text-1)" }}>
+          Resume<span style={{ color: "var(--accent)" }}>AI</span>
+        </Link>
+      </nav>
 
-      <div className="flex-1 flex items-center justify-center p-8">
-        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-md">
-          <h1 className="text-3xl font-bold text-slate-900">Create account</h1>
-          <p className="text-slate-500 mt-2">Start analyzing your resume for free</p>
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="card"
+          style={{ width: "100%", maxWidth: 420, padding: 40 }}
+        >
+          <div style={{ textAlign: "center", marginBottom: 32 }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: "50%",
+              background: "#DBEAFE", display: "flex", alignItems: "center",
+              justifyContent: "center", margin: "0 auto 20px",
+              fontSize: 24, color: "var(--accent)"
+            }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <line x1="19" y1="8" x2="19" y2="14"/>
+                <line x1="22" y1="11" x2="16" y2="11"/>
+              </svg>
+            </div>
+            <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.5px", marginBottom: 6 }}>Create account</h1>
+            <p style={{ fontSize: 14, color: "var(--text-2)" }}>Start analyzing your resume for free</p>
+          </div>
 
           {error && (
-            <div className="mt-5 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">{error}</div>
+            <div style={{
+              background: "#FEE2E2", border: "1px solid #FECACA",
+              color: "#991B1B", borderRadius: 12, padding: "12px 16px",
+              fontSize: 14, marginBottom: 20
+            }}>{error}</div>
           )}
 
-          <div className="mt-8 space-y-4">
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div>
-              <label className="text-sm font-medium text-slate-700 block mb-2">Email</label>
-              <input type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="input-field" />
+              <label style={{ fontSize: 13, fontWeight: 600, color: "var(--text-2)", display: "block", marginBottom: 6 }}>Full Name</label>
+              <input
+                className="input"
+                type="text"
+                placeholder="John Doe"
+                value={name}
+                onChange={e => setName(e.target.value)}
+              />
             </div>
             <div>
-              <label className="text-sm font-medium text-slate-700 block mb-2">Password</label>
-              <input type="password" placeholder="Min 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSubmit()} className="input-field" />
+              <label style={{ fontSize: 13, fontWeight: 600, color: "var(--text-2)", display: "block", marginBottom: 6 }}>Email</label>
+              <input
+                className="input"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: 13, fontWeight: 600, color: "var(--text-2)", display: "block", marginBottom: 6 }}>Password</label>
+              <input
+                className="input"
+                type="password"
+                placeholder="Min. 6 characters"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleSubmit()}
+              />
             </div>
           </div>
 
-          <button onClick={handleSubmit} disabled={loading} className="btn-primary w-full mt-6 py-4">
-            {loading ? "Creating account..." : "Create Free Account"}
+          <button
+            className="btn-primary"
+            onClick={handleSubmit}
+            disabled={loading}
+            style={{ width: "100%", marginTop: 24, padding: "13px", fontSize: 15, opacity: loading ? 0.6 : 1 }}
+          >
+            {loading ? "Creating account..." : "Create Account"}
           </button>
 
-          <p className="text-center text-slate-500 mt-6 text-sm">
+          <p style={{ textAlign: "center", fontSize: 14, color: "var(--text-2)", marginTop: 24 }}>
             Already have an account?{" "}
-            <Link to="/login" className="text-blue-500 font-semibold hover:text-blue-600">Sign in</Link>
+            <Link to="/login" style={{ color: "var(--accent)", fontWeight: 600, textDecoration: "none" }}>
+              Sign in
+            </Link>
           </p>
         </motion.div>
       </div>
     </div>
   )
 }
-
-export default Signup
