@@ -4,7 +4,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from groq import Groq
 from dotenv import load_dotenv
 from supabase import create_client, Client
-from passlib.context import CryptContext
+import bcrypt
 import jwt
 import os
 import pdfplumber
@@ -20,7 +20,6 @@ load_dotenv()
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 supabase: Client = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_ANON_KEY"))
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key-change-this")
 JWT_EXPIRY_HOURS = 24
@@ -83,7 +82,7 @@ async def signup(body: AuthRequest):
     if existing.data:
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    password_hash = pwd_context.hash(password)
+    password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
     result = supabase.table("users").insert({
         "email": email,
         "password_hash": password_hash
@@ -103,7 +102,7 @@ async def login(body: AuthRequest):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
     user = result.data[0]
-    if not pwd_context.verify(body.password, user["password_hash"]):
+    if not bcrypt.checkpw(body.password.encode(), user["password_hash"].encode()):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
     token = create_token(user["id"], user["email"])
