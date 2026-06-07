@@ -46,6 +46,17 @@ function History() {
         setAnalyses(list)
         if (list.length) setSelected(list[0])
         const saved = JSON.parse(localStorage.getItem("history_labels") || "{}")
+        const pendingCompany = localStorage.getItem("pending_company") || ""
+        const pendingRole = localStorage.getItem("pending_role") || ""
+        if (list.length && (pendingCompany || pendingRole)) {
+          const latest = list[0]
+          if (!saved[latest.id]) {
+            saved[latest.id] = { company: pendingCompany, role: pendingRole }
+            localStorage.setItem("history_labels", JSON.stringify(saved))
+          }
+          localStorage.removeItem("pending_company")
+          localStorage.removeItem("pending_role")
+        }
         setLabels(saved)
       })
       .finally(() => setLoading(false))
@@ -70,7 +81,6 @@ function History() {
     localStorage.setItem("history_labels", JSON.stringify(newLabels))
     setEditingLabel(null)
   }
-
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)" }}>

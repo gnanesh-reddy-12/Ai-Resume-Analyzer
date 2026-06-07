@@ -81,15 +81,15 @@ export default function Navbar() {
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           {editing ? (
-                            <div style={{ display: "flex", gap: 6 }}>
-                              <input
-                                autoFocus
-                                value={editName}
-                                onChange={e => setEditName(e.target.value)}
+                            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                              <input autoFocus value={editName} onChange={e => setEditName(e.target.value)}
                                 onKeyDown={e => { if (e.key === "Enter") saveName(); if (e.key === "Escape") setEditing(false) }}
-                                style={{ flex: 1, border: "1.5px solid var(--accent)", borderRadius: 8, padding: "4px 8px", fontSize: 13, outline: "none", fontFamily: "Inter, sans-serif" }}
+                                style={{ width: "100%", border: "1.5px solid var(--accent)", borderRadius: 8, padding: "6px 10px", fontSize: 13, outline: "none", fontFamily: "Inter, sans-serif", boxSizing: "border-box" }}
                               />
-                              <button onClick={saveName} style={{ background: "var(--accent)", color: "white", border: "none", borderRadius: 8, padding: "4px 10px", fontSize: 12, cursor: "pointer", fontWeight: 600 }}>Save</button>
+                              <div style={{ display: "flex", gap: 6 }}>
+                                <button onClick={saveName} style={{ flex: 1, background: "var(--accent)", color: "white", border: "none", borderRadius: 8, padding: "6px 0", fontSize: 12, cursor: "pointer", fontWeight: 600 }}>Save</button>
+                                <button onClick={() => setEditing(false)} style={{ flex: 1, background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 0", fontSize: 12, cursor: "pointer" }}>Cancel</button>
+                              </div>
                             </div>
                           ) : (
                             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
