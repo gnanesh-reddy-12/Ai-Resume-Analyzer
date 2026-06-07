@@ -219,12 +219,21 @@ def calculate_scores(resume_text: str, jd_keywords: list):
     total = len(jd_keywords)
     keyword_score = int((len(matched) / total) * 100) if total > 0 else 50
 
-    jd_words = set(re.findall(r'\b[a-zA-Z][a-zA-Z0-9+#.\-]{2,}\b', " ".join(jd_keywords).lower()))
-    resume_words = set(re.findall(r'\b[a-zA-Z][a-zA-Z0-9+#.\-]{2,}\b', resume_text.lower()))
-    overlap = len(jd_words & resume_words)
-    semantic_score = min(int((overlap / max(len(jd_words), 1)) * 150), 100)
+    stopwords = {
+        "a","an","the","and","or","but","in","on","at","to","for","of","with",
+        "is","are","was","were","be","been","have","has","had","will","would",
+        "could","should","this","that","as","by","from","also","such","than",
+        "then","so","if","when","where","while","all","both","each","more",
+        "most","other","some","any","only","just","well","good","great","new"
+    }
+    jd_words = set(
+        w for w in re.findall(r'\b[a-zA-Z][a-zA-Z0-9+#.\-]{2,}\b', " ".join(jd_keywords).lower())
+        if w not in stopwords
+    )
+    matched_semantic = sum(1 for w in jd_words if fuzzy_match(w, resume_text.lower()))
+    semantic_score = min(int((matched_semantic / max(len(jd_words), 1)) * 100), 100)
 
-    ats_score = max(0, min(int(keyword_score * 0.35 + semantic_score * 0.65), 100))
+    ats_score = max(0, min(int(keyword_score * 0.5 + semantic_score * 0.5), 100))
     return matched[:15], missing[:15], keyword_score, semantic_score, ats_score
 
 
