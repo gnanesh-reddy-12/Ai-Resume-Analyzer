@@ -5,10 +5,8 @@ import { ResumeContext } from "../context/ResumeContext"
 
 export default function AnalyzeSection() {
   const navigate = useNavigate()
-  const { resumeFile, setResumeFile, jobDescription, setJobDescription } = useContext(ResumeContext)
+  const { resumeFile, setResumeFile, jobDescription, setJobDescription, company, setCompany, role, setRole } = useContext(ResumeContext)
   const [jdOpen, setJdOpen] = useState(false)
-  const [company, setCompany] = useState("")
-  const [role, setRole] = useState("")
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]
@@ -21,8 +19,6 @@ export default function AnalyzeSection() {
   const handleAnalyze = () => {
     if (!resumeFile) { alert("Please upload a resume"); return }
     if (!jobDescription.trim()) { alert("Please paste a job description"); return }
-    if (company.trim()) localStorage.setItem("pending_company", company.trim())
-    if (role.trim()) localStorage.setItem("pending_role", role.trim())
     navigate("/loading")
   }
 
@@ -33,7 +29,6 @@ export default function AnalyzeSection() {
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         style={{ background: "white", border: "1px solid var(--border)", borderRadius: 24, padding: 32, boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}
       >
-        {/* Company + Role row */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
           <div>
             <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text-2)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 6 }}>Company Name</label>
@@ -59,10 +54,7 @@ export default function AnalyzeSection() {
           </div>
         </div>
 
-        {/* Upload + JD row */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-
-          {/* Upload */}
           <div
             style={{ border: "2px dashed var(--border)", borderRadius: 18, padding: 28, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", minHeight: 220, transition: "border-color 0.2s" }}
             onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = "var(--accent)" }}
@@ -94,7 +86,6 @@ export default function AnalyzeSection() {
             )}
           </div>
 
-          {/* JD — click to open modal */}
           <div
             onClick={() => setJdOpen(true)}
             style={{ border: "1.5px solid var(--border)", borderRadius: 18, padding: 20, display: "flex", flexDirection: "column", minHeight: 220, cursor: "pointer", transition: "border-color 0.15s" }}
@@ -132,7 +123,6 @@ export default function AnalyzeSection() {
         </div>
       </motion.div>
 
-      {/* JD Modal */}
       <AnimatePresence>
         {jdOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}

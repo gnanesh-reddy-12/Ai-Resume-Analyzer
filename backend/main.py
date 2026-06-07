@@ -35,14 +35,10 @@ app.add_middleware(
 )
 
 
-# ── Auth Models ───────────────────────────────────────────────────────────────
-
 class AuthRequest(BaseModel):
     email: str
     password: str
 
-
-# ── JWT Helpers ───────────────────────────────────────────────────────────────
 
 def create_token(user_id: str, email: str) -> str:
     payload = {
@@ -62,8 +58,6 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) 
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-
-# ── Auth Endpoints ────────────────────────────────────────────────────────────
 
 @app.get("/")
 def home():
@@ -130,8 +124,6 @@ async def delete_analysis(analysis_id: str, user=Depends(verify_token)):
     return {"message": "Deleted"}
 
 
-# ── Text Extraction ───────────────────────────────────────────────────────────
-
 def extract_text(filename: str, contents: bytes) -> str:
     text = ""
     if filename.endswith(".pdf"):
@@ -162,53 +154,60 @@ def compress_text(text: str, max_words: int = 300) -> str:
     words = re.findall(r'\b[a-zA-Z][a-zA-Z0-9+#.\-]{1,}\b', text)
     filtered = [w for w in words if w.lower() not in stopwords]
     seen = []
+    seen_lower = set()
     for w in filtered:
-        if w.lower() not in [x.lower() for x in seen]:
+        if w.lower() not in seen_lower:
             seen.append(w)
+            seen_lower.add(w.lower())
     return " ".join(seen[:max_words])
 
 
-# ── Groq Call 1: Extract JD Keywords ─────────────────────────────────────────
+SYNONYMS = {
+    "ml": ["machine learning"],
+    "machine learning": ["ml"],
+    "ai": ["artificial intelligence"],
+    "artificial intelligence": ["ai"],
+    "js": ["javascript"],
+    "javascript": ["js"],
+    "ts": ["typescript"],
+    "typescript": ["ts"],
+    "k8s": ["kubernetes"],
+    "kubernetes": ["k8s"],
+    "db": ["database"],
+    "ci/cd": ["continuous integration", "continuous deployment", "cicd"],
+    "oop": ["object oriented programming", "object-oriented programming"],
+    "object oriented programming": ["oop"],
+    "rest": ["restful", "rest api"],
+    "restful": ["rest", "rest api"],
+    "nlp": ["natural language processing"],
+    "natural language processing": ["nlp"],
+    "dl": ["deep learning"],
+    "deep learning": ["dl"],
+    "aws": ["amazon web services"],
+    "amazon web services": ["aws"],
+    "gcp": ["google cloud platform"],
+    "google cloud platform": ["gcp"],
+}
 
-def extract_jd_keywords(job_description: str) -> list:
-    compressed_jd = compress_text(job_description, max_words=200)
-    prompt = f"""Extract the most important ATS keywords from this job description.
-Focus on: technical skills, tools, programming languages, frameworks, certifications, methodologies, and role-specific terms.
-Return ONLY a JSON array of strings. No explanation, no markdown, no backticks.
-Example: ["Python", "React", "REST API", "AWS", "Agile"]
-
-Job Description Keywords:
-{compressed_jd}"""
-
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {"role": "system", "content": "You extract ATS keywords. Return only a JSON array of strings."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.0,
-        max_tokens=400,
-    )
-    raw = response.choices[0].message.content.strip()
-    raw = re.sub(r'^```[a-z]*\n?', '', raw)
-    raw = re.sub(r'\n?```$', '', raw)
-    try:
-        keywords = json.loads(raw)
-        return [str(k).strip() for k in keywords if k]
-    except Exception:
-        return re.findall(r'"([^"]+)"', raw)
+def expand_synonyms(word: str) -> list:
+    return SYNONYMS.get(word.lower(), [])
 
 
-# ── Backend Scoring ───────────────────────────────────────────────────────────
-
-def fuzzy_match(word: str, text: str, threshold: float = 0.82) -> bool:
+def fuzzy_match(word: str, text: str, threshold: float = 0.78) -> bool:
     word_lower = word.lower()
     text_lower = text.lower()
+
     if word_lower in text_lower:
         return True
+
+    for synonym in expand_synonyms(word_lower):
+        if synonym in text_lower:
+            return True
+
     for tw in re.findall(r'\b\w[\w+#.\-]*\b', text_lower):
         if SequenceMatcher(None, word_lower, tw).ratio() >= threshold:
             return True
+
     return False
 
 
@@ -225,11 +224,39 @@ def calculate_scores(resume_text: str, jd_keywords: list):
     overlap = len(jd_words & resume_words)
     semantic_score = min(int((overlap / max(len(jd_words), 1)) * 150), 100)
 
-    ats_score = max(0, min(int(keyword_score * 0.55 + semantic_score * 0.45), 100))
+    ats_score = max(0, min(int(keyword_score * 0.35 + semantic_score * 0.65), 100))
     return matched[:15], missing[:15], keyword_score, semantic_score, ats_score
 
 
-# ── Groq Call 2: Generate Suggestions ────────────────────────────────────────
+def extract_jd_keywords(job_description: str) -> list:
+    compressed_jd = compress_text(job_description, max_words=200)
+    prompt = f"""Extract the most important ATS keywords from this job description.
+Focus on: technical skills, tools, programming languages, frameworks, certifications, methodologies, and role-specific terms.
+Return ONLY a JSON array of strings. No explanation, no markdown, no backticks.
+Example: ["Python", "React", "REST API", "AWS", "Agile"]
+
+Job Description Keywords:
+{compressed_jd}"""
+
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {"role": "system", "content": "You extract ATS keywords. Return only a JSON array of strings. Exclude niche academic or theoretical terms. Focus only on practical, industry-standard skills."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0,
+        seed=42,
+        max_tokens=400,
+    )
+    raw = response.choices[0].message.content.strip()
+    raw = re.sub(r'^```[a-z]*\n?', '', raw)
+    raw = re.sub(r'\n?```$', '', raw)
+    try:
+        keywords = json.loads(raw)
+        return sorted([str(k).strip() for k in keywords if k])
+    except Exception:
+        return sorted(re.findall(r'"([^"]+)"', raw))
+
 
 def generate_suggestions(resume_text: str, job_description: str, missing_keywords: list, ats_score: int) -> dict:
     compressed_resume = compress_text(resume_text, max_words=250)
@@ -260,7 +287,8 @@ Return ONLY valid JSON:
             {"role": "system", "content": "You are an ATS resume expert. Return only valid JSON. No markdown, no backticks."},
             {"role": "user", "content": prompt}
         ],
-        temperature=0.1,
+        temperature=0.3,
+        seed=42,
         max_tokens=1200,
     )
     raw = response.choices[0].message.content.strip()
@@ -278,12 +306,12 @@ Return ONLY valid JSON:
         }
 
 
-# ── Analyze Endpoint ──────────────────────────────────────────────────────────
-
 @app.post("/analyze")
 async def analyze_resume(
     resume: UploadFile = File(...),
     job_description: str = Form(...),
+    company_name: str = Form(default=""),
+    job_role: str = Form(default=""),
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
     user = verify_token(credentials)
@@ -306,6 +334,8 @@ async def analyze_resume(
 
     result = {
         "filename": resume.filename,
+        "company_name": company_name,
+        "job_role": job_role,
         "job_description_length": len(job_description),
         "resume_text_preview": resume_text[:700],
         "ats_score": ats_score,
@@ -322,11 +352,12 @@ async def analyze_resume(
         "message": "Resume analyzed successfully"
     }
 
-    # Save to Supabase
     try:
         supabase.table("analyses").insert({
             "user_id": user["user_id"],
             "filename": resume.filename,
+            "company_name": company_name or None,
+            "job_role": job_role or None,
             "ats_score": ats_score,
             "keyword_score": keyword_score,
             "semantic_score": semantic_score,

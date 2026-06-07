@@ -31,9 +31,6 @@ function History() {
   const [analyses, setAnalyses] = useState([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
-  const [labels, setLabels] = useState({}) // { [id]: { company, role } }
-  const [editingLabel, setEditingLabel] = useState(null)
-  const [labelDraft, setLabelDraft] = useState({ company: "", role: "" })
 
   useEffect(() => {
     if (!token) { navigate("/login"); return }
@@ -45,19 +42,6 @@ function History() {
         const list = d.analyses || []
         setAnalyses(list)
         if (list.length) setSelected(list[0])
-        const saved = JSON.parse(localStorage.getItem("history_labels") || "{}")
-        const pendingCompany = localStorage.getItem("pending_company") || ""
-        const pendingRole = localStorage.getItem("pending_role") || ""
-        if (list.length && (pendingCompany || pendingRole)) {
-          const latest = list[0]
-          if (!saved[latest.id]) {
-            saved[latest.id] = { company: pendingCompany, role: pendingRole }
-            localStorage.setItem("history_labels", JSON.stringify(saved))
-          }
-          localStorage.removeItem("pending_company")
-          localStorage.removeItem("pending_role")
-        }
-        setLabels(saved)
       })
       .finally(() => setLoading(false))
   }, [token, navigate])
@@ -69,17 +53,6 @@ function History() {
     const updated = analyses.filter(a => a.id !== id)
     setAnalyses(updated)
     setSelected(updated.length ? updated[0] : null)
-    const newLabels = { ...labels }
-    delete newLabels[id]
-    setLabels(newLabels)
-    localStorage.setItem("history_labels", JSON.stringify(newLabels))
-  }
-
-  const saveLabel = (id) => {
-    const newLabels = { ...labels, [id]: labelDraft }
-    setLabels(newLabels)
-    localStorage.setItem("history_labels", JSON.stringify(newLabels))
-    setEditingLabel(null)
   }
 
   return (
@@ -114,10 +87,8 @@ function History() {
         {!loading && analyses.length > 0 && (
           <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 20, alignItems: "start" }}>
 
-            {/* List */}
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {analyses.map((a, idx) => {
-                const lbl = labels[a.id] || {}
                 const isSelected = selected?.id === a.id
                 return (
                   <motion.div key={a.id}
@@ -128,38 +99,14 @@ function History() {
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                       <ScoreRing score={a.ats_score} />
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        {/* Company + Role labels */}
-                        {editingLabel === a.id ? (
-                          <div onClick={e => e.stopPropagation()} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                            <input value={labelDraft.company} onChange={e => setLabelDraft(p => ({ ...p, company: e.target.value }))} placeholder="Company name" style={{ border: "1.5px solid var(--accent)", borderRadius: 8, padding: "4px 8px", fontSize: 12, outline: "none", fontFamily: "Inter, sans-serif" }} />
-                            <input value={labelDraft.role} onChange={e => setLabelDraft(p => ({ ...p, role: e.target.value }))} placeholder="Job role" style={{ border: "1.5px solid var(--accent)", borderRadius: 8, padding: "4px 8px", fontSize: 12, outline: "none", fontFamily: "Inter, sans-serif" }} onKeyDown={e => e.key === "Enter" && saveLabel(a.id)} />
-                            <div style={{ display: "flex", gap: 6 }}>
-                              <button onClick={() => saveLabel(a.id)} style={{ background: "var(--accent)", color: "white", border: "none", borderRadius: 6, padding: "3px 10px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>Save</button>
-                              <button onClick={() => setEditingLabel(null)} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 6, padding: "3px 8px", fontSize: 11, cursor: "pointer" }}>Cancel</button>
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            {lbl.company || lbl.role ? (
-                              <div style={{ marginBottom: 4 }}>
-                                {lbl.company && <p style={{ fontWeight: 700, fontSize: 13, color: "var(--text-1)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lbl.company}</p>}
-                                {lbl.role && <p style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600 }}>{lbl.role}</p>}
-                              </div>
-                            ) : (
-                              <p style={{ fontWeight: 600, fontSize: 13, color: "var(--text-1)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 2 }}>{a.filename}</p>
-                            )}
-                            <p style={{ fontSize: 11, color: "var(--text-3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.job_description_preview}</p>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
-                              <span style={{ fontSize: 11, color: "var(--text-3)" }}>{new Date(a.created_at).toLocaleDateString()}</span>
-                              <div style={{ display: "flex", gap: 8 }}>
-                                <button onClick={e => { e.stopPropagation(); setLabelDraft(lbl.company ? lbl : { company: "", role: "" }); setEditingLabel(a.id) }} style={{ fontSize: 11, color: "var(--accent)", background: "none", border: "none", cursor: "pointer", fontWeight: 500 }}>
-                                  {lbl.company ? "Edit" : "+ Label"}
-                                </button>
-                                <button onClick={e => { e.stopPropagation(); handleDelete(a.id) }} style={{ fontSize: 11, color: "var(--danger)", background: "none", border: "none", cursor: "pointer" }}>Delete</button>
-                              </div>
-                            </div>
-                          </>
-                        )}
+                        {a.company_name && <p style={{ fontWeight: 700, fontSize: 13, color: "var(--text-1)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.company_name}</p>}
+                        {a.job_role && <p style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600 }}>{a.job_role}</p>}
+                        {!a.company_name && !a.job_role && <p style={{ fontWeight: 600, fontSize: 13, color: "var(--text-1)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 2 }}>{a.filename}</p>}
+                        <p style={{ fontSize: 11, color: "var(--text-3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 2 }}>{a.job_description_preview}</p>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+                          <span style={{ fontSize: 11, color: "var(--text-3)" }}>{new Date(a.created_at).toLocaleDateString()}</span>
+                          <button onClick={e => { e.stopPropagation(); handleDelete(a.id) }} style={{ fontSize: 11, color: "var(--danger)", background: "none", border: "none", cursor: "pointer" }}>Delete</button>
+                        </div>
                       </div>
                     </div>
                   </motion.div>
@@ -167,18 +114,16 @@ function History() {
               })}
             </div>
 
-            {/* Detail panel */}
             <AnimatePresence mode="wait">
               {selected && (
                 <motion.div key={selected.id} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
-                  {/* Score header */}
                   <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 20, padding: 28 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16, marginBottom: 20 }}>
                       <div>
-                        {labels[selected.id]?.company && <p style={{ fontWeight: 800, fontSize: 18, color: "var(--text-1)" }}>{labels[selected.id].company}</p>}
-                        {labels[selected.id]?.role && <p style={{ fontSize: 14, color: "var(--accent)", fontWeight: 600, marginTop: 2 }}>{labels[selected.id].role}</p>}
-                        <p style={{ fontSize: 13, color: "var(--text-3)", marginTop: labels[selected.id]?.company ? 4 : 0 }}>{selected.filename}</p>
+                        {selected.company_name && <p style={{ fontWeight: 800, fontSize: 18, color: "var(--text-1)" }}>{selected.company_name}</p>}
+                        {selected.job_role && <p style={{ fontSize: 14, color: "var(--accent)", fontWeight: 600, marginTop: 2 }}>{selected.job_role}</p>}
+                        <p style={{ fontSize: 13, color: "var(--text-3)", marginTop: selected.company_name ? 4 : 0 }}>{selected.filename}</p>
                         <p style={{ fontSize: 12, color: "var(--text-3)", marginTop: 2 }}>{new Date(selected.created_at).toLocaleString()}</p>
                       </div>
                       <ScoreRing score={selected.ats_score} size={90} stroke={8} />
@@ -200,7 +145,6 @@ function History() {
                     </div>
                   </div>
 
-                  {/* Keywords */}
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                     {selected.matched_keywords?.length > 0 && (
                       <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 16, padding: 20 }}>
@@ -220,7 +164,6 @@ function History() {
                     )}
                   </div>
 
-                  {/* Suggestions */}
                   {selected.improvement_suggestions?.length > 0 && (
                     <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 16, padding: 20 }}>
                       <p style={{ fontWeight: 700, fontSize: 13, color: "var(--text-1)", marginBottom: 14 }}>🛠 Improvement Suggestions</p>
@@ -236,7 +179,6 @@ function History() {
                     </div>
                   )}
 
-                  {/* Summary */}
                   {selected.summary_suggestion && (
                     <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 16, padding: 20 }}>
                       <p style={{ fontWeight: 700, fontSize: 13, color: "var(--text-1)", marginBottom: 10 }}>💡 Suggested Summary</p>
@@ -244,7 +186,6 @@ function History() {
                     </div>
                   )}
 
-                  {/* Bullets */}
                   {selected.rewritten_bullets?.length > 0 && (
                     <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 16, padding: 20 }}>
                       <p style={{ fontWeight: 700, fontSize: 13, color: "var(--text-1)", marginBottom: 12 }}>✍️ Rewritten Bullets</p>

@@ -13,20 +13,14 @@ function ScoreRing({ score, size = 160, stroke = 10 }) {
   const circ = 2 * Math.PI * r
   const offset = circ - (score / 100) * circ
   const color = score >= 75 ? "#10B981" : score >= 55 ? "#F59E0B" : "#EF4444"
-
   return (
     <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
         <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#E2E8F0" strokeWidth={stroke} />
-        <motion.circle
-          cx={size/2} cy={size/2} r={r} fill="none"
-          stroke={color} strokeWidth={stroke}
-          strokeLinecap="round"
-          strokeDasharray={circ}
-          initial={{ strokeDashoffset: circ }}
-          animate={{ strokeDashoffset: offset }}
-          transition={{ duration: 1.2, ease: "easeOut" }}
-        />
+        <motion.circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke}
+          strokeLinecap="round" strokeDasharray={circ}
+          initial={{ strokeDashoffset: circ }} animate={{ strokeDashoffset: offset }}
+          transition={{ duration: 1.2, ease: "easeOut" }} />
       </svg>
       <div className="absolute text-center">
         <div className="text-3xl font-bold text-slate-900">{score}%</div>
@@ -39,19 +33,15 @@ function ScoreRing({ score, size = 160, stroke = 10 }) {
 function ProgressBar({ value, color }) {
   return (
     <div className="w-full bg-slate-100 rounded-full h-2">
-      <motion.div
-        className="h-2 rounded-full"
-        style={{ background: color }}
-        initial={{ width: 0 }}
-        animate={{ width: `${value}%` }}
-        transition={{ duration: 0.9, ease: "easeOut" }}
-      />
+      <motion.div className="h-2 rounded-full" style={{ background: color }}
+        initial={{ width: 0 }} animate={{ width: `${value}%` }}
+        transition={{ duration: 0.9, ease: "easeOut" }} />
     </div>
   )
 }
 
 function Results() {
-  const { resumeFile, jobDescription } = useContext(ResumeContext)
+  const { resumeFile, jobDescription, company, role } = useContext(ResumeContext)
   const { token } = useAuth()
   const navigate = useNavigate()
   const [data, setData] = useState(null)
@@ -64,16 +54,18 @@ function Results() {
     const formData = new FormData()
     formData.append("resume", resumeFile)
     formData.append("job_description", jobDescription)
+    formData.append("company_name", company.trim())
+    formData.append("job_role", role.trim())
 
     fetch(`${import.meta.env.VITE_BACKEND_URL}/analyze`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
       body: formData,
     })
-      .then((r) => r.json())
-      .then((d) => { if (d.error) setError(d.error); else setData(d) })
-      .catch((e) => setError(e.message))
-  }, [resumeFile, jobDescription, token, navigate])
+      .then(r => r.json())
+      .then(d => { if (d.error) setError(d.error); else setData(d) })
+      .catch(e => setError(e.message))
+  }, [])
 
   if (error) return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -105,18 +97,18 @@ function Results() {
       <Navbar />
       <div className="max-w-6xl mx-auto px-6 py-10">
 
-        {/* Header */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="flex items-start justify-between flex-wrap gap-4 mb-8">
           <div>
             <p className="text-blue-500 text-sm font-semibold uppercase tracking-widest">Analysis Complete</p>
             <h1 className="text-4xl font-bold text-slate-900 mt-1">Your ATS Report</h1>
-            <p className="text-slate-500 mt-1">{resumeFile?.name}</p>
+            {company && <p className="text-slate-700 font-semibold mt-1">{company}{role ? ` — ${role}` : ""}</p>}
+            <p className="text-slate-500 mt-0.5">{resumeFile?.name}</p>
           </div>
           <button onClick={() => navigate("/history")} className="btn-secondary text-sm">View History</button>
         </motion.div>
 
-        {/* Verdict */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className={`flex items-center gap-3 px-6 py-4 rounded-2xl border mb-8 ${data.can_apply ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800"}`}>
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          className={`flex items-center gap-3 px-6 py-4 rounded-2xl border mb-8 ${data.can_apply ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800"}`}>
           <span className="text-2xl">{data.can_apply ? "✅" : "⚠️"}</span>
           <div>
             <p className="font-semibold">{data.apply_verdict}</p>
@@ -124,10 +116,7 @@ function Results() {
           </div>
         </motion.div>
 
-        {/* Score Row */}
         <motion.div variants={container} initial="hidden" animate="show" className="grid md:grid-cols-3 gap-6 mb-8">
-
-          {/* Score Ring */}
           <motion.div variants={item} className="card p-8 flex flex-col items-center">
             <ScoreRing score={data.ats_score} />
             <div className="w-full mt-6 space-y-4">
@@ -148,7 +137,6 @@ function Results() {
             </div>
           </motion.div>
 
-          {/* Matched */}
           <motion.div variants={item} className="card p-6">
             <div className="flex items-center gap-2 mb-5">
               <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
@@ -163,7 +151,6 @@ function Results() {
             </div>
           </motion.div>
 
-          {/* Missing */}
           <motion.div variants={item} className="card p-6">
             <div className="flex items-center gap-2 mb-5">
               <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
@@ -179,7 +166,6 @@ function Results() {
           </motion.div>
         </motion.div>
 
-        {/* Improvements */}
         {data.improvement_suggestions?.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="card p-8 mb-6">
             <h2 className="font-bold text-slate-900 text-xl mb-6">🛠 Improvement Suggestions</h2>
@@ -195,7 +181,6 @@ function Results() {
           </motion.div>
         )}
 
-        {/* Bullets + Verbs + Summary */}
         <motion.div variants={container} initial="hidden" animate="show" className="grid md:grid-cols-2 gap-6 mb-6">
           {data.rewritten_bullets?.length > 0 && (
             <motion.div variants={item} className="card p-6">
@@ -209,7 +194,6 @@ function Results() {
               </ul>
             </motion.div>
           )}
-
           <div className="space-y-6">
             {data.strong_action_verbs?.length > 0 && (
               <motion.div variants={item} className="card p-6">
@@ -228,7 +212,6 @@ function Results() {
           </div>
         </motion.div>
 
-        {/* Actions */}
         <div className="flex gap-4 justify-center mt-10">
           <button onClick={() => navigate("/")} className="btn-primary">← Analyze Another</button>
           <button onClick={() => navigate("/history")} className="btn-secondary">View History</button>
