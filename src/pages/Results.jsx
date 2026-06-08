@@ -69,7 +69,7 @@ function HighlightedJobDescription({ text, matched, missing, optional }) {
 }
 
 function Results() {
-  const { resumeFile, jobDescription, company, role } = useContext(ResumeContext)
+  const { resumeFile, jobDescription, company, role, resetContext } = useContext(ResumeContext)
   const { token } = useAuth()
   const navigate = useNavigate()
   const [data, setData] = useState(null)
@@ -242,38 +242,68 @@ function Results() {
         {isAiLoading && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="card p-8 mb-8 text-center bg-indigo-50 border-indigo-100">
             <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <h2 className="font-bold text-indigo-900 text-lg">AI is crafting your upgrades...</h2>
-            <p className="text-indigo-700/70 text-sm mt-1">Analyzing context and maximizing impact.</p>
+            <h2 className="font-bold text-indigo-900 text-lg">AI is analyzing your resume...</h2>
+            <p className="text-indigo-700/70 text-sm mt-1">Generating summary, rewriting bullets, checking qualifications.</p>
           </motion.div>
         )}
 
         {aiSuggestions && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="card p-8 mb-8 border-indigo-100">
-            <div className="flex items-center gap-3 mb-6">
-              <span className="text-2xl">✨</span>
-              <h2 className="font-bold text-slate-900 text-xl">Pro Bullet Point Suggestions</h2>
-            </div>
-            <div className="space-y-6">
-              {aiSuggestions.map((s, i) => (
-                <div key={i} className="grid md:grid-cols-2 gap-4">
-                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2 block">Your Bullet</span>
-                    <p className="text-slate-700 text-sm">{s.original}</p>
-                  </div>
-                  <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-5">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-indigo-600 mb-2 block">Enhanced Version</span>
-                    <p className="text-slate-900 text-sm font-medium leading-relaxed">
-                      {s.rewritten}
-                    </p>
-                  </div>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 mb-8">
+            
+            {/* Professional Summary */}
+            {aiSuggestions.summary && (
+              <div className="card p-8 border-green-100">
+                <h2 className="font-bold text-slate-900 text-lg mb-3">Professional Summary</h2>
+                <p className="text-slate-500 text-xs mb-3 uppercase tracking-wide font-semibold">Tailored for this role — paste this at the top of your resume</p>
+                <div className="bg-green-50 border border-green-200 rounded-xl p-5">
+                  <p className="text-slate-900 text-sm leading-relaxed">{aiSuggestions.summary}</p>
                 </div>
-              ))}
+              </div>
+            )}
+
+            {/* Experience & Education Quick Check */}
+            <div className="grid md:grid-cols-2 gap-6">
+              {aiSuggestions.experience_match && (
+                <div className="card p-6 border-blue-100">
+                  <h3 className="font-bold text-slate-900 text-sm mb-2 uppercase tracking-wide">Experience Relevance</h3>
+                  <p className="text-slate-700 text-sm leading-relaxed">{aiSuggestions.experience_match}</p>
+                </div>
+              )}
+              {aiSuggestions.education_check && (
+                <div className="card p-6 border-blue-100">
+                  <h3 className="font-bold text-slate-900 text-sm mb-2 uppercase tracking-wide">Education Check</h3>
+                  <p className="text-slate-700 text-sm leading-relaxed">{aiSuggestions.education_check}</p>
+                </div>
+              )}
             </div>
+
+            {/* Bullet Point Suggestions */}
+            {aiSuggestions.bullets && aiSuggestions.bullets.length > 0 && (
+              <div className="card p-8 border-indigo-100">
+                <h2 className="font-bold text-slate-900 text-lg mb-6">Improved Bullet Points</h2>
+                <div className="space-y-6">
+                  {aiSuggestions.bullets.map((s, i) => (
+                    <div key={i} className="grid md:grid-cols-2 gap-4">
+                      <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2 block">Your Bullet</span>
+                        <p className="text-slate-700 text-sm">{s.original}</p>
+                      </div>
+                      <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-5">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-indigo-600 mb-2 block">Enhanced Version</span>
+                        <p className="text-slate-900 text-sm font-medium leading-relaxed">
+                          {s.rewritten}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
 
         <div className="flex gap-4 justify-center mt-10">
-          <button onClick={() => navigate("/")} className="btn-primary">← Analyze Another</button>
+          <button onClick={() => { resetContext(); navigate("/"); }} className="btn-primary">← Analyze Another</button>
         </div>
       </div>
     </div>

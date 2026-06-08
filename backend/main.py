@@ -281,43 +281,51 @@ async def improve_resume(
         return {"error": "Could not extract text. Make sure the resume is not a scanned image."}
         
     compressed_resume = compress_text(resume_text, max_words=300)
-    compressed_jd = compress_text(job_description, max_words=150)
+    compressed_jd = compress_text(job_description, max_words=200)
     
-    prompt = f"""You are an expert ATS resume coach.
-    
+    prompt = f"""You are an expert ATS resume coach who writes for real recruiters, not robots.
+
 Resume (compressed): {compressed_resume}
 Job Description (compressed): {compressed_jd}
 
-Task: Find the most important experience bullet points in the resume and rewrite them to match the Job Description.
-Use the Google XYZ formula: 'Accomplished [X] as measured by [Y], by doing [Z]'.
-Make the bullets sound completely natural and reliable. Include specific, realistic-sounding metrics (e.g., 'by 40%', 'from 3 to 5') based on the context of the bullet, so the user sees a great example, but DO NOT use generic placeholders like [ADD METRIC].
-Avoid buzzwords and fluff.
+Do ALL of the following:
+
+1. PROFESSIONAL SUMMARY: Write a 2-3 sentence professional summary tailored specifically to this job description. A recruiter reads this in 5 seconds so it must be clear and direct. No buzzwords, no fluff, no "passionate" or "results-driven" — just state what this person does, their strongest relevant skill, and what they bring to the role.
+
+2. BULLET POINTS: Find the 3-5 most important experience bullet points in the resume and rewrite them to match the Job Description. Use the Google XYZ formula: 'Accomplished [X] as measured by [Y], by doing [Z]'. Include realistic metrics based on context. No generic placeholders.
+
+3. EXPERIENCE MATCH: Check if the candidate's work experience is relevant to the job. State clearly whether they have relevant experience and what gaps exist. Be honest but constructive.
+
+4. EDUCATION CHECK: Check if the candidate meets the education requirements. IMPORTANT: If the JD asks for a Master's but the candidate has a Bachelor's in a relevant field, do NOT disqualify them. A Bachelor's degree is a valid qualification. Only flag education as a concern if the candidate has NO degree or the degree is completely unrelated to the role.
 
 Return ONLY valid JSON in this exact format (no markdown, no backticks):
-[
-  {{"original": "<the exact original bullet point from the resume>", "rewritten": "<the improved bullet point>"}},
-  {{"original": "<another original bullet point>", "rewritten": "<the improved bullet point>"}}
-]
-Return exactly 3 to 5 bullet points.
-"""
+{{
+  "summary": "<the 2-3 sentence professional summary>",
+  "bullets": [
+    {{"original": "<exact original bullet>", "rewritten": "<improved bullet>"}},
+    {{"original": "<exact original bullet>", "rewritten": "<improved bullet>"}}
+  ],
+  "experience_match": "<1-2 sentence honest assessment of experience relevance>",
+  "education_check": "<1 sentence on whether education meets requirements>"
+}}"""
 
     try:
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
-                {"role": "system", "content": "You are an ATS resume expert. Return ONLY a JSON array. No markdown, no backticks."},
+                {"role": "system", "content": "You are an ATS resume expert. Return ONLY valid JSON. No markdown, no backticks. Be direct and honest — no fluff."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.3,
             seed=42,
-            max_tokens=800,
+            max_tokens=1200,
         )
         raw = response.choices[0].message.content.strip()
         raw = re.sub(r'^```[a-z]*\n?', '', raw)
         raw = re.sub(r'\n?```$', '', raw)
         
-        suggestions = json.loads(raw)
-        return {"suggestions": suggestions}
+        result = json.loads(raw)
+        return {"suggestions": result}
     except Exception as e:
         return {"error": f"Failed to generate improvements: {str(e)}"}
 
