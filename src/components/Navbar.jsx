@@ -35,14 +35,14 @@ export default function Navbar() {
       transition={{ duration: 0.35 }}
       style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(248,250,252,0.92)", backdropFilter: "blur(16px)", borderBottom: "1px solid var(--border)", height: 64 }}
     >
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 16px", height: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
 
         <button onClick={() => navigate(user ? "/" : "/landing")} style={{ fontWeight: 800, fontSize: 20, letterSpacing: "-0.5px", background: "none", border: "none", cursor: "pointer", color: "var(--text-1)" }}>
           Resume<span style={{ color: "var(--accent)" }}>AI</span>
         </button>
 
         {!isAuth && user && (
-          <nav style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <nav className="hidden md:flex" style={{ alignItems: "center", gap: 4 }}>
             <NavLink label="Analyze" onClick={() => navigate("/")} active={path === "/"} />
             <NavLink label="History" onClick={() => navigate("/history")} active={path === "/history"} />
           </nav>

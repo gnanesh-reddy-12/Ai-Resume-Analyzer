@@ -29,7 +29,7 @@ export default function AnalyzeSection() {
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         style={{ background: "white", border: "1px solid var(--border)", borderRadius: 24, padding: 32, boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}
       >
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
+        <div className="analyze-form-grid" style={{ display: "grid", gap: 16, marginBottom: 24 }}>
           <div>
             <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text-2)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 6 }}>Company Name</label>
             <input
@@ -54,7 +54,7 @@ export default function AnalyzeSection() {
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+        <div className="analyze-panels-grid" style={{ display: "grid", gap: 20 }}>
           <div
             style={{ border: "2px dashed var(--border)", borderRadius: 18, padding: 28, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", minHeight: 220, transition: "border-color 0.2s" }}
             onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = "var(--accent)" }}
@@ -72,7 +72,7 @@ export default function AnalyzeSection() {
               </svg>
             </div>
             <p style={{ fontWeight: 700, fontSize: 14, color: "var(--text-1)", marginBottom: 4 }}>Upload Resume</p>
-            <p style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 16 }}>PDF or DOCX · Drag & drop or browse</p>
+            <p style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 16 }}>PDF · Drag & drop or browse</p>
             <label className="btn-primary" style={{ fontSize: 13, padding: "8px 20px", cursor: "pointer" }}>
               Choose File
               <input type="file" accept=".pdf,.docx" style={{ display: "none" }} onChange={handleFileChange} />

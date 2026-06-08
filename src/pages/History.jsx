@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useAuth } from "../context/useAuth"
 import Navbar from "../components/Navbar"
 
-function ScoreRing({ score, size = 80, stroke = 7 }) {
+function ScoreRing({ score, size = 72, stroke = 6 }) {
   const r = (size - stroke) / 2
   const circ = 2 * Math.PI * r
   const offset = circ - (score / 100) * circ
@@ -19,7 +19,7 @@ function ScoreRing({ score, size = 80, stroke = 7 }) {
           transition={{ duration: 1, ease: "easeOut" }} />
       </svg>
       <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ fontSize: 16, fontWeight: 800, color: "var(--text-1)" }}>{score}%</span>
+        <span style={{ fontSize: 14, fontWeight: 800, color: "var(--text-1)" }}>{score}%</span>
       </div>
     </div>
   )
@@ -56,56 +56,58 @@ function History() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
+    <div className="min-h-screen bg-[#F8FAFC]">
       <Navbar />
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px 80px" }}>
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-10 pb-20">
 
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 16, marginBottom: 28 }}>
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
           <div>
-            <p style={{ fontSize: 12, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>History</p>
-            <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.5px" }}>Analysis History</h1>
-            <p style={{ color: "var(--text-2)", marginTop: 4, fontSize: 14 }}>{analyses.length} {analyses.length === 1 ? "analysis" : "analyses"} saved</p>
+            <p className="text-blue-500 text-xs font-semibold uppercase tracking-widest mb-1">History</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Analysis History</h1>
+            <p className="text-slate-500 mt-1 text-sm">{analyses.length} {analyses.length === 1 ? "analysis" : "analyses"} saved</p>
           </div>
-          <button className="btn-primary" style={{ padding: "10px 22px", fontSize: 13 }} onClick={() => navigate("/")}>+ New Analysis</button>
+          <button className="btn-primary" style={{ fontSize: 13, padding: "10px 22px", width: "fit-content" }} onClick={() => navigate("/")}>+ New Analysis</button>
         </motion.div>
 
         {loading && (
-          <div style={{ display: "flex", justifyContent: "center", padding: "80px 0" }}>
-            <div style={{ width: 32, height: 32, border: "4px solid #DBEAFE", borderTopColor: "var(--accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }}></div>
+          <div className="flex justify-center py-20">
+            <div className="w-8 h-8 border-4 border-blue-100 border-t-blue-500 rounded-full animate-spin"></div>
           </div>
         )}
 
         {!loading && analyses.length === 0 && (
-          <div style={{ textAlign: "center", padding: "80px 0" }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>📋</div>
-            <h2 style={{ fontSize: 20, fontWeight: 700 }}>No analyses yet</h2>
-            <p style={{ color: "var(--text-2)", marginTop: 8 }}>Analyze your first resume to see results here</p>
-            <button className="btn-primary" style={{ marginTop: 20 }} onClick={() => navigate("/")}>Analyze Resume</button>
+          <div className="text-center py-20">
+            <div className="text-5xl mb-4">📋</div>
+            <h2 className="text-xl font-bold text-slate-900">No analyses yet</h2>
+            <p className="text-slate-500 mt-2 text-sm">Analyze your first resume to see results here</p>
+            <button className="btn-primary mt-5" onClick={() => navigate("/")}>Analyze Resume</button>
           </div>
         )}
 
         {!loading && analyses.length > 0 && (
-          <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 20, alignItems: "start" }}>
+          <div className="flex flex-col lg:flex-row gap-5 items-start">
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {/* Sidebar list */}
+            <div className="w-full lg:w-80 flex flex-col gap-3 flex-shrink-0">
               {analyses.map((a, idx) => {
                 const isSelected = selected?.id === a.id
                 return (
                   <motion.div key={a.id}
-                    initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.05 }}
+                    initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}
                     onClick={() => setSelected(a)}
-                    style={{ background: "white", border: `1.5px solid ${isSelected ? "var(--accent)" : "var(--border)"}`, borderRadius: 16, padding: 16, cursor: "pointer", transition: "border-color 0.15s, box-shadow 0.15s", boxShadow: isSelected ? "0 0 0 3px rgba(59,130,246,0.1)" : "none" }}
+                    className="card cursor-pointer transition-all"
+                    style={{ padding: 14, border: `1.5px solid ${isSelected ? "var(--accent)" : "var(--border)"}`, boxShadow: isSelected ? "0 0 0 3px rgba(59,130,246,0.1)" : "none", borderRadius: 16 }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div className="flex items-center gap-3">
                       <ScoreRing score={a.ats_score} />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        {a.company_name && <p style={{ fontWeight: 700, fontSize: 13, color: "var(--text-1)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.company_name}</p>}
-                        {a.job_role && <p style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600 }}>{a.job_role}</p>}
-                        {!a.company_name && !a.job_role && <p style={{ fontWeight: 600, fontSize: 13, color: "var(--text-1)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 2 }}>{a.filename}</p>}
-                        <p style={{ fontSize: 11, color: "var(--text-3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 2 }}>{a.job_description_preview}</p>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
-                          <span style={{ fontSize: 11, color: "var(--text-3)" }}>{new Date(a.created_at).toLocaleDateString()}</span>
-                          <button onClick={e => { e.stopPropagation(); handleDelete(a.id) }} style={{ fontSize: 11, color: "var(--danger)", background: "none", border: "none", cursor: "pointer" }}>Delete</button>
+                      <div className="flex-1 min-w-0">
+                        {a.company_name && <p className="font-bold text-sm text-slate-900 truncate">{a.company_name}</p>}
+                        {a.job_role && <p className="text-xs text-blue-500 font-semibold">{a.job_role}</p>}
+                        {!a.company_name && !a.job_role && <p className="font-semibold text-sm text-slate-900 truncate">{a.filename}</p>}
+                        <p className="text-xs text-slate-400 truncate mt-0.5">{a.job_description_preview}</p>
+                        <div className="flex justify-between items-center mt-2">
+                          <span className="text-xs text-slate-400">{new Date(a.created_at).toLocaleDateString()}</span>
+                          <button onClick={e => { e.stopPropagation(); handleDelete(a.id) }} className="text-xs text-red-400 hover:text-red-600 bg-none border-none cursor-pointer">Delete</button>
                         </div>
                       </div>
                     </div>
@@ -114,94 +116,66 @@ function History() {
               })}
             </div>
 
-            <AnimatePresence mode="wait">
-              {selected && (
-                <motion.div key={selected.id} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Detail panel */}
+            <div className="flex-1 min-w-0">
+              <AnimatePresence mode="wait">
+                {selected && (
+                  <motion.div key={selected.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="flex flex-col gap-4">
 
-                  <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 20, padding: 28 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16, marginBottom: 20 }}>
-                      <div>
-                        {selected.company_name && <p style={{ fontWeight: 800, fontSize: 18, color: "var(--text-1)" }}>{selected.company_name}</p>}
-                        {selected.job_role && <p style={{ fontSize: 14, color: "var(--accent)", fontWeight: 600, marginTop: 2 }}>{selected.job_role}</p>}
-                        <p style={{ fontSize: 13, color: "var(--text-3)", marginTop: selected.company_name ? 4 : 0 }}>{selected.filename}</p>
-                        <p style={{ fontSize: 12, color: "var(--text-3)", marginTop: 2 }}>{new Date(selected.created_at).toLocaleString()}</p>
+                    {/* Header card */}
+                    <div className="card p-5 md:p-7">
+                      <div className="flex items-start justify-between gap-4 flex-wrap mb-4">
+                        <div className="min-w-0">
+                          {selected.company_name && <p className="font-bold text-lg text-slate-900">{selected.company_name}</p>}
+                          {selected.job_role && <p className="text-sm text-blue-500 font-semibold mt-0.5">{selected.job_role}</p>}
+                          <p className="text-xs text-slate-400 mt-1 truncate">{selected.filename}</p>
+                          <p className="text-xs text-slate-400">{new Date(selected.created_at).toLocaleString()}</p>
+                        </div>
+                        <ScoreRing score={selected.ats_score} size={80} stroke={7} />
                       </div>
-                      <ScoreRing score={selected.ats_score} size={90} stroke={8} />
-                    </div>
 
-                    <div style={{ padding: "12px 16px", borderRadius: 12, background: selected.can_apply ? "#F0FDF4" : "#FEF2F2", border: `1px solid ${selected.can_apply ? "#BBF7D0" : "#FECACA"}`, fontSize: 13, fontWeight: 600, color: selected.can_apply ? "#166534" : "#991B1B", marginBottom: 16 }}>
-                      {selected.can_apply ? "✅" : "⚠️"} {selected.apply_verdict}
-                    </div>
-
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                      <div style={{ background: "var(--bg)", borderRadius: 12, padding: "14px 16px" }}>
-                        <p style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 600 }}>KEYWORD SCORE</p>
-                        <p style={{ fontSize: 24, fontWeight: 800, color: "var(--accent)", marginTop: 4 }}>{selected.keyword_score}%</p>
-                      </div>
-                      <div style={{ background: "var(--bg)", borderRadius: 12, padding: "14px 16px" }}>
-                        <p style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 600 }}>SEMANTIC SCORE</p>
-                        <p style={{ fontSize: 24, fontWeight: 800, color: "#10B981", marginTop: 4 }}>{selected.semantic_score}%</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                    {selected.matched_keywords?.length > 0 && (
-                      <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 16, padding: 20 }}>
-                        <p style={{ fontWeight: 700, fontSize: 13, color: "var(--text-1)", marginBottom: 12 }}>✓ Matched <span style={{ background: "#DCFCE7", color: "#166534", borderRadius: 999, padding: "1px 7px", fontSize: 11, marginLeft: 4 }}>{selected.matched_keywords.length}</span></p>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                          {selected.matched_keywords.map((k, i) => <span key={i} className="tag tag-green">{k}</span>)}
+                      {/* Scores */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-slate-50 rounded-xl p-3">
+                          <p className="text-xs text-slate-400 font-semibold uppercase">Keyword Score</p>
+                          <p className="text-2xl font-bold text-blue-500 mt-1">{selected.keyword_score}%</p>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl p-3">
+                          <p className="text-xs text-slate-400 font-semibold uppercase">Semantic Score</p>
+                          <p className="text-2xl font-bold text-emerald-500 mt-1">{selected.semantic_score}%</p>
                         </div>
                       </div>
-                    )}
-                    {selected.missing_keywords?.length > 0 && (
-                      <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 16, padding: 20 }}>
-                        <p style={{ fontWeight: 700, fontSize: 13, color: "var(--text-1)", marginBottom: 12 }}>✗ Missing <span style={{ background: "#FEE2E2", color: "#991B1B", borderRadius: 999, padding: "1px 7px", fontSize: 11, marginLeft: 4 }}>{selected.missing_keywords.length}</span></p>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                          {selected.missing_keywords.map((k, i) => <span key={i} className="tag tag-red">{k}</span>)}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                    </div>
 
-                  {selected.improvement_suggestions?.length > 0 && (
-                    <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 16, padding: 20 }}>
-                      <p style={{ fontWeight: 700, fontSize: 13, color: "var(--text-1)", marginBottom: 14 }}>🛠 Improvement Suggestions</p>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                        {selected.improvement_suggestions.map((s, i) => (
-                          <div key={i} style={{ background: "var(--bg)", borderRadius: 12, padding: 14, border: "1px solid var(--border)" }}>
-                            <p style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", marginBottom: 6 }}>{s.section}</p>
-                            <p style={{ fontSize: 13, color: "#DC2626", marginBottom: 4 }}>⚠ {s.issue}</p>
-                            <p style={{ fontSize: 13, color: "#16A34A" }}>✅ {s.fix}</p>
+                    {/* Keywords */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {selected.matched_keywords?.length > 0 && (
+                        <div className="card p-4 md:p-5">
+                          <p className="font-bold text-sm text-slate-900 mb-3">
+                            ✓ Matched <span className="bg-green-100 text-green-700 rounded-full px-2 py-0.5 text-xs ml-1">{selected.matched_keywords.length}</span>
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {selected.matched_keywords.map((k, i) => <span key={i} className="tag tag-green">{k}</span>)}
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      )}
+                      {selected.missing_keywords?.length > 0 && (
+                        <div className="card p-4 md:p-5">
+                          <p className="font-bold text-sm text-slate-900 mb-3">
+                            ✗ Missing <span className="bg-red-100 text-red-700 rounded-full px-2 py-0.5 text-xs ml-1">{selected.missing_keywords.length}</span>
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {selected.missing_keywords.map((k, i) => <span key={i} className="tag tag-red">{k}</span>)}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
 
-                  {selected.summary_suggestion && (
-                    <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 16, padding: 20 }}>
-                      <p style={{ fontWeight: 700, fontSize: 13, color: "var(--text-1)", marginBottom: 10 }}>💡 Suggested Summary</p>
-                      <p style={{ fontSize: 13, color: "var(--text-2)", lineHeight: 1.7 }}>{selected.summary_suggestion}</p>
-                    </div>
-                  )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
-                  {selected.rewritten_bullets?.length > 0 && (
-                    <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 16, padding: 20 }}>
-                      <p style={{ fontWeight: 700, fontSize: 13, color: "var(--text-1)", marginBottom: 12 }}>✍️ Rewritten Bullets</p>
-                      <ul style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                        {selected.rewritten_bullets.map((b, i) => (
-                          <li key={i} style={{ display: "flex", gap: 10, fontSize: 13, color: "var(--text-2)", listStyle: "none" }}>
-                            <span style={{ color: "var(--accent)", flexShrink: 0, marginTop: 1 }}>▸</span>{b}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
         )}
       </div>

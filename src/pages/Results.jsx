@@ -48,7 +48,7 @@ function HighlightedJobDescription({ text, matched, missing, optional }) {
   const parts = text.split(pattern);
 
   return (
-    <div className="text-slate-700 text-sm whitespace-pre-wrap leading-relaxed font-mono bg-slate-50 p-6 rounded-xl border border-slate-200 h-64 overflow-y-auto">
+    <div className="text-slate-700 text-sm whitespace-pre-wrap leading-relaxed font-mono bg-slate-50 p-4 md:p-6 rounded-xl border border-slate-200 h-48 md:h-64 overflow-y-auto">
       {parts.map((part, i) => {
         const lowerPart = part.toLowerCase();
         const keywordMatch = allKeywords.find(k => k.word.toLowerCase() === lowerPart);
@@ -166,16 +166,16 @@ function Results() {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <Navbar />
-      <div className="max-w-6xl mx-auto px-6 py-10">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-10">
 
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="flex items-start justify-between flex-wrap gap-4 mb-8">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6 md:mb-8">
           <div>
-            <p className="text-blue-500 text-sm font-semibold uppercase tracking-widest">Analysis Complete</p>
-            <h1 className="text-4xl font-bold text-slate-900 mt-1">Your ATS Report</h1>
+            <p className="text-blue-500 text-xs md:text-sm font-semibold uppercase tracking-widest">Analysis Complete</p>
+            <h1 className="text-2xl md:text-4xl font-bold text-slate-900 mt-1">Your ATS Report</h1>
             {company && <p className="text-slate-700 font-semibold mt-1">{company}{role ? ` — ${role}` : ""}</p>}
             <p className="text-slate-500 mt-0.5">{resumeFile?.name}</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 w-full md:w-auto">
             <button onClick={handleAiImprove} className="btn-primary flex items-center gap-2 bg-slate-900 hover:bg-slate-800 border-0">
               Improve Resume
             </button>
@@ -183,15 +183,15 @@ function Results() {
           </div>
         </motion.div>
 
-        <motion.div variants={container} initial="hidden" animate="show" className="grid md:grid-cols-3 gap-6 mb-8">
-          <motion.div variants={item} className="card p-8 flex flex-col items-center justify-center text-center">
+        <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+          <motion.div variants={item} className="card p-6 md:p-8 flex flex-col items-center justify-center text-center">
             <ScoreRing score={data.ats_score || 0} />
             <p className="text-xs text-slate-400 mt-5 max-w-[200px]">
               Based strictly on the presence of required keywords from the job description.
             </p>
           </motion.div>
 
-          <motion.div variants={item} className="card p-6">
+          <motion.div variants={item} className="card p-4 md:p-6">
             <div className="flex items-center gap-2 mb-5">
               <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                 <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
@@ -205,7 +205,7 @@ function Results() {
             </div>
           </motion.div>
 
-          <motion.div variants={item} className="card p-6">
+          <motion.div variants={item} className="card p-4 md:p-6">
             <div className="flex items-center gap-2 mb-5">
               <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
                 <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -222,9 +222,9 @@ function Results() {
 
         {/* Job Description Highlight Section */}
         <motion.div variants={container} initial="hidden" animate="show" className="mb-8">
-          <motion.div variants={item} className="card p-8">
+          <motion.div variants={item} className="card p-4 md:p-8">
             <h2 className="font-bold text-slate-900 text-xl mb-4">Job Description Analysis</h2>
-            <div className="flex gap-4 mb-4 text-xs font-semibold uppercase tracking-wide">
+            <div className="flex flex-wrap gap-3 md:gap-4 mb-4 text-xs font-semibold uppercase tracking-wide">
               <span className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-green-400"></div> Matched</span>
               <span className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-red-400"></div> Missing</span>
               <span className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-blue-400"></div> Optional</span>
@@ -240,7 +240,7 @@ function Results() {
 
         {/* AI Improvement Section */}
         {isAiLoading && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="card p-8 mb-8 text-center bg-indigo-50 border-indigo-100">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="card p-5 md:p-8 mb-6 md:mb-8 text-center bg-indigo-50 border-indigo-100">
             <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <h2 className="font-bold text-indigo-900 text-lg">AI is analyzing your resume...</h2>
             <p className="text-indigo-700/70 text-sm mt-1">Generating summary, rewriting bullets, checking qualifications.</p>
@@ -252,7 +252,7 @@ function Results() {
             
             {/* Professional Summary */}
             {aiSuggestions.summary && (
-              <div className="card p-8 border-green-100">
+              <div className="card p-5 md:p-8 border-green-100">
                 <h2 className="font-bold text-slate-900 text-lg mb-3">Professional Summary</h2>
                 <p className="text-slate-500 text-xs mb-3 uppercase tracking-wide font-semibold">Tailored for this role — paste this at the top of your resume</p>
                 <div className="bg-green-50 border border-green-200 rounded-xl p-5">
@@ -262,7 +262,7 @@ function Results() {
             )}
 
             {/* Experience & Education Quick Check */}
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               {aiSuggestions.experience_match && (
                 <div className="card p-6 border-blue-100">
                   <h3 className="font-bold text-slate-900 text-sm mb-2 uppercase tracking-wide">Experience Relevance</h3>
@@ -279,20 +279,21 @@ function Results() {
 
             {/* Bullet Point Suggestions */}
             {aiSuggestions.bullets && aiSuggestions.bullets.length > 0 && (
-              <div className="card p-8 border-indigo-100">
-                <h2 className="font-bold text-slate-900 text-lg mb-6">Improved Bullet Points</h2>
+              <div className="card p-5 md:p-8 border-indigo-100">
+                <h2 className="font-bold text-slate-900 text-lg mb-4 md:mb-6">Improved Bullet Points</h2>
                 <div className="space-y-6">
                   {aiSuggestions.bullets.map((s, i) => (
-                    <div key={i} className="grid md:grid-cols-2 gap-4">
-                      <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
-                        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2 block">Your Bullet</span>
-                        <p className="text-slate-700 text-sm">{s.original}</p>
+                    <div key={i} className="flex flex-col gap-2">
+                      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2 block">Your Bullet</span>
+                        <p className="text-slate-600 text-sm">{s.original}</p>
                       </div>
-                      <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-5">
-                        <span className="text-xs font-semibold uppercase tracking-wide text-indigo-600 mb-2 block">Enhanced Version</span>
-                        <p className="text-slate-900 text-sm font-medium leading-relaxed">
-                          {s.rewritten}
-                        </p>
+                      <div className="flex items-center justify-center">
+                        <svg className="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                      </div>
+                      <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-indigo-500 mb-2 block">Enhanced Version</span>
+                        <p className="text-slate-900 text-sm font-medium leading-relaxed">{s.rewritten}</p>
                       </div>
                     </div>
                   ))}

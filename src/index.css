@@ -108,3 +108,35 @@ body {
 .tag-blue   { background: #DBEAFE; color: #1E40AF; }
 .tag-yellow { background: #FEF9C3; color: #854D0E; }
 .tag-gray   { background: #F1F5F9; color: #475569; }
+
+/* Mobile-first responsive overrides */
+.analyze-form-grid {
+  grid-template-columns: 1fr;
+}
+.analyze-panels-grid {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .analyze-form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .analyze-panels-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Mobile card adjustments */
+@media (max-width: 767px) {
+  .card {
+    border-radius: var(--radius-md);
+  }
+  .btn-primary, .btn-ghost {
+    font-size: 14px;
+    padding: 10px 20px;
+  }
+  .btn-secondary {
+    font-size: 13px;
+    padding: 8px 14px;
+  }
+}
