@@ -130,10 +130,6 @@ def extract_text(filename: str, contents: bytes) -> str:
         with pdfplumber.open(io.BytesIO(contents)) as pdf:
             for page in pdf.pages:
                 text += page.extract_text() or ""
-    elif filename.endswith(".docx"):
-        document = docx.Document(io.BytesIO(contents))
-        for para in document.paragraphs:
-            text += para.text + "\n"
     text = re.sub(r'([a-z])([A-Z])', r'\1 \2', text)
     text = re.sub(r'\s+', ' ', text)
     return text.strip()
@@ -267,53 +263,63 @@ Job Description Keywords:
         return sorted(re.findall(r'"([^"]+)"', raw))
 
 
-def generate_suggestions(resume_text: str, job_description: str, missing_keywords: list, ats_score: int) -> dict:
-    compressed_resume = compress_text(resume_text, max_words=250)
+@app.post("/improve")
+async def improve_resume(
+    resume: UploadFile = File(...),
+    job_description: str = Form(...),
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    user = verify_token(credentials)
+    
+    if not resume.filename.endswith(".pdf"):
+        return {"error": "Only PDF files are supported"}
+
+    contents = await resume.read()
+    resume_text = extract_text(resume.filename, contents)
+    
+    if not resume_text.strip():
+        return {"error": "Could not extract text. Make sure the resume is not a scanned image."}
+        
+    compressed_resume = compress_text(resume_text, max_words=300)
     compressed_jd = compress_text(job_description, max_words=150)
-    missing_str = ", ".join(missing_keywords[:12]) if missing_keywords else "None"
-
-    prompt = f"""You are an expert ATS resume coach helping students and professionals pass ATS scanners and reach recruiters.
-
+    
+    prompt = f"""You are an expert ATS resume coach.
+    
 Resume (compressed): {compressed_resume}
 Job Description (compressed): {compressed_jd}
-ATS Score: {ats_score}/100
-Missing Keywords: {missing_str}
 
-Return ONLY valid JSON:
-{{
-  "apply_verdict": "<one line verdict>",
-  "improvement_suggestions": [
-    {{"section": "<Summary/Experience/Skills/Education>", "issue": "<specific problem>", "fix": "<exact actionable fix with example>"}}
-  ],
-  "rewritten_bullets": ["<bullet 1>", "<bullet 2>", "<bullet 3>"],
-  "strong_action_verbs": ["<v1>","<v2>","<v3>","<v4>","<v5>","<v6>","<v7>","<v8>"],
-  "summary_suggestion": "<2-3 sentence tailored professional summary>"
-}}"""
+Task: Find the most important experience bullet points in the resume and rewrite them to match the Job Description.
+Use the Google XYZ formula: 'Accomplished [X] as measured by [Y], by doing [Z]'.
+Make the bullets sound completely natural and reliable. Include specific, realistic-sounding metrics (e.g., 'by 40%', 'from 3 to 5') based on the context of the bullet, so the user sees a great example, but DO NOT use generic placeholders like [ADD METRIC].
+Avoid buzzwords and fluff.
 
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {"role": "system", "content": "You are an ATS resume expert. Return only valid JSON. No markdown, no backticks."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.3,
-        seed=42,
-        max_tokens=1200,
-    )
-    raw = response.choices[0].message.content.strip()
-    raw = re.sub(r'^```[a-z]*\n?', '', raw)
-    raw = re.sub(r'\n?```$', '', raw)
+Return ONLY valid JSON in this exact format (no markdown, no backticks):
+[
+  {{"original": "<the exact original bullet point from the resume>", "rewritten": "<the improved bullet point>"}},
+  {{"original": "<another original bullet point>", "rewritten": "<the improved bullet point>"}}
+]
+Return exactly 3 to 5 bullet points.
+"""
+
     try:
-        return json.loads(raw)
-    except Exception:
-        return {
-            "apply_verdict": "Analysis complete — review suggestions below",
-            "improvement_suggestions": [],
-            "rewritten_bullets": [],
-            "strong_action_verbs": [],
-            "summary_suggestion": ""
-        }
-
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": "You are an ATS resume expert. Return ONLY a JSON array. No markdown, no backticks."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3,
+            seed=42,
+            max_tokens=800,
+        )
+        raw = response.choices[0].message.content.strip()
+        raw = re.sub(r'^```[a-z]*\n?', '', raw)
+        raw = re.sub(r'\n?```$', '', raw)
+        
+        suggestions = json.loads(raw)
+        return {"suggestions": suggestions}
+    except Exception as e:
+        return {"error": f"Failed to generate improvements: {str(e)}"}
 
 @app.post("/analyze")
 async def analyze_resume(
@@ -325,8 +331,8 @@ async def analyze_resume(
 ):
     user = verify_token(credentials)
 
-    if not (resume.filename.endswith(".pdf") or resume.filename.endswith(".docx")):
-        return {"error": "Only PDF and DOCX files are supported"}
+    if not resume.filename.endswith(".pdf"):
+        return {"error": "Only PDF files are supported"}
 
     contents = await resume.read()
     resume_text = extract_text(resume.filename, contents)
@@ -337,7 +343,6 @@ async def analyze_resume(
     try:
         jd_keywords = extract_jd_keywords(job_description)
         matched_keywords, missing_keywords, keyword_score, semantic_score, ats_score = calculate_scores(resume_text, jd_keywords)
-        suggestions = generate_suggestions(resume_text, job_description, missing_keywords, ats_score)
     except Exception as e:
         return {"error": f"Analysis error: {str(e)}"}
 
@@ -353,11 +358,6 @@ async def analyze_resume(
         "matched_keywords": matched_keywords,
         "missing_keywords": missing_keywords,
         "can_apply": ats_score >= 60,
-        "apply_verdict": suggestions.get("apply_verdict", ""),
-        "improvement_suggestions": suggestions.get("improvement_suggestions", []),
-        "rewritten_bullets": suggestions.get("rewritten_bullets", []),
-        "strong_action_verbs": suggestions.get("strong_action_verbs", []),
-        "summary_suggestion": suggestions.get("summary_suggestion", ""),
         "message": "Resume analyzed successfully"
     }
 
@@ -372,11 +372,6 @@ async def analyze_resume(
             "semantic_score": semantic_score,
             "matched_keywords": matched_keywords,
             "missing_keywords": missing_keywords,
-            "apply_verdict": suggestions.get("apply_verdict", ""),
-            "improvement_suggestions": suggestions.get("improvement_suggestions", []),
-            "rewritten_bullets": suggestions.get("rewritten_bullets", []),
-            "strong_action_verbs": suggestions.get("strong_action_verbs", []),
-            "summary_suggestion": suggestions.get("summary_suggestion", ""),
             "job_description_preview": job_description[:300]
         }).execute()
     except Exception:
@@ -390,8 +385,8 @@ async def analyze_guest(
     resume: UploadFile = File(...),
     job_description: str = Form(...)
 ):
-    if not (resume.filename.endswith(".pdf") or resume.filename.endswith(".docx")):
-        return {"error": "Only PDF and DOCX files are supported"}
+    if not resume.filename.endswith(".pdf"):
+        return {"error": "Only PDF files are supported"}
 
     contents = await resume.read()
     resume_text = extract_text(resume.filename, contents)
