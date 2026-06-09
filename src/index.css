@@ -6,26 +6,26 @@
 
 /* ─────────────────────────────────────────
    60-30-10 Design Tokens
-   60% → --bg (page backgrounds)
-   30% → --surface (cards, inputs)
-   10% → --accent (indigo, CTAs, highlights)
+   60% → cream base backgrounds
+   30% → white surfaces (cards, inputs)
+   10% → amber-gold accent (CTAs, highlights)
 ──────────────────────────────────────────── */
 :root {
-  /* 60% base background */
-  --bg:          #F7F8FC;
-  --bg-2:        #EFF1F8;
+  /* 60% — warm cream base */
+  --bg:          #FAF8F5;
+  --bg-2:        #F2EFE9;
 
-  /* 30% surface */
+  /* 30% — white surfaces */
   --surface:     #FFFFFF;
-  --surface-2:   #F5F7FF;
-  --border:      #E8EBF4;
-  --border-2:    #D5DAF0;
+  --surface-2:   #FDFCFB;
+  --border:      #EAE6DF;
+  --border-2:    #D9D3C9;
 
-  /* 10% accent — indigo-blue (not harsh blue) */
-  --accent:      #4F6EF7;
-  --accent-h:    #3A56E8;
-  --accent-soft: #EEF1FF;
-  --accent-mid:  #C7D0FB;
+  /* 10% — amber-gold accent */
+  --accent:      #C47B2B;
+  --accent-h:    #A86420;
+  --accent-soft: #FDF3E3;
+  --accent-mid:  #F0C98A;
 
   /* Semantic */
   --success:     #22C55E;
@@ -34,14 +34,14 @@
   --warning:     #F59E0B;
   --warning-bg:  #FFFBEB;
   --warning-bd:  #FDE68A;
-  --danger:      #EF4444;
-  --danger-bg:   #FEF2F2;
-  --danger-bd:   #FECACA;
+  --danger:      #E53E3E;
+  --danger-bg:   #FFF5F5;
+  --danger-bd:   #FED7D7;
 
-  /* Text hierarchy — 3 levels */
-  --text-1:      #0D1117;
-  --text-2:      #4A5568;
-  --text-3:      #9CA3AF;
+  /* Text hierarchy */
+  --text-1:      #1A1611;
+  --text-2:      #4A4035;
+  --text-3:      #9C8F80;
 
   /* Radius */
   --r-xs:  8px;
@@ -50,11 +50,11 @@
   --r-lg:  24px;
   --r-xl:  32px;
 
-  /* Shadow */
-  --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-sm: 0 1px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 20px rgba(79,110,247,0.07), 0 1px 4px rgba(0,0,0,0.05);
-  --shadow-lg: 0 12px 40px rgba(79,110,247,0.10), 0 4px 12px rgba(0,0,0,0.06);
+  /* Shadow — warm-tinted */
+  --shadow-xs: 0 1px 2px rgba(30,20,10,0.04);
+  --shadow-sm: 0 1px 4px rgba(30,20,10,0.06), 0 1px 2px rgba(30,20,10,0.04);
+  --shadow-md: 0 4px 20px rgba(180,120,40,0.08), 0 1px 4px rgba(30,20,10,0.05);
+  --shadow-lg: 0 12px 40px rgba(180,120,40,0.12), 0 4px 12px rgba(30,20,10,0.07);
 }
 
 /* ─── Reset ─── */
@@ -75,6 +75,7 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .card-soft {
   background: var(--surface-2);
@@ -103,10 +104,10 @@ body {
 }
 .btn-primary:hover {
   background: var(--accent-h);
-  box-shadow: 0 4px 16px rgba(79,110,247,0.30);
+  box-shadow: 0 4px 18px rgba(196,123,43,0.32);
 }
 .btn-primary:active { transform: scale(0.97); }
-.btn-primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
 /* ─── Ghost Button ─── */
 .btn-ghost {
@@ -134,6 +135,29 @@ body {
 }
 .btn-ghost:active { transform: scale(0.97); }
 
+/* ─── Secondary Button ─── */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--bg-2);
+  color: var(--text-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  padding: 11px 20px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
+.btn-secondary:hover {
+  background: var(--bg);
+  border-color: var(--border-2);
+}
+
 /* ─── Input ─── */
 .input {
   width: 100%;
@@ -150,7 +174,7 @@ body {
 }
 .input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(79,110,247,0.12);
+  box-shadow: 0 0 0 3px rgba(196,123,43,0.12);
 }
 .input::placeholder { color: var(--text-3); }
 
@@ -164,19 +188,19 @@ body {
   font-weight: 600;
   letter-spacing: 0.01em;
 }
-.badge-accent  { background: var(--accent-soft); color: var(--accent); }
-.badge-green   { background: var(--success-bg); color: #16A34A; border: 1px solid var(--success-bd); }
-.badge-red     { background: var(--danger-bg);  color: #DC2626; border: 1px solid var(--danger-bd); }
+.badge-accent  { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-mid); }
+.badge-green   { background: var(--success-bg); color: #166534; border: 1px solid var(--success-bd); }
+.badge-red     { background: var(--danger-bg);  color: #C53030; border: 1px solid var(--danger-bd); }
 .badge-yellow  { background: var(--warning-bg); color: #B45309; border: 1px solid var(--warning-bd); }
 .badge-gray    { background: var(--bg-2);       color: var(--text-2); border: 1px solid var(--border); }
 
 /* legacy tag aliases */
 .tag          { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; }
-.tag-green    { background: var(--success-bg); color: #166534; }
-.tag-red      { background: var(--danger-bg);  color: #991B1B; }
-.tag-blue     { background: var(--accent-soft); color: var(--accent); }
-.tag-yellow   { background: var(--warning-bg); color: #854D0E; }
-.tag-gray     { background: var(--bg-2);       color: var(--text-2); }
+.tag-green    { background: var(--success-bg); color: #166534; border: 1px solid var(--success-bd); }
+.tag-red      { background: var(--danger-bg);  color: #C53030; border: 1px solid var(--danger-bd); }
+.tag-blue     { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-mid); }
+.tag-yellow   { background: var(--warning-bg); color: #854D0E; border: 1px solid var(--warning-bd); }
+.tag-gray     { background: var(--bg-2);       color: var(--text-2); border: 1px solid var(--border); }
 
 /* ─── Section overline label ─── */
 .section-label {
@@ -221,3 +245,9 @@ body {
 
 /* ─── Spinner ─── */
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── Smooth page transitions ─── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

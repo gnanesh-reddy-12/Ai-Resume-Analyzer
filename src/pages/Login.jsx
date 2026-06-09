@@ -44,7 +44,6 @@ export default function Login() {
         </Link>
       </nav>
 
-      {/* Form */}
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "32px 20px" }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -53,12 +52,11 @@ export default function Login() {
           className="card"
           style={{ width: "100%", maxWidth: 400, padding: "clamp(32px, 6vw, 44px)" }}
         >
-          {/* Icon + heading */}
           <div style={{ textAlign: "center", marginBottom: 32 }}>
-            <div style={{ width: 52, height: 52, borderRadius: "50%", background: "var(--accent-soft)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: "var(--accent)" }}>
+            <div style={{ width: 52, height: 52, borderRadius: "50%", background: "var(--accent-soft)", border: "1px solid var(--accent-mid)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: "var(--accent)" }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
+                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
               </svg>
             </div>
             <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.6px", marginBottom: 6, color: "var(--text-1)" }}>Welcome back</h1>
@@ -66,7 +64,7 @@ export default function Login() {
           </div>
 
           {error && (
-            <div style={{ background: "var(--danger-bg)", border: "1px solid var(--danger-bd)", color: "#DC2626", borderRadius: "var(--r-sm)", padding: "10px 14px", fontSize: 13, marginBottom: 20 }}>
+            <div style={{ background: "var(--danger-bg)", border: "1px solid var(--danger-bd)", color: "var(--danger)", borderRadius: "var(--r-sm)", padding: "10px 14px", fontSize: 13, marginBottom: 20 }}>
               {error}
             </div>
           )}
@@ -82,14 +80,15 @@ export default function Login() {
             </div>
           </div>
 
-          <button
+          <motion.button
             className="btn-primary"
             onClick={handleSubmit}
             disabled={loading}
+            whileTap={{ scale: 0.97 }}
             style={{ width: "100%", marginTop: 24, padding: "13px", fontSize: 14 }}
           >
-            {loading ? "Signing in..." : "Sign In"}
-          </button>
+            {loading ? "Signing in…" : "Sign In"}
+          </motion.button>
 
           <p style={{ textAlign: "center", fontSize: 13, color: "var(--text-3)", marginTop: 20 }}>
             Don't have an account?{" "}

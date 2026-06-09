@@ -40,14 +40,12 @@ export default function Signup() {
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", flexDirection: "column" }}>
 
-      {/* Nav */}
       <nav style={{ padding: "0 clamp(20px, 5vw, 40px)", height: 60, display: "flex", alignItems: "center", borderBottom: "1px solid var(--border)" }}>
         <Link to="/landing" style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.5px", textDecoration: "none", color: "var(--text-1)" }}>
           Resume<span style={{ color: "var(--accent)" }}>AI</span>
         </Link>
       </nav>
 
-      {/* Form */}
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "32px 20px" }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -56,9 +54,8 @@ export default function Signup() {
           className="card"
           style={{ width: "100%", maxWidth: 400, padding: "clamp(32px, 6vw, 44px)" }}
         >
-          {/* Icon + heading */}
           <div style={{ textAlign: "center", marginBottom: 32 }}>
-            <div style={{ width: 52, height: 52, borderRadius: "50%", background: "var(--accent-soft)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: "var(--accent)" }}>
+            <div style={{ width: 52, height: 52, borderRadius: "50%", background: "var(--accent-soft)", border: "1px solid var(--accent-mid)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: "var(--accent)" }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/>
                 <circle cx="9" cy="7" r="4"/>
@@ -71,7 +68,7 @@ export default function Signup() {
           </div>
 
           {error && (
-            <div style={{ background: "var(--danger-bg)", border: "1px solid var(--danger-bd)", color: "#DC2626", borderRadius: "var(--r-sm)", padding: "10px 14px", fontSize: 13, marginBottom: 20 }}>
+            <div style={{ background: "var(--danger-bg)", border: "1px solid var(--danger-bd)", color: "var(--danger)", borderRadius: "var(--r-sm)", padding: "10px 14px", fontSize: 13, marginBottom: 20 }}>
               {error}
             </div>
           )}
@@ -91,14 +88,15 @@ export default function Signup() {
             </div>
           </div>
 
-          <button
+          <motion.button
             className="btn-primary"
             onClick={handleSubmit}
             disabled={loading}
+            whileTap={{ scale: 0.97 }}
             style={{ width: "100%", marginTop: 24, padding: "13px", fontSize: 14 }}
           >
-            {loading ? "Creating account..." : "Create Account"}
-          </button>
+            {loading ? "Creating account…" : "Create Account"}
+          </motion.button>
 
           <p style={{ textAlign: "center", fontSize: 13, color: "var(--text-3)", marginTop: 20 }}>
             Already have an account?{" "}

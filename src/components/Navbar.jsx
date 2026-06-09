@@ -30,11 +30,11 @@ export default function Navbar() {
 
   return (
     <motion.header
-      initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease }}
       style={{
         position: "sticky", top: 0, zIndex: 50,
-        background: "rgba(247,248,252,0.88)",
+        background: "rgba(250,248,245,0.92)",
         backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
         borderBottom: "1px solid var(--border)", height: 60
       }}
@@ -48,7 +48,6 @@ export default function Navbar() {
           Resume<span style={{ color: "var(--accent)" }}>AI</span>
         </button>
 
-        {/* Center nav links */}
         {!isAuth && user && (
           <nav className="hidden md:flex" style={{ alignItems: "center", gap: 2 }}>
             <NavLink label="Analyze" onClick={() => navigate("/")} active={path === "/"} />
@@ -56,7 +55,6 @@ export default function Navbar() {
           </nav>
         )}
 
-        {/* Right: account or auth buttons */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           {user ? (
             <div ref={ref} style={{ position: "relative" }}>
@@ -74,19 +72,18 @@ export default function Navbar() {
                   {name.charAt(0).toUpperCase()}
                 </div>
                 <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-1)", maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="2.5" style={{ flexShrink: 0 }}><path d="M6 9l6 6 6-6"/></svg>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="2.5" style={{ flexShrink: 0, transition: "transform 0.18s", transform: showAccount ? "rotate(180deg)" : "rotate(0deg)" }}><path d="M6 9l6 6 6-6"/></svg>
               </button>
 
               <AnimatePresence>
                 {showAccount && (
                   <motion.div
-                    initial={{ opacity: 0, y: 6, scale: 0.97 }}
+                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 6, scale: 0.97 }}
-                    transition={{ duration: 0.18, ease }}
+                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                    transition={{ duration: 0.2, ease }}
                     style={{ position: "absolute", right: 0, top: "calc(100% + 8px)", width: 272, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--shadow-lg)", overflow: "hidden" }}
                   >
-                    {/* Profile */}
                     <div style={{ padding: "18px 18px 14px" }}>
                       <p style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}>Account</p>
                       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
@@ -98,11 +95,11 @@ export default function Navbar() {
                             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                               <input autoFocus value={editName} onChange={e => setEditName(e.target.value)}
                                 onKeyDown={e => { if (e.key === "Enter") saveName(); if (e.key === "Escape") setEditing(false) }}
-                                style={{ width: "100%", border: "1.5px solid var(--accent)", borderRadius: "var(--r-xs)", padding: "6px 10px", fontSize: 13, outline: "none", fontFamily: "Inter", boxSizing: "border-box" }}
+                                style={{ width: "100%", border: "1.5px solid var(--accent)", borderRadius: "var(--r-xs)", padding: "6px 10px", fontSize: 13, outline: "none", fontFamily: "Inter", boxSizing: "border-box", background: "var(--surface)", color: "var(--text-1)" }}
                               />
                               <div style={{ display: "flex", gap: 6 }}>
                                 <button onClick={saveName} style={{ flex: 1, background: "var(--accent)", color: "white", border: "none", borderRadius: "var(--r-xs)", padding: "6px 0", fontSize: 12, cursor: "pointer", fontWeight: 600 }}>Save</button>
-                                <button onClick={() => setEditing(false)} style={{ flex: 1, background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--r-xs)", padding: "6px 0", fontSize: 12, cursor: "pointer" }}>Cancel</button>
+                                <button onClick={() => setEditing(false)} style={{ flex: 1, background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--r-xs)", padding: "6px 0", fontSize: 12, cursor: "pointer", color: "var(--text-2)" }}>Cancel</button>
                               </div>
                             </div>
                           ) : (
@@ -136,8 +133,8 @@ export default function Navbar() {
             </div>
           ) : !isAuth ? (
             <>
-              <button className="btn-ghost" style={{ padding: "7px 14px", fontSize: 13 }} onClick={() => navigate("/login")}>Sign In</button>
-              <button className="btn-primary" style={{ padding: "7px 14px", fontSize: 13 }} onClick={() => navigate("/signup")}>Get Started</button>
+              <button className="btn-ghost" style={{ padding: "7px 16px", fontSize: 13 }} onClick={() => navigate("/login")}>Sign In</button>
+              <button className="btn-primary" style={{ padding: "7px 16px", fontSize: 13 }} onClick={() => navigate("/signup")}>Get Started</button>
             </>
           ) : null}
         </div>
@@ -168,10 +165,10 @@ function MenuBtn({ label, onClick, danger, icon }) {
     <button
       onClick={onClick}
       style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "9px 10px", borderRadius: "var(--r-xs)", border: "none", background: "none", cursor: "pointer", fontSize: 13, fontWeight: 500, color: danger ? "var(--danger)" : "var(--text-1)", textAlign: "left", transition: "background 0.12s" }}
-      onMouseEnter={e => e.currentTarget.style.background = danger ? "var(--danger-bg)" : "var(--bg)"}
+      onMouseEnter={e => e.currentTarget.style.background = danger ? "var(--danger-bg)" : "var(--bg-2)"}
       onMouseLeave={e => e.currentTarget.style.background = "none"}
     >
-      <span style={{ fontSize: 14, opacity: 0.7 }}>{icon}</span>
+      <span style={{ fontSize: 14, opacity: 0.6 }}>{icon}</span>
       {label}
     </button>
   )

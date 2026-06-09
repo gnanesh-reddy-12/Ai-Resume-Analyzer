@@ -76,6 +76,7 @@ export default function Landing() {
   const [file, setFile] = useState(null)
   const [error, setError] = useState("")
   const [jdOpen, setJdOpen] = useState(false)
+  const [dragOver, setDragOver] = useState(false)
 
   const handleFile = (e) => {
     const f = e.target.files[0]
@@ -94,10 +95,10 @@ export default function Landing() {
   return (
     <div style={{ background: "var(--bg)", color: "var(--text-1)", minHeight: "100vh" }}>
 
-      {/* ── Nav ── */}
+      {/* Nav */}
       <nav style={{
         position: "sticky", top: 0, zIndex: 50,
-        background: "rgba(247,248,252,0.85)", backdropFilter: "blur(20px)",
+        background: "rgba(250,248,245,0.92)", backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
         borderBottom: "1px solid var(--border)",
         padding: "0 clamp(20px, 5vw, 56px)", height: 60,
@@ -107,16 +108,12 @@ export default function Landing() {
           Resume<span style={{ color: "var(--accent)" }}>AI</span>
         </span>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <button className="btn-ghost" style={{ padding: "8px 16px", fontSize: 13 }} onClick={() => navigate("/login")}>
-            Sign In
-          </button>
-          <button className="btn-primary" style={{ padding: "8px 16px", fontSize: 13 }} onClick={() => navigate("/signup")}>
-            Get Started
-          </button>
+          <button className="btn-ghost" style={{ padding: "8px 16px", fontSize: 13 }} onClick={() => navigate("/login")}>Sign In</button>
+          <button className="btn-primary" style={{ padding: "8px 16px", fontSize: 13 }} onClick={() => navigate("/signup")}>Get Started</button>
         </div>
       </nav>
 
-      {/* ── Hero ── */}
+      {/* Hero */}
       <section style={{ maxWidth: 780, margin: "0 auto", padding: "clamp(60px, 10vw, 100px) clamp(20px, 5vw, 32px) 64px", textAlign: "center" }}>
         <motion.div {...fadeUp(0)}>
           <span className="badge badge-accent" style={{ marginBottom: 28, display: "inline-flex", padding: "5px 14px", fontSize: 12 }}>
@@ -130,17 +127,12 @@ export default function Landing() {
           color: "var(--text-1)"
         }}>
           Get hired faster with<br />
-          <span style={{
-            background: "linear-gradient(135deg, var(--accent) 0%, #7C93F8 100%)",
-            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-            backgroundClip: "text"
-          }}>smarter resume analysis</span>
+          <span style={{ color: "var(--accent)" }}>smarter resume analysis</span>
         </motion.h1>
 
         <motion.p {...fadeUp(0.15)} style={{
           fontSize: "clamp(15px, 2vw, 17px)", color: "var(--text-2)",
-          lineHeight: 1.75, maxWidth: 500, margin: "0 auto 36px",
-          fontWeight: 400
+          lineHeight: 1.75, maxWidth: 500, margin: "0 auto 36px", fontWeight: 400
         }}>
           Analyze ATS compatibility, skill alignment, and keyword gaps — in seconds. Built for job seekers who want real results.
         </motion.p>
@@ -154,18 +146,17 @@ export default function Landing() {
           </button>
         </motion.div>
 
-        {/* Social proof row */}
         <motion.div {...fadeUp(0.3)} style={{ display: "flex", gap: 24, justifyContent: "center", marginTop: 40, flexWrap: "wrap" }}>
           {["ATS Optimized", "Instant Results", "No Credit Card"].map((t) => (
             <span key={t} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--text-3)", fontWeight: 500 }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
               {t}
             </span>
           ))}
         </motion.div>
       </section>
 
-      {/* ── Free Trial Section ── */}
+      {/* Free Trial */}
       <section id="try-free" style={{ maxWidth: 860, margin: "0 auto 80px", padding: "0 clamp(16px, 4vw, 24px)" }}>
         <motion.div
           initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
@@ -183,7 +174,7 @@ export default function Landing() {
           </div>
 
           {error && (
-            <div style={{ background: "var(--danger-bg)", border: "1px solid var(--danger-bd)", color: "#DC2626", borderRadius: "var(--r-sm)", padding: "10px 16px", fontSize: 13, marginBottom: 20 }}>
+            <div style={{ background: "var(--danger-bg)", border: "1px solid var(--danger-bd)", color: "var(--danger)", borderRadius: "var(--r-sm)", padding: "10px 16px", fontSize: 13, marginBottom: 20 }}>
               {error}
             </div>
           )}
@@ -191,10 +182,17 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {/* Upload box */}
             <div
-              style={{ border: "1.5px dashed var(--border-2)", borderRadius: "var(--r-md)", padding: 28, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", minHeight: 200, transition: "border-color 0.18s", background: "var(--surface)" }}
-              onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = "var(--accent)" }}
-              onDragLeave={e => { e.currentTarget.style.borderColor = "" }}
-              onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = ""; const f = e.dataTransfer.files[0]; if (f) handleFile({ target: { files: [f] } }) }}
+              style={{
+                border: `1.5px dashed ${dragOver ? "var(--accent)" : "var(--border-2)"}`,
+                background: dragOver ? "var(--accent-soft)" : "var(--surface)",
+                borderRadius: "var(--r-md)", padding: 28,
+                display: "flex", flexDirection: "column", alignItems: "center",
+                justifyContent: "center", textAlign: "center", minHeight: 200,
+                transition: "border-color 0.18s, background 0.18s"
+              }}
+              onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleFile({ target: { files: [f] } }) }}
             >
               <div style={{ width: 46, height: 46, background: "var(--accent-soft)", borderRadius: "var(--r-sm)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14, color: "var(--accent)" }}>
                 <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
@@ -206,18 +204,21 @@ export default function Landing() {
                 <input type="file" accept=".pdf,.docx" style={{ display: "none" }} onChange={handleFile} />
               </label>
               {file && (
-                <div style={{ marginTop: 12, background: "var(--success-bg)", border: "1px solid var(--success-bd)", borderRadius: "var(--r-xs)", padding: "6px 12px", fontSize: 12, color: "#166534", maxWidth: "100%", wordBreak: "break-all" }}>
-                  ✓ {file.name}
-                </div>
+                <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                  style={{ marginTop: 12, background: "var(--success-bg)", border: "1px solid var(--success-bd)", borderRadius: "var(--r-xs)", padding: "6px 12px", fontSize: 12, color: "#166534", maxWidth: "100%", wordBreak: "break-all", display: "flex", alignItems: "center", gap: 6 }}
+                >
+                  <svg width="11" height="11" fill="#16A34A" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
+                  {file.name}
+                </motion.div>
               )}
             </div>
 
             {/* JD card */}
             <div
               onClick={() => setJdOpen(true)}
-              style={{ border: "1.5px solid var(--border)", borderRadius: "var(--r-md)", padding: 20, display: "flex", flexDirection: "column", minHeight: 200, cursor: "pointer", background: "var(--surface)", transition: "border-color 0.18s" }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = "var(--accent)"}
-              onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border)"}
+              style={{ border: "1.5px solid var(--border)", borderRadius: "var(--r-md)", padding: 20, display: "flex", flexDirection: "column", minHeight: 200, cursor: "pointer", background: "var(--surface)", transition: "border-color 0.18s, box-shadow 0.18s" }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.boxShadow = "var(--shadow-md)" }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.boxShadow = "none" }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                 <p style={{ fontWeight: 700, fontSize: 14, color: "var(--text-1)" }}>Job Description</p>
@@ -237,14 +238,14 @@ export default function Landing() {
           </div>
 
           <div style={{ display: "flex", justifyContent: "center" }}>
-            <button className="btn-primary" style={{ padding: "13px 40px", fontSize: 14 }} onClick={handleGuestAnalyze}>
+            <motion.button whileTap={{ scale: 0.97 }} className="btn-primary" style={{ padding: "13px 40px", fontSize: 14 }} onClick={handleGuestAnalyze}>
               Analyze Free →
-            </button>
+            </motion.button>
           </div>
         </motion.div>
       </section>
 
-      {/* ── Features ── */}
+      {/* Features */}
       <section style={{ maxWidth: 1100, margin: "0 auto 80px", padding: "0 clamp(16px, 4vw, 24px)" }}>
         <div style={{ textAlign: "center", marginBottom: 48 }}>
           <span className="section-label">Features</span>
@@ -258,10 +259,10 @@ export default function Landing() {
               key={f.title} className="card"
               initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }} transition={{ duration: 0.45, delay: i * 0.05, ease }}
-              whileHover={{ y: -3 }}
+              whileHover={{ y: -3, boxShadow: "var(--shadow-md)" }}
               style={{ padding: "28px 28px 24px" }}
             >
-              <div style={{ width: 42, height: 42, background: "var(--accent-soft)", borderRadius: "var(--r-sm)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)", marginBottom: 16 }}>
+              <div style={{ width: 42, height: 42, background: "var(--accent-soft)", borderRadius: "var(--r-sm)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)", marginBottom: 16, border: "1px solid var(--accent-mid)" }}>
                 {f.icon}
               </div>
               <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 6, color: "var(--text-1)", letterSpacing: "-0.2px" }}>{f.title}</h3>
@@ -271,12 +272,17 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── CTA ── */}
+      {/* CTA */}
       <section style={{ maxWidth: 640, margin: "0 auto 80px", padding: "0 clamp(16px, 4vw, 24px)", textAlign: "center" }}>
         <motion.div
           initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }} transition={{ duration: 0.5, ease }}
-          style={{ background: "linear-gradient(135deg, var(--accent-soft) 0%, #E8ECFF 100%)", border: "1px solid var(--accent-mid)", borderRadius: "var(--r-xl)", padding: "clamp(36px, 6vw, 56px) clamp(28px, 5vw, 48px)" }}
+          style={{
+            background: "var(--accent-soft)",
+            border: "1px solid var(--accent-mid)",
+            borderRadius: "var(--r-xl)",
+            padding: "clamp(36px, 6vw, 56px) clamp(28px, 5vw, 48px)"
+          }}
         >
           <h2 style={{ fontSize: "clamp(24px, 4vw, 32px)", fontWeight: 800, letterSpacing: "-0.8px", marginBottom: 12, color: "var(--text-1)" }}>
             Ready to beat the ATS?
@@ -290,7 +296,7 @@ export default function Landing() {
         </motion.div>
       </section>
 
-      {/* ── Footer ── */}
+      {/* Footer */}
       <footer style={{ borderTop: "1px solid var(--border)", padding: "20px clamp(20px, 5vw, 56px)", display: "flex", justifyContent: "space-between", alignItems: "center", color: "var(--text-3)", fontSize: 13, flexWrap: "wrap", gap: 10 }}>
         <span style={{ fontWeight: 800, fontSize: 15, letterSpacing: "-0.4px", color: "var(--text-1)" }}>
           Resume<span style={{ color: "var(--accent)" }}>AI</span>
@@ -298,38 +304,36 @@ export default function Landing() {
         <span>Built for students and professionals</span>
       </footer>
 
-      {/* ── JD Modal ── */}
+      {/* JD Modal */}
       <AnimatePresence>
         {jdOpen && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
             className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6"
-            style={{ background: "rgba(13,17,23,0.48)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }}
+            style={{ background: "rgba(26,22,17,0.5)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }}
             onClick={e => { if (e.target === e.currentTarget) setJdOpen(false) }}
           >
             <motion.div
               initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 32 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="bg-white w-full sm:max-w-2xl flex flex-col"
-              style={{ borderRadius: "20px 20px 0 0", maxHeight: "88vh", boxShadow: "0 -8px 40px rgba(0,0,0,0.12)" }}
+              transition={{ type: "spring", stiffness: 320, damping: 32 }}
+              style={{ background: "var(--surface)", width: "100%", maxWidth: 640, borderRadius: "20px 20px 0 0", maxHeight: "88vh", boxShadow: "0 -8px 40px rgba(0,0,0,0.12)", display: "flex", flexDirection: "column" }}
             >
-              <div className="flex justify-between items-center px-5 pt-5 pb-3">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 20px 12px" }}>
                 <div>
                   <h3 style={{ fontSize: 17, fontWeight: 700, color: "var(--text-1)", letterSpacing: "-0.3px", margin: 0 }}>Job Description</h3>
-                  <p style={{ fontSize: 12, color: "var(--text-3)", marginTop: 3, margin: "3px 0 0" }}>Paste the complete job posting for best results</p>
+                  <p style={{ fontSize: 12, color: "var(--text-3)", marginTop: 3 }}>Paste the complete job posting for best results</p>
                 </div>
-                <button
-                  onClick={() => setJdOpen(false)}
-                  style={{ width: 34, height: 34, borderRadius: "50%", background: "var(--bg)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-3)", cursor: "pointer" }}
+                <button onClick={() => setJdOpen(false)} style={{ width: 34, height: 34, borderRadius: "50%", background: "var(--bg)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-3)", cursor: "pointer", transition: "background 0.15s" }}
+                  onMouseEnter={e => e.currentTarget.style.background = "var(--bg-2)"}
+                  onMouseLeave={e => e.currentTarget.style.background = "var(--bg)"}
                 >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
                 </button>
               </div>
               <div style={{ padding: "0 20px", flex: 1, overflow: "hidden" }}>
                 <textarea
-                  autoFocus
-                  value={jobDescription}
+                  autoFocus value={jobDescription}
                   onChange={e => setJobDescription(e.target.value)}
                   placeholder="Paste the full job description here — requirements, responsibilities, qualifications..."
                   style={{ width: "100%", height: "100%", minHeight: 280, border: "none", outline: "none", resize: "none", fontSize: 14, color: "var(--text-1)", lineHeight: 1.7, fontFamily: "Inter, sans-serif", background: "transparent" }}
