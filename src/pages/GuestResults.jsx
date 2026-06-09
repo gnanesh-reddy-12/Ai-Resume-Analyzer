@@ -1,7 +1,45 @@
 import { useContext, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { ResumeContext } from "../context/ResumeContext"
+
+function HighlightedJobDescription({ text, matched, missing, optional }) {
+  if (!text) return <p className="text-slate-400 text-sm">No job description provided.</p>;
+  
+  const allKeywords = [
+    ...(matched || []).map(k => ({ word: k, type: 'matched' })),
+    ...(missing || []).map(k => ({ word: k, type: 'missing' })),
+    ...(optional || []).map(k => ({ word: k, type: 'optional' }))
+  ].sort((a, b) => b.word.length - a.word.length);
+
+  if (allKeywords.length === 0) {
+    return <p className="text-slate-700 text-sm whitespace-pre-wrap leading-relaxed">{text}</p>;
+  }
+
+  const escapeRegExp = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = new RegExp(`\\b(${allKeywords.map(k => escapeRegExp(k.word)).join('|')})\\b`, 'gi');
+  const parts = text.split(pattern);
+
+  return (
+    <div className="text-slate-700 text-sm whitespace-pre-wrap leading-relaxed font-mono bg-slate-50 p-4 md:p-6 rounded-xl border border-slate-200 h-96 overflow-y-auto">
+      {parts.map((part, i) => {
+        const lowerPart = part.toLowerCase();
+        const keywordMatch = allKeywords.find(k => k.word.toLowerCase() === lowerPart);
+        
+        if (keywordMatch) {
+          if (keywordMatch.type === 'matched') {
+            return <span key={i} className="bg-green-200 text-green-900 font-bold px-1 rounded">{part}</span>;
+          } else if (keywordMatch.type === 'missing') {
+            return <span key={i} className="bg-red-200 text-red-900 font-bold px-1 rounded">{part}</span>;
+          } else if (keywordMatch.type === 'optional') {
+            return <span key={i} className="bg-blue-200 text-blue-900 font-bold px-1 rounded">{part}</span>;
+          }
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </div>
+  );
+}
 
 function ScoreRing({ score, size = 140, stroke = 10 }) {
   const r = (size - stroke) / 2
@@ -30,6 +68,18 @@ export default function GuestResults() {
   const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
+  const [jdDrawerOpen, setJdDrawerOpen] = useState(false)
+
+  useEffect(() => {
+    if (jdDrawerOpen) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = "unset"
+    }
+    return () => {
+      document.body.style.overflow = "unset"
+    }
+  }, [jdDrawerOpen])
 
   useEffect(() => {
     if (!resumeFile) { navigate("/landing"); return }
@@ -109,7 +159,7 @@ export default function GuestResults() {
         </motion.div>
 
         {/* Keywords */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="card" style={{ padding: 24 }}>
             <p style={{ fontWeight: 700, fontSize: 14, marginBottom: 16, color: "var(--text-1)" }}>✓ Matched Keywords <span style={{ background: "#DCFCE7", color: "#166534", borderRadius: 999, padding: "2px 8px", fontSize: 12, marginLeft: 6 }}>{data.matched_keywords?.length}</span></p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
@@ -142,6 +192,74 @@ export default function GuestResults() {
         </motion.div>
 
       </div>
+
+      {/* Floating JD Button */}
+      <button
+        onClick={() => setJdDrawerOpen(true)}
+        className="fixed bottom-6 right-6 z-40 bg-slate-900 text-white rounded-full p-4 shadow-xl hover:bg-slate-800 flex items-center gap-2 transition-all hover:scale-105"
+        style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.15)" }}
+      >
+        <span className="text-lg">📋</span>
+        <span className="text-xs font-bold uppercase tracking-wider hidden sm:inline">View JD</span>
+      </button>
+
+      {/* JD Drawer Overlay */}
+      <AnimatePresence>
+        {jdDrawerOpen && (
+          <div className="fixed inset-0 z-50 overflow-hidden">
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              onClick={() => setJdDrawerOpen(false)}
+              className="absolute inset-0 bg-slate-950/40 backdrop-blur-xs transition-opacity"
+            />
+
+            {/* Drawer Panel */}
+            <div className="absolute inset-y-0 right-0 max-w-full flex">
+              <motion.div
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={{ type: "spring", damping: 26, stiffness: 220 }}
+                className="w-screen md:w-[550px] bg-white h-full shadow-2xl flex flex-col overflow-hidden relative border-l border-slate-200"
+              >
+                {/* Header */}
+                <div className="border-b border-slate-200 px-6 py-5 flex items-center justify-between bg-slate-50">
+                  <div>
+                    <h3 className="font-extrabold text-base text-slate-900">Job Description</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">Matched and missing keyword highlights</p>
+                  </div>
+                  <button 
+                    onClick={() => setJdDrawerOpen(false)}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center border border-slate-200 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Body */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                  {/* Legend */}
+                  <div className="flex flex-wrap gap-3 text-[10px] font-bold uppercase tracking-wider bg-slate-50 border border-slate-200 rounded-xl p-3.5">
+                    <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-green-400"></div> Matched</span>
+                    <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-red-400"></div> Missing</span>
+                    <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-blue-400"></div> Optional</span>
+                  </div>
+
+                  <HighlightedJobDescription 
+                    text={jobDescription} 
+                    matched={data.matched_keywords} 
+                    missing={data.missing_keywords} 
+                    optional={[]} 
+                  />
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

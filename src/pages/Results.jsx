@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { ResumeContext } from "../context/ResumeContext"
 import { useAuth } from "../context/useAuth"
 import Navbar from "../components/Navbar"
@@ -75,6 +75,18 @@ function Results() {
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [copied, setCopied] = useState(false)
+  const [jdDrawerOpen, setJdDrawerOpen] = useState(false)
+
+  useEffect(() => {
+    if (jdDrawerOpen) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = "unset"
+    }
+    return () => {
+      document.body.style.overflow = "unset"
+    }
+  }, [jdDrawerOpen])
 
   // AI Improvement State
   const [isAiLoading, setIsAiLoading] = useState(false)
@@ -113,6 +125,9 @@ function Results() {
     const formData = new FormData();
     formData.append("resume", resumeFile);
     formData.append("job_description", jobDescription);
+    if (data?.id) {
+      formData.append("analysis_id", data.id);
+    }
 
     try {
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/improve`, {
@@ -163,6 +178,7 @@ function Results() {
   )
 
   const matchedKeywords = data.matched_keywords?.length || 0
+  const jobAnalysis = data.job_analysis || data.eligibility?.job_analysis
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -184,44 +200,6 @@ function Results() {
           </div>
         </motion.div>
 
-        {data.eligibility && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div className="bg-white border border-slate-200 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
-              <span className="text-2xl mt-0.5">💼</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Estimated Experience</p>
-                <p className="text-base font-bold text-slate-900 mt-0.5">{data.eligibility.experience?.estimated_years_str || `${data.eligibility.experience?.estimated_years} years`}</p>
-                
-                {data.eligibility.experience?.bachelor_graduation_year && (
-                  <div className="mt-2 pt-2 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
-                    <div>
-                      <p className="text-slate-400 font-medium">Graduation Year</p>
-                      <p className="font-semibold text-slate-700">{data.eligibility.experience.bachelor_graduation_year}</p>
-                    </div>
-                    <div>
-                      <p className="text-slate-400 font-medium">Student Experience</p>
-                      <p className="font-semibold text-slate-700">{data.eligibility.experience.student_experience_str || "None"}</p>
-                    </div>
-                    <div className="col-span-2">
-                      <p className="text-slate-400 font-medium">Post-Grad Experience</p>
-                      <p className="font-semibold text-slate-700">{data.eligibility.experience.post_graduation_experience_str || "None"}</p>
-                    </div>
-                  </div>
-                )}
-                
-                <p className="text-xs text-slate-500 mt-2 leading-relaxed">{data.eligibility.experience?.note}</p>
-              </div>
-            </div>
-            <div className="bg-white border border-slate-200 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
-              <span className="text-2xl mt-0.5">🎓</span>
-              <div>
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Detected Education</p>
-                <p className="text-base font-bold text-slate-900 mt-0.5">{data.eligibility.education?.resume_level || "Not detected"}</p>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">{data.eligibility.education?.note}</p>
-              </div>
-            </div>
-          </motion.div>
-        )}
 
         <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
           <motion.div variants={item} className="card p-6 md:p-8 flex flex-col items-center justify-center text-center">
@@ -263,7 +241,29 @@ function Results() {
         {/* Job Description Highlight Section */}
         <motion.div variants={container} initial="hidden" animate="show" className="mb-8">
           <motion.div variants={item} className="card p-4 md:p-8">
-            <h2 className="font-bold text-slate-900 text-xl mb-4">Job Description Analysis</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="font-bold text-slate-900 text-xl">Job Description Analysis</h2>
+              <button
+                onClick={() => setJdDrawerOpen(true)}
+                className="text-xs bg-blue-50 text-blue-600 font-semibold px-3 py-1.5 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1"
+              >
+                <span>Pop out</span> ↗
+              </button>
+            </div>
+            
+            {jobAnalysis && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">🎯 What the Job Actually Is</p>
+                  <p className="text-sm text-slate-800 leading-relaxed">{jobAnalysis.role_focus}</p>
+                </div>
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">🔍 What the Recruiter Needs</p>
+                  <p className="text-sm text-slate-800 leading-relaxed">{jobAnalysis.recruiter_needs}</p>
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-wrap gap-3 md:gap-4 mb-4 text-xs font-semibold uppercase tracking-wide">
               <span className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-green-400"></div> Matched</span>
               <span className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-red-400"></div> Missing</span>
@@ -454,6 +454,74 @@ function Results() {
         <div className="flex gap-4 justify-center mt-10">
           <button onClick={() => { resetContext(); navigate("/"); }} className="btn-primary">← Analyze Another</button>
         </div>
+
+        {/* Floating JD Button */}
+        <button
+          onClick={() => setJdDrawerOpen(true)}
+          className="fixed bottom-6 right-6 z-40 bg-slate-900 text-white rounded-full p-4 shadow-xl hover:bg-slate-800 flex items-center gap-2 transition-all hover:scale-105"
+          style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.15)" }}
+        >
+          <span className="text-lg">📋</span>
+          <span className="text-xs font-bold uppercase tracking-wider hidden sm:inline">View JD</span>
+        </button>
+
+        {/* JD Drawer Overlay */}
+        <AnimatePresence>
+          {jdDrawerOpen && (
+            <div className="fixed inset-0 z-50 overflow-hidden">
+              {/* Backdrop */}
+              <motion.div 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                exit={{ opacity: 0 }}
+                onClick={() => setJdDrawerOpen(false)}
+                className="absolute inset-0 bg-slate-950/40 backdrop-blur-xs transition-opacity"
+              />
+
+              {/* Drawer Panel */}
+              <div className="absolute inset-y-0 right-0 max-w-full flex">
+                <motion.div
+                  initial={{ x: "100%" }}
+                  animate={{ x: 0 }}
+                  exit={{ x: "100%" }}
+                  transition={{ type: "spring", damping: 26, stiffness: 220 }}
+                  className="w-screen md:w-[550px] bg-white h-full shadow-2xl flex flex-col overflow-hidden relative border-l border-slate-200"
+                >
+                  {/* Header */}
+                  <div className="border-b border-slate-200 px-6 py-5 flex items-center justify-between bg-slate-50">
+                    <div>
+                      <h3 className="font-extrabold text-base text-slate-900">Job Description</h3>
+                      <p className="text-xs text-slate-400 mt-0.5">Matched and missing keyword highlights</p>
+                    </div>
+                    <button 
+                      onClick={() => setJdDrawerOpen(false)}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center border border-slate-200 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  {/* Body */}
+                  <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                    {/* Legend */}
+                    <div className="flex flex-wrap gap-3 text-[10px] font-bold uppercase tracking-wider bg-slate-50 border border-slate-200 rounded-xl p-3.5">
+                      <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-green-400"></div> Matched</span>
+                      <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-red-400"></div> Missing</span>
+                      <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-blue-400"></div> Optional</span>
+                    </div>
+
+                    <HighlightedJobDescription 
+                      text={jobDescription || data?.job_description_preview} 
+                      matched={data.matched_keywords} 
+                      missing={data.missing_keywords} 
+                      optional={data.optional_keywords} 
+                    />
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   )

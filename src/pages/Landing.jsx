@@ -1,4 +1,4 @@
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { useNavigate } from "react-router-dom"
 import { useContext, useState } from "react"
 import { ResumeContext } from "../context/ResumeContext"
@@ -23,6 +23,7 @@ export default function Landing() {
   const { setResumeFile, setJobDescription, jobDescription } = useContext(ResumeContext)
   const [file, setFile] = useState(null)
   const [error, setError] = useState("")
+  const [jdOpen, setJdOpen] = useState(false)
 
   const handleFile = (e) => {
     const f = e.target.files[0]
@@ -90,7 +91,7 @@ export default function Landing() {
             <div style={{ background: "#FEE2E2", border: "1px solid #FECACA", color: "#991B1B", borderRadius: 10, padding: "10px 16px", fontSize: 14, marginBottom: 20 }}>{error}</div>
           )}
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
             {/* Upload */}
             <div style={{ border: "2px dashed var(--border)", borderRadius: 16, padding: 28, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", minHeight: 200, transition: "border-color 0.15s" }}>
               <div style={{ width: 48, height: 48, background: "#DBEAFE", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
@@ -110,17 +111,41 @@ export default function Landing() {
             </div>
 
             {/* JD */}
-            <div style={{ display: "flex", flexDirection: "column", minHeight: 200 }}>
-              <p style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>Job Description</p>
-              <p style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 10 }}>Paste the full job posting</p>
-              <textarea
-                className="input"
-                style={{ flex: 1, resize: "none", minHeight: 150 }}
-                placeholder="Paste job description here..."
-                value={jobDescription}
-                onChange={e => setJobDescription(e.target.value)}
-              />
-              <p style={{ fontSize: 12, color: "var(--text-3)", textAlign: "right", marginTop: 6 }}>{jobDescription.length} chars</p>
+            <div
+              onClick={() => setJdOpen(true)}
+              className="border border-slate-200 rounded-xl p-4 cursor-pointer hover:border-blue-400 transition-colors"
+              style={{
+                background: "#ffffff",
+                display: "flex",
+                flexDirection: "column",
+                minHeight: 200,
+                border: "1.5px solid var(--border)",
+                borderRadius: "16px",
+                padding: "20px"
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                <p style={{ fontWeight: 600, fontSize: 15, color: "var(--text-1)", margin: 0 }}>Job Description</p>
+                <span className="text-xs text-blue-500 font-semibold bg-blue-50 rounded-md px-2 py-0.5">
+                  {jobDescription ? "✓ Added" : "Click to add"}
+                </span>
+              </div>
+              <div 
+                className="custom-scrollbar"
+                style={{ 
+                  flex: 1, 
+                  overflowY: "auto", 
+                  maxHeight: "110px", 
+                  paddingRight: "4px"
+                }}
+              >
+                {jobDescription ? (
+                  <p style={{ fontSize: 13, color: "var(--text-2)", lineHeight: 1.6, whiteSpace: "pre-wrap", margin: 0 }}>{jobDescription}</p>
+                ) : (
+                  <p style={{ fontSize: 13, color: "var(--text-3)", margin: 0 }}>Paste the full job description for best results...</p>
+                )}
+              </div>
+              <p style={{ fontSize: 12, color: "var(--text-3)", textAlign: "right", marginTop: 10, margin: 0 }}>{jobDescription.length} characters</p>
             </div>
           </div>
 
@@ -162,6 +187,63 @@ export default function Landing() {
         <span style={{ fontWeight: 700, color: "var(--text-1)" }}>Resume<span style={{ color: "var(--accent)" }}>AI</span></span>
         <span>Built for students and professionals</span>
       </footer>
+
+      {/* Job Description Modal for Guest */}
+      <AnimatePresence>
+        {jdOpen && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6"
+            style={{ background: "rgba(15,23,42,0.5)", backdropFilter: "blur(4px)" }}
+            onClick={e => { if (e.target === e.currentTarget) setJdOpen(false) }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}
+              transition={{ duration: 0.22 }}
+              className="bg-white w-full sm:max-w-2xl sm:rounded-2xl flex flex-col"
+              style={{ borderRadius: "20px 20px 0 0", maxHeight: "90vh" }}
+            >
+              {/* Modal header */}
+              <div className="flex justify-between items-center px-5 pt-5 pb-3">
+                <div>
+                  <h3 className="font-bold text-lg text-slate-900" style={{ margin: 0 }}>Job Description</h3>
+                  <p className="text-xs text-slate-400 mt-0.5" style={{ margin: 0 }}>Paste the complete job posting for best results</p>
+                </div>
+                <button
+                  onClick={() => setJdOpen(false)}
+                  className="w-9 h-9 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-600"
+                  style={{ background: "#F8FAFC", cursor: "pointer", border: "1px solid var(--border)" }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+              </div>
+
+              {/* Textarea */}
+              <div className="px-5 flex-1 overflow-hidden">
+                <textarea
+                  autoFocus
+                  value={jobDescription}
+                  onChange={e => setJobDescription(e.target.value)}
+                  placeholder="Paste the full job description here — include requirements, responsibilities, and qualifications..."
+                  className="w-full h-full outline-none resize-none text-sm text-slate-900 leading-relaxed"
+                  style={{ fontFamily: "Inter, sans-serif", border: "none", minHeight: 260, maxHeight: 400 }}
+                />
+              </div>
+
+              {/* Modal footer */}
+              <div className="flex justify-between items-center px-5 py-4 border-t border-slate-100">
+                <span className="text-xs text-slate-400">{jobDescription.length} characters</span>
+                <div className="flex gap-2">
+                  {jobDescription.length > 0 && (
+                    <button onClick={() => setJobDescription("")} className="btn-ghost" style={{ padding: "8px 16px", fontSize: 13 }}>Clear</button>
+                  )}
+                  <button onClick={() => setJdOpen(false)} className="btn-primary" style={{ padding: "9px 22px", fontSize: 13 }}>Done ✓</button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

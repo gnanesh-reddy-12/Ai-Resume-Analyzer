@@ -88,21 +88,26 @@ export default function AnalyzeSection() {
         {/* Job Description box */}
         <div
           onClick={() => setJdOpen(true)}
-          className="border border-slate-200 rounded-xl p-4 cursor-pointer hover:border-blue-400 transition-colors"
-          style={{ minHeight: 90 }}
+          className="border border-slate-200 rounded-xl p-5 cursor-pointer hover:border-blue-400 transition-colors flex flex-col justify-between"
+          style={{ minHeight: 160 }}
         >
-          <div className="flex justify-between items-center mb-2">
+          <div className="flex justify-between items-center mb-3">
             <p className="font-bold text-sm text-slate-800">Job Description</p>
             <span className="text-xs text-blue-500 font-semibold bg-blue-50 rounded-md px-2 py-0.5">
               {jobDescription ? "✓ Added" : "Click to add"}
             </span>
           </div>
-          {jobDescription ? (
-            <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">{jobDescription}</p>
-          ) : (
-            <p className="text-xs text-slate-400">Paste the full job description for best results...</p>
-          )}
-          <p className="text-xs text-slate-300 mt-2">{jobDescription.length} characters</p>
+          <div 
+            className="flex-1 overflow-y-auto pr-1 custom-scrollbar"
+            style={{ maxHeight: "80px" }}
+          >
+            {jobDescription ? (
+              <p className="text-xs text-slate-500 leading-relaxed" style={{ whiteSpace: "pre-wrap" }}>{jobDescription}</p>
+            ) : (
+              <p className="text-xs text-slate-400">Paste the full job posting for best results...</p>
+            )}
+          </div>
+          <p className="text-xs text-slate-400 text-right mt-3">{jobDescription.length} characters</p>
         </div>
 
         {/* Analyze button */}
