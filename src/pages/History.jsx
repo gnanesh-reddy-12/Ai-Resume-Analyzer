@@ -68,31 +68,33 @@ function History() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
+    <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
       <Navbar />
-      <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-10 pb-20">
+      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "clamp(24px, 4vw, 40px) clamp(16px, 4vw, 24px) 80px" }}>
 
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16,1,0.3,1] }} style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 28 }} className="md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-blue-500 text-xs font-semibold uppercase tracking-widest mb-1">History</p>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Analysis History</h1>
-            <p className="text-slate-500 mt-1 text-sm">{analyses.length} {analyses.length === 1 ? "analysis" : "analyses"} saved</p>
+            <span className="section-label">History</span>
+            <h1 style={{ fontSize: "clamp(22px, 4vw, 32px)", fontWeight: 800, letterSpacing: "-0.8px", color: "var(--text-1)", marginBottom: 4 }}>Analysis History</h1>
+            <p style={{ fontSize: 13, color: "var(--text-3)" }}>{analyses.length} {analyses.length === 1 ? "analysis" : "analyses"} saved</p>
           </div>
           <button className="btn-primary" style={{ fontSize: 13, padding: "10px 22px", width: "fit-content" }} onClick={() => navigate("/")}>+ New Analysis</button>
         </motion.div>
 
         {loading && (
-          <div className="flex justify-center py-20">
-            <div className="w-8 h-8 border-4 border-blue-100 border-t-blue-500 rounded-full animate-spin"></div>
+          <div style={{ display: "flex", justifyContent: "center", padding: "80px 0" }}>
+            <div style={{ width: 32, height: 32, border: "3px solid var(--border-2)", borderTop: "3px solid var(--accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
           </div>
         )}
 
         {!loading && analyses.length === 0 && (
-          <div className="text-center py-20">
-            <div className="text-5xl mb-4">📋</div>
-            <h2 className="text-xl font-bold text-slate-900">No analyses yet</h2>
-            <p className="text-slate-500 mt-2 text-sm">Analyze your first resume to see results here</p>
-            <button className="btn-primary mt-5" onClick={() => navigate("/")}>Analyze Resume</button>
+          <div style={{ textAlign: "center", padding: "80px 20px" }}>
+            <div style={{ width: 56, height: 56, background: "var(--accent-soft)", borderRadius: "var(--r-lg)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: "var(--accent)" }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div>
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-1)", letterSpacing: "-0.4px", marginBottom: 8 }}>No analyses yet</h2>
+            <p style={{ fontSize: 14, color: "var(--text-3)", marginBottom: 24 }}>Analyze your first resume to see results here</p>
+            <button className="btn-primary" style={{ padding: "11px 24px", fontSize: 14 }} onClick={() => navigate("/")}>Analyze Resume</button>
           </div>
         )}
 
@@ -102,38 +104,42 @@ function History() {
               const isSelected = selected?.id === a.id
               return (
                 <motion.div key={a.id}
-                  initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}
+                  initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04, duration: 0.4, ease: [0.16,1,0.3,1] }}
                   onClick={() => setSelected(a)}
-                  className={`card p-4 md:p-6 transition-all border cursor-pointer select-none ${
-                    isSelected ? 'border-blue-400 bg-blue-50/20' : 'border-slate-200 hover:border-slate-300'
-                  }`}
-                  style={{ borderRadius: 16 }}
+                  className="card cursor-pointer select-none"
+                  style={{
+                    borderRadius: "var(--r-md)", padding: "clamp(14px, 3vw, 20px)",
+                    borderColor: isSelected ? "var(--accent)" : "var(--border)",
+                    background: isSelected ? "var(--accent-soft)" : "var(--surface)",
+                    transition: "border-color 0.18s, background 0.18s, box-shadow 0.18s"
+                  }}
+                  onMouseEnter={e => { if (!isSelected) e.currentTarget.style.borderColor = "var(--border-2)"; e.currentTarget.style.boxShadow = "var(--shadow-md)" }}
+                  onMouseLeave={e => { if (!isSelected) e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.boxShadow = "var(--shadow-sm)" }}
                 >
-                  <div className="flex items-center gap-4">
+                  <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                     <ScoreRing score={a.ats_score} size={56} stroke={5} />
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        {a.company_name && <span className="font-extrabold text-sm md:text-base text-slate-900">{a.company_name}</span>}
-                        {a.job_role && <span className="text-xs bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded">{a.job_role}</span>}
+
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                        {a.company_name && <span style={{ fontWeight: 800, fontSize: 14, color: "var(--text-1)", letterSpacing: "-0.2px" }}>{a.company_name}</span>}
+                        {a.job_role && <span className="badge badge-accent" style={{ fontSize: 11, padding: "2px 8px" }}>{a.job_role}</span>}
                       </div>
-                      <p className="text-xs text-slate-400 mt-1 truncate max-w-md">{a.filename}</p>
-                      <p className="text-[10px] md:text-xs text-slate-400 mt-0.5">
+                      <p style={{ fontSize: 12, color: "var(--text-3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 360, marginBottom: 2 }}>{a.filename}</p>
+                      <p style={{ fontSize: 11, color: "var(--text-3)" }}>
                         {new Date(a.created_at).toLocaleDateString()} · {new Date(a.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <button 
-                        onClick={e => { e.stopPropagation(); handleDelete(a.id) }} 
-                        className="text-xs text-red-500 hover:text-red-700 bg-none border-none cursor-pointer px-2 py-1 hover:bg-red-50 rounded-lg transition-colors"
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+                      <button
+                        onClick={e => { e.stopPropagation(); handleDelete(a.id) }}
+                        style={{ fontSize: 12, color: "var(--danger)", background: "none", border: "none", cursor: "pointer", padding: "5px 10px", borderRadius: "var(--r-xs)", transition: "background 0.15s" }}
+                        onMouseEnter={e => e.currentTarget.style.background = "var(--danger-bg)"}
+                        onMouseLeave={e => e.currentTarget.style.background = "none"}
                       >
                         Delete
                       </button>
-                      
-                      <span className="text-slate-400">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                      </span>
+                      <svg width="16" height="16" fill="none" stroke="var(--text-3)" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                     </div>
                   </div>
                 </motion.div>

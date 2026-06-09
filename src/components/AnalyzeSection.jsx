@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { ResumeContext } from "../context/ResumeContext"
 
+const ease = [0.16, 1, 0.3, 1]
+
 export default function AnalyzeSection() {
   const navigate = useNavigate()
   const { resumeFile, setResumeFile, jobDescription, setJobDescription, company, setCompany, role, setRole } = useContext(ResumeContext)
@@ -23,157 +25,148 @@ export default function AnalyzeSection() {
 
   return (
     <>
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 md:p-7" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}>
-
+      <div
+        className="card"
+        style={{ padding: "clamp(20px, 4vw, 32px)" }}
+      >
         {/* Company + Role row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }} className="grid grid-cols-1 sm:grid-cols-2">
           <div>
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Company Name</label>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 7 }}>Company Name</label>
             <input
               value={company}
               onChange={e => setCompany(e.target.value)}
-              placeholder="e.g. Google, Microsoft..."
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-400 transition-colors"
-              style={{ fontFamily: "Inter, sans-serif" }}
+              placeholder="e.g. Google, Stripe..."
+              className="input"
+              style={{ fontSize: 13, padding: "10px 13px" }}
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Job Role</label>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 7 }}>Job Role</label>
             <input
               value={role}
               onChange={e => setRole(e.target.value)}
               placeholder="e.g. Software Engineer..."
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-400 transition-colors"
-              style={{ fontFamily: "Inter, sans-serif" }}
+              className="input"
+              style={{ fontSize: 13, padding: "10px 13px" }}
             />
           </div>
         </div>
 
-        {/* PDF Upload box */}
-        <div
-          className="border-2 border-dashed border-slate-200 rounded-xl p-5 flex flex-col items-center justify-center text-center mb-3 transition-colors"
-          style={{ minHeight: 160 }}
-          onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = "#3B82F6" }}
-          onDragLeave={e => { e.currentTarget.style.borderColor = "" }}
-          onDrop={e => {
-            e.preventDefault()
-            e.currentTarget.style.borderColor = ""
-            const file = e.dataTransfer.files[0]
-            if (file) handleFileChange({ target: { files: [file] } })
-          }}
-        >
-          <div className="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center mb-3">
-            <svg width="20" height="20" fill="none" stroke="#3B82F6" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-            </svg>
-          </div>
-          <p className="font-bold text-sm text-slate-800 mb-1">Upload Resume</p>
-          <p className="text-xs text-slate-400 mb-3">PDF only · Drag & drop or browse</p>
-          <label className="btn-primary cursor-pointer" style={{ fontSize: 13, padding: "8px 20px" }}>
-            Choose File
-            <input type="file" accept=".pdf" style={{ display: "none" }} onChange={handleFileChange} />
-          </label>
-
-          {resumeFile && (
-            <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
-              className="mt-3 bg-green-50 border border-green-200 rounded-lg px-3 py-1.5 flex items-center gap-2 max-w-full"
-            >
-              <svg width="12" height="12" fill="#16A34A" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
-              <span className="text-xs text-green-700 font-medium truncate" style={{ maxWidth: 200 }}>{resumeFile.name}</span>
-              <button onClick={() => setResumeFile(null)} className="text-green-400 hover:text-green-600 ml-auto text-xs flex-shrink-0" style={{ background: "none", border: "none", cursor: "pointer" }}>✕</button>
-            </motion.div>
-          )}
-        </div>
-
-        {/* Job Description box */}
-        <div
-          onClick={() => setJdOpen(true)}
-          className="border border-slate-200 rounded-xl p-5 cursor-pointer hover:border-blue-400 transition-colors flex flex-col justify-between"
-          style={{ minHeight: 160 }}
-        >
-          <div className="flex justify-between items-center mb-3">
-            <p className="font-bold text-sm text-slate-800">Job Description</p>
-            <span className="text-xs text-blue-500 font-semibold bg-blue-50 rounded-md px-2 py-0.5">
-              {jobDescription ? "✓ Added" : "Click to add"}
-            </span>
-          </div>
-          <div 
-            className="flex-1 overflow-y-auto pr-1 custom-scrollbar"
-            style={{ maxHeight: "80px" }}
+        {/* Two-col: upload + JD */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+          {/* Upload zone */}
+          <div
+            style={{ border: "1.5px dashed var(--border-2)", borderRadius: "var(--r-md)", padding: "24px 20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", minHeight: 180, transition: "border-color 0.18s, background 0.18s", background: "var(--bg)", cursor: "default" }}
+            onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.background = "var(--accent-soft)" }}
+            onDragLeave={e => { e.currentTarget.style.borderColor = ""; e.currentTarget.style.background = "var(--bg)" }}
+            onDrop={e => {
+              e.preventDefault()
+              e.currentTarget.style.borderColor = ""
+              e.currentTarget.style.background = "var(--bg)"
+              const file = e.dataTransfer.files[0]
+              if (file) handleFileChange({ target: { files: [file] } })
+            }}
           >
-            {jobDescription ? (
-              <p className="text-xs text-slate-500 leading-relaxed" style={{ whiteSpace: "pre-wrap" }}>{jobDescription}</p>
-            ) : (
-              <p className="text-xs text-slate-400">Paste the full job posting for best results...</p>
+            <div style={{ width: 44, height: 44, background: "var(--accent-soft)", borderRadius: "var(--r-sm)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12, color: "var(--accent)" }}>
+              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+            </div>
+            <p style={{ fontWeight: 700, fontSize: 13, color: "var(--text-1)", marginBottom: 4 }}>Upload Resume</p>
+            <p style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 14 }}>PDF only · drag & drop or browse</p>
+            <label className="btn-primary" style={{ fontSize: 12, padding: "7px 16px", cursor: "pointer" }}>
+              Choose File
+              <input type="file" accept=".pdf" style={{ display: "none" }} onChange={handleFileChange} />
+            </label>
+            {resumeFile && (
+              <motion.div
+                initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                style={{ marginTop: 12, background: "var(--success-bg)", border: "1px solid var(--success-bd)", borderRadius: "var(--r-xs)", padding: "5px 12px", fontSize: 12, color: "#166534", display: "flex", alignItems: "center", gap: 6, maxWidth: "100%" }}
+              >
+                <svg width="11" height="11" fill="#16A34A" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 180 }}>{resumeFile.name}</span>
+                <button onClick={() => setResumeFile(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#16A34A", fontSize: 13, lineHeight: 1, flexShrink: 0, marginLeft: "auto" }}>✕</button>
+              </motion.div>
             )}
           </div>
-          <p className="text-xs text-slate-400 text-right mt-3">{jobDescription.length} characters</p>
+
+          {/* JD card */}
+          <div
+            onClick={() => setJdOpen(true)}
+            style={{ border: "1.5px solid var(--border)", borderRadius: "var(--r-md)", padding: "20px", display: "flex", flexDirection: "column", minHeight: 180, cursor: "pointer", background: "var(--surface)", transition: "border-color 0.18s" }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = "var(--accent)"}
+            onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border)"}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+              <p style={{ fontWeight: 700, fontSize: 13, color: "var(--text-1)" }}>Job Description</p>
+              <span className="badge badge-accent" style={{ fontSize: 11, padding: "3px 8px" }}>
+                {jobDescription ? "✓ Added" : "Click to add"}
+              </span>
+            </div>
+            <div className="custom-scrollbar flex-1 overflow-y-auto" style={{ maxHeight: 90, paddingRight: 4 }}>
+              {jobDescription ? (
+                <p style={{ fontSize: 12, color: "var(--text-2)", lineHeight: 1.65, whiteSpace: "pre-wrap", margin: 0 }}>{jobDescription}</p>
+              ) : (
+                <p style={{ fontSize: 12, color: "var(--text-3)", margin: 0 }}>Paste the full job description for best results...</p>
+              )}
+            </div>
+            <p style={{ fontSize: 11, color: "var(--text-3)", textAlign: "right", marginTop: 10 }}>{jobDescription.length} characters</p>
+          </div>
         </div>
 
         {/* Analyze button */}
-        <div className="flex justify-center mt-5">
+        <div style={{ display: "flex", justifyContent: "center" }}>
           <motion.button
             onClick={handleAnalyze}
-            whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
-            className="btn-primary w-full sm:w-auto"
-            style={{ padding: "13px 48px", fontSize: 15 }}
+            className="btn-primary"
+            style={{ padding: "13px 52px", fontSize: 14, width: "100%" }}
           >
             Analyze Resume →
           </motion.button>
         </div>
       </div>
 
-      {/* Job Description Modal */}
+      {/* JD Modal */}
       <AnimatePresence>
         {jdOpen && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
             className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6"
-            style={{ background: "rgba(15,23,42,0.5)" }}
+            style={{ background: "rgba(13,17,23,0.48)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }}
             onClick={e => { if (e.target === e.currentTarget) setJdOpen(false) }}
           >
             <motion.div
-              initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}
-              transition={{ duration: 0.22 }}
-              className="bg-white w-full sm:max-w-2xl sm:rounded-2xl flex flex-col"
-              style={{ borderRadius: "20px 20px 0 0", maxHeight: "90vh" }}
+              initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 32 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="bg-white w-full sm:max-w-2xl flex flex-col"
+              style={{ borderRadius: "20px 20px 0 0", maxHeight: "88vh", boxShadow: "0 -8px 40px rgba(0,0,0,0.12)" }}
             >
-              {/* Modal header */}
-              <div className="flex justify-between items-center px-5 pt-5 pb-3">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 20px 12px" }}>
                 <div>
-                  <h3 className="font-bold text-lg text-slate-900">Job Description</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Paste the complete job posting for best results</p>
+                  <h3 style={{ fontSize: 17, fontWeight: 700, color: "var(--text-1)", letterSpacing: "-0.3px", margin: 0 }}>Job Description</h3>
+                  <p style={{ fontSize: 12, color: "var(--text-3)", marginTop: 3 }}>Paste the complete job posting for best results</p>
                 </div>
-                <button
-                  onClick={() => setJdOpen(false)}
-                  className="w-9 h-9 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-600"
-                  style={{ background: "#F8FAFC", cursor: "pointer" }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                <button onClick={() => setJdOpen(false)} style={{ width: 34, height: 34, borderRadius: "50%", background: "var(--bg)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-3)", cursor: "pointer" }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
                 </button>
               </div>
-
-              {/* Textarea */}
-              <div className="px-5 flex-1 overflow-hidden">
+              <div style={{ padding: "0 20px", flex: 1, overflow: "hidden" }}>
                 <textarea
                   autoFocus
                   value={jobDescription}
                   onChange={e => setJobDescription(e.target.value)}
-                  placeholder="Paste the full job description here — include requirements, responsibilities, and qualifications..."
-                  className="w-full h-full outline-none resize-none text-sm text-slate-900 leading-relaxed"
-                  style={{ fontFamily: "Inter, sans-serif", border: "none", minHeight: 260, maxHeight: 400 }}
+                  placeholder="Paste the full job description here — requirements, responsibilities, qualifications..."
+                  style={{ width: "100%", height: "100%", minHeight: 280, border: "none", outline: "none", resize: "none", fontSize: 14, color: "var(--text-1)", lineHeight: 1.7, fontFamily: "Inter, sans-serif", background: "transparent" }}
                 />
               </div>
-
-              {/* Modal footer */}
-              <div className="flex justify-between items-center px-5 py-4 border-t border-slate-100">
-                <span className="text-xs text-slate-400">{jobDescription.length} characters</span>
-                <div className="flex gap-2">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderTop: "1px solid var(--border)" }}>
+                <span style={{ fontSize: 12, color: "var(--text-3)" }}>{jobDescription.length} characters</span>
+                <div style={{ display: "flex", gap: 8 }}>
                   {jobDescription.length > 0 && (
-                    <button onClick={() => setJobDescription("")} className="btn-ghost" style={{ padding: "8px 16px", fontSize: 13 }}>Clear</button>
+                    <button className="btn-ghost" style={{ padding: "7px 14px", fontSize: 12 }} onClick={() => setJobDescription("")}>Clear</button>
                   )}
-                  <button onClick={() => setJdOpen(false)} className="btn-primary" style={{ padding: "9px 22px", fontSize: 13 }}>Done ✓</button>
+                  <button className="btn-primary" style={{ padding: "8px 20px", fontSize: 13 }} onClick={() => setJdOpen(false)}>Done ✓</button>
                 </div>
               </div>
             </motion.div>
