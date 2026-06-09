@@ -198,17 +198,20 @@ SYNONYMS = {
     "machine learning": ["ml"],
     "ai": ["artificial intelligence"],
     "artificial intelligence": ["ai"],
-    "js": ["javascript"],
+    "js": ["javascript", "react"],
     "javascript": ["js"],
     "ts": ["typescript"],
     "typescript": ["ts"],
     "k8s": ["kubernetes"],
     "kubernetes": ["k8s"],
-    "db": ["database"],
-    "ci/cd": ["continuous integration", "continuous deployment", "cicd"],
+    "db": ["database", "sql", "nosql"],
+    "ci/cd": ["continuous integration", "continuous deployment", "cicd", "github actions", "gitlab ci", "jenkins", "circleci"],
+    "continuous integration": ["ci", "cicd", "continuous integration", "github actions", "gitlab ci", "jenkins"],
+    "continuous deployment": ["cd", "cicd", "continuous deployment", "github actions", "gitlab ci", "jenkins"],
     "oop": ["object oriented programming", "object-oriented programming"],
     "object oriented programming": ["oop"],
-    "rest": ["restful", "rest api"],
+    "rest": ["restful", "rest api", "apis", "api"],
+    "rest api": ["rest", "restful", "rest apis", "apis", "api"],
     "restful": ["rest", "rest api"],
     "nlp": ["natural language processing"],
     "natural language processing": ["nlp"],
@@ -216,8 +219,16 @@ SYNONYMS = {
     "deep learning": ["dl"],
     "aws": ["amazon web services"],
     "amazon web services": ["aws"],
-    "gcp": ["google cloud platform"],
-    "google cloud platform": ["gcp"],
+    "gcp": ["google cloud platform", "google cloud"],
+    "google cloud platform": ["gcp", "google cloud"],
+    "google cloud": ["gcp", "google cloud platform"],
+    "computer science": ["cs", "cse", "computer science and engineering", "it", "information technology"],
+    "cs": ["computer science", "cse", "computer science and engineering", "it", "information technology"],
+    "software engineering": ["software development", "software engineer", "swe", "developer"],
+    "software development": ["software engineering", "software engineer", "swe", "developer"],
+    "web development": ["frontend", "backend", "fullstack", "web developer", "website"],
+    "version control": ["git", "github", "gitlab", "bitbucket"],
+    "agile": ["scrum", "kanban", "sprints"],
     "bachelor": ["bachelors", "b.tech", "btech", "b.s.", "bs", "b.e.", "be", "undergraduate", "b.sc", "bsc", "bachelor's", "bachelors degree", "bachelor's degree"],
     "bachelors": ["bachelor", "b.tech", "btech", "b.s.", "bs", "b.e.", "be", "undergraduate", "b.sc", "bsc", "bachelor's", "bachelors degree", "bachelor's degree"],
     "bachelor's": ["bachelors", "bachelor", "b.tech", "btech", "b.s.", "bs", "b.e.", "be", "undergraduate", "b.sc", "bsc", "bachelors degree", "bachelor's degree"],
@@ -236,16 +247,41 @@ def expand_synonyms(word: str) -> list:
 
 
 def fuzzy_match(word: str, text: str, threshold: float = 0.78) -> bool:
-    word_lower = word.lower()
+    word_lower = word.lower().strip()
     text_lower = text.lower()
+    
+    # Direct match
     if word_lower in text_lower:
         return True
+        
+    # Synonym match
     for synonym in expand_synonyms(word_lower):
         if synonym in text_lower:
             return True
+            
+    # Stopwords for parsing multi-word phrases
+    kw_stopwords = {"and", "or", "of", "in", "to", "for", "with", "on", "at", "by", "from", "the", "a", "an", "skills", "experience", "knowledge", "expertise"}
+    
+    # Split keyword into constituent words
+    kw_words = [w for w in re.findall(r'\b\w[\w+#.\-]*\b', word_lower) if w not in kw_stopwords]
+    
+    if len(kw_words) >= 2:
+        # Check if all constituent words (or their synonyms) are in the text
+        match_count = sum(1 for w in kw_words if w in text_lower or any(syn in text_lower for syn in expand_synonyms(w)))
+        if match_count == len(kw_words):
+            return True
+            
+        # Core technology suffix check (e.g., "Python developer" -> matches if "Python" is present)
+        core_suffixes = {"developer", "engineer", "framework", "library", "platform", "tool", "tools", "service", "services", "system", "systems", "architecture", "methodology", "methodologies", "principles", "concepts", "practices", "experience", "degree"}
+        if len(kw_words) == 2 and kw_words[1] in core_suffixes:
+            if kw_words[0] in text_lower or any(syn in text_lower for syn in expand_synonyms(kw_words[0])):
+                return True
+                
+    # Levenshtein distance fallback
     for tw in re.findall(r'\b\w[\w+#.\-]*\b', text_lower):
         if SequenceMatcher(None, word_lower, tw).ratio() >= threshold:
             return True
+            
     return False
 
 
@@ -440,6 +476,94 @@ def analyze_eligibility(resume_text: str, job_description: str) -> dict:
         estimated_exp_str = "0 months"
         estimated_exp = 0.0
 
+    # Calculate student vs professional experience based on Bachelor graduation year
+    grad_year = find_bachelors_graduation_year(resume_text)
+    student_exp_str = "None detected"
+    post_grad_exp_str = "None detected"
+    
+    if grad_year:
+        current_year = datetime.now().year
+        student_months = 0
+        professional_months = 0
+        
+        months_regex = r'(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?|\d{1,2})'
+        pattern = r'\b(' + months_regex + r')?[\s,./]*(20\d{2})\s*(?:-|–|—|to)\s*(?:(' + months_regex + r')?[\s,./]*(20\d{2})|(present|current|now))\b'
+        matches = re.findall(pattern, resume_text.lower())
+        
+        months_map = {
+            'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
+            'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12,
+            '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6,
+            '7': 7, '8': 8, '9': 9, '10': 10, '11': 11, '12': 12,
+            '01': 1, '02': 2, '03': 3, '04': 4, '05': 5, '06': 6,
+            '07': 7, '08': 8, '09': 9
+        }
+        
+        current_month = datetime.now().month
+        
+        for start_m, start_y, end_m, end_y, present in matches:
+            start_year = int(start_y)
+            start_month = 1
+            if start_m:
+                for k, v in months_map.items():
+                    if start_m.startswith(k):
+                        start_month = v
+                        break
+            
+            if present:
+                end_year = current_year
+                end_month = current_month
+            else:
+                end_year = int(end_y)
+                end_month = 1
+                if end_m:
+                    for k, v in months_map.items():
+                        if end_m.startswith(k):
+                            end_month = v
+                            break
+            
+            diff_months = (end_year - start_year) * 12 + (end_month - start_month)
+            if 0 < diff_months < 480:
+                # Graduation is assumed to be June (6) of grad_year
+                grad_months_total = grad_year * 12 + 6
+                start_months_total = start_year * 12 + start_month
+                end_months_total = end_year * 12 + end_month
+                
+                if end_months_total <= grad_months_total:
+                    student_months += diff_months
+                elif start_months_total >= grad_months_total:
+                    professional_months += diff_months
+                else:
+                    student_months += (grad_months_total - start_months_total)
+                    professional_months += (end_months_total - grad_months_total)
+        
+        if student_months == 0 and professional_months == 0:
+            year_pairs = re.findall(r'\b(20\d{2})\s*[-–—]\s*(20\d{2}|present|current)\b', resume_text.lower())
+            for start, end in year_pairs:
+                s = int(start)
+                e = current_year if end in ("present", "current") else int(end)
+                if s < grad_year:
+                    student_months += max(0, min(grad_year, e) - s) * 12
+                if e > grad_year:
+                    professional_months += max(0, e - max(grad_year, s)) * 12
+                    
+        if student_months > 0:
+            sy = student_months // 12
+            sm = student_months % 12
+            student_exp_str = f"{sy} yr{'s' if sy != 1 else ''} {sm} mo{'s' if sm != 1 else ''}" if sy > 0 else f"{sm} mo{'s' if sm != 1 else ''}"
+        else:
+            student_exp_str = "None detected"
+            
+        if professional_months > 0:
+            py = professional_months // 12
+            pm = professional_months % 12
+            post_grad_exp_str = f"{py} yr{'s' if py != 1 else ''} {pm} mo{'s' if pm != 1 else ''}" if py > 0 else f"{pm} mo{'s' if pm != 1 else ''}"
+        else:
+            post_grad_exp_str = "None detected"
+    else:
+        student_exp_str = "N/A"
+        post_grad_exp_str = "N/A"
+
     if jd_min_years:
         jd_min_months = jd_min_years * 12
         if total_months == 0:
@@ -508,6 +632,9 @@ def analyze_eligibility(resume_text: str, job_description: str) -> dict:
         "experience": {
             "estimated_years": estimated_exp,
             "estimated_years_str": estimated_exp_str,
+            "bachelor_graduation_year": grad_year,
+            "student_experience_str": student_exp_str,
+            "post_graduation_experience_str": post_grad_exp_str,
             "required_years": jd_min_years,
             "status": experience_status,
             "note": experience_note
@@ -520,6 +647,30 @@ def analyze_eligibility(resume_text: str, job_description: str) -> dict:
             "note": lang_note
         }
     }
+
+
+def find_bachelors_graduation_year(resume_text: str) -> int:
+    import re
+    text_lines = resume_text.split('\n')
+    degree_pattern = r'\b(bachelor|b\.?tech|b\.?e\.?|b\.?s\.?|b\.?sc|undergraduate|graduation|passed\s*out)\b'
+    year_pattern = r'\b(20\d{2})\b'
+    
+    for line in text_lines:
+        if re.search(degree_pattern, line.lower()):
+            years = re.findall(year_pattern, line)
+            if years:
+                return int(years[-1])
+                
+    matches = re.finditer(degree_pattern, resume_text.lower())
+    for match in matches:
+        start_idx = max(0, match.start() - 50)
+        end_idx = min(len(resume_text), match.end() + 100)
+        snippet = resume_text[start_idx:end_idx]
+        years = re.findall(year_pattern, snippet)
+        if years:
+            return int(years[-1])
+            
+    return None
 
 
 @app.post("/analyze")
@@ -629,20 +780,24 @@ Rules:
 - NO BUZZWORDS: do not use words like "passionate", "results-driven", "dynamic", "detail-oriented", "seeking".
 - Focus purely on hard skills, years of experience, a major achievement, and value added.
 
-TASK 2 — AI SNAPSHOT
-Provide a clear, brief assessment covering:
+TASK 2 — AI SNAPSHOT & GRADUATION ASSESSMENT
+Identify the Bachelor's degree passing-out (graduation) year from the resume. Provide a clear, brief assessment covering:
 - What to keep: What parts of the current resume are strong and align well.
 - What is missing: What critical skills/keywords or details are absent.
-- Experience gaps: Any gaps in employment history or shortfall in required years.
+- Experience & Graduation Gaps: Analyze the Bachelor's graduation year. If they are a student or recent grad, calculate their student experience (internships, college projects, coding activities before graduation) and show how it counts toward their experience. Note any employment gaps.
 
-TASK 3 — BULLET POINT REWRITES BY SECTION
-Identify all major work experiences and projects in the resume. For each work experience/project section, rewrite its key bullet points using the Google XYZ formula:
-"Accomplished [X] as measured by [Y], by doing [Z]"
-Rules:
-- Group bullets by section/job title.
-- If the original bullet contains metrics/numbers, keep or refine them.
-- If it has no metrics, rewrite to emphasize scope/impact without inventing fake data.
-- Max 2 rewritten bullets per job/project.
+TASK 3 — SKILLS RECOMMENDER & INTEGRATION
+Recommend:
+- Skills to keep: Key skills already in their resume matching the JD.
+- Skills to add: Crucial skills required by the JD that are missing.
+- Contextual integration advice: Explicit guidance on how to integrate the missing/added skills inside their project descriptions or experience bullets so that they demonstrate hands-on usage rather than just listing them.
+
+TASK 4 — BULLET POINT SUGGESTIONS BY SECTION
+Identify all major work experiences and projects in the resume. For each work experience section, rewrite its key bullet points to focus on action, scope, and results (do not refer to 'Google XYZ formula' in your rewrites or labels).
+For project sections:
+- If a project already has strong, relevant points that demonstrate real achievements, leave it as is or suggest only minor improvements.
+- If it lacks strong points or missing details, write 1-2 new suggested bullet points highlighting what they built and the technology used.
+- Limit to max 2 rewritten/suggested bullets per section.
 
 Return ONLY valid JSON (no markdown, no backticks):
 {{
@@ -650,13 +805,18 @@ Return ONLY valid JSON (no markdown, no backticks):
   "ai_snapshot": {{
     "keep": "<brief bullet points or paragraph of what is strong>",
     "missing": "<brief bullet points or paragraph of what is missing>",
-    "experience_gap": "<brief bullet points or paragraph about experience/duration gaps>"
+    "experience_gap": "<brief assessment of graduation year, student experience vs post-grad experience, and employment history gaps>"
+  }},
+  "skills_recommendation": {{
+    "keep_skills": ["<skill 1>", "<skill 2>"],
+    "add_skills": ["<skill 1>", "<skill 2>"],
+    "integration_advice": "<detailed advice on how they should write about and demonstrate these skills contextually in their projects and experiences>"
   }},
   "sections": [
     {{
       "title": "<Job Title at Company or Project Name>",
       "bullets": [
-        {{"original": "<original bullet>", "rewritten": "<XYZ rewritten bullet>"}}
+        {{"original": "<original bullet or 'N/A for new suggestions'>", "rewritten": "<suggested improved bullet point>"}}
       ]
     }}
   ]

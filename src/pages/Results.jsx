@@ -188,10 +188,28 @@ function Results() {
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div className="bg-white border border-slate-200 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
               <span className="text-2xl mt-0.5">💼</span>
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Estimated Experience</p>
                 <p className="text-base font-bold text-slate-900 mt-0.5">{data.eligibility.experience?.estimated_years_str || `${data.eligibility.experience?.estimated_years} years`}</p>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">{data.eligibility.experience?.note}</p>
+                
+                {data.eligibility.experience?.bachelor_graduation_year && (
+                  <div className="mt-2 pt-2 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <p className="text-slate-400 font-medium">Graduation Year</p>
+                      <p className="font-semibold text-slate-700">{data.eligibility.experience.bachelor_graduation_year}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-400 font-medium">Student Experience</p>
+                      <p className="font-semibold text-slate-700">{data.eligibility.experience.student_experience_str || "None"}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-slate-400 font-medium">Post-Grad Experience</p>
+                      <p className="font-semibold text-slate-700">{data.eligibility.experience.post_graduation_experience_str || "None"}</p>
+                    </div>
+                  </div>
+                )}
+                
+                <p className="text-xs text-slate-500 mt-2 leading-relaxed">{data.eligibility.experience?.note}</p>
               </div>
             </div>
             <div className="bg-white border border-slate-200 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
@@ -326,12 +344,58 @@ function Results() {
               </div>
             )}
 
+            {/* Skills Recommender & Integration */}
+            {aiSuggestions.skills_recommendation && (
+              <div className="card p-5 md:p-8 border-amber-100">
+                <h2 className="font-bold text-slate-900 text-lg mb-1 flex items-center gap-2">
+                  <span>🔧</span> Skills Recommender & Integration
+                </h2>
+                <p className="text-slate-500 text-xs mb-4 font-semibold uppercase tracking-wide">
+                  Keywords to prioritize and integrate into your project descriptions
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="bg-emerald-50/50 border border-emerald-100 rounded-xl p-4">
+                    <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <span>✓</span> Skills to Keep
+                    </p>
+                    <div className="flex flex-wrap gap-1.5 font-mono text-[11px]">
+                      {aiSuggestions.skills_recommendation.keep_skills?.map((sk, idx) => (
+                        <span key={idx} className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">{sk}</span>
+                      ))}
+                      {!aiSuggestions.skills_recommendation.keep_skills?.length && <span className="text-slate-400 text-xs">No specific matching skills found to keep.</span>}
+                    </div>
+                  </div>
+                  <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4">
+                    <p className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <span>💡</span> Skills to Add
+                    </p>
+                    <div className="flex flex-wrap gap-1.5 font-mono text-[11px]">
+                      {aiSuggestions.skills_recommendation.add_skills?.map((sk, idx) => (
+                        <span key={idx} className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">{sk}</span>
+                      ))}
+                      {!aiSuggestions.skills_recommendation.add_skills?.length && <span className="text-slate-400 text-xs">No missing skills required.</span>}
+                    </div>
+                  </div>
+                </div>
+                {aiSuggestions.skills_recommendation.integration_advice && (
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <p className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1">
+                      <span>💡</span> Project & Experience Integration Advice
+                    </p>
+                    <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-line">
+                      {aiSuggestions.skills_recommendation.integration_advice}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Bullet Point Suggestions grouped by Section */}
             {((aiSuggestions.sections && aiSuggestions.sections.length > 0) || (aiSuggestions.bullets && aiSuggestions.bullets.length > 0)) && (
               <div className="card p-5 md:p-8 border-indigo-100">
                 <h2 className="font-bold text-slate-900 text-lg mb-1">Tailored Bullet Point Suggestions</h2>
                 <p className="text-slate-500 text-xs mb-6 font-semibold uppercase tracking-wide">
-                  Google XYZ formula: Accomplished [X], as measured by [Y], by doing [Z]
+                  Recommended adjustments to increase ATS keyword matching and impact
                 </p>
                 <div className="space-y-8">
                   {aiSuggestions.sections && aiSuggestions.sections.length > 0 ? (
@@ -350,7 +414,7 @@ function Results() {
                                 </div>
                                 <div className="space-y-1 border-l-0 md:border-l md:pl-4 border-slate-200">
                                   <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
-                                    ⚡ XYZ Formula Rewrite
+                                    ✨ Suggested Rewrite
                                   </span>
                                   <p className="text-slate-900 text-sm font-medium leading-relaxed">{b.rewritten}</p>
                                 </div>
@@ -372,7 +436,7 @@ function Results() {
                             </div>
                             <div className="space-y-1 border-l-0 md:border-l md:pl-4 border-slate-200">
                               <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
-                                ⚡ XYZ Formula Rewrite
+                                ✨ Suggested Rewrite
                               </span>
                               <p className="text-slate-900 text-sm font-medium leading-relaxed">{s.rewritten}</p>
                             </div>
