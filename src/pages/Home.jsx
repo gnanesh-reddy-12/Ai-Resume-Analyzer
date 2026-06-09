@@ -16,42 +16,42 @@ export default function Home() {
   const name = localStorage.getItem("display_name") || user?.email?.split("@")[0] || "there"
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
+    <div className="min-h-screen bg-[#F8FAFC]">
       <Navbar />
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "40px 24px 80px" }}>
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-10 pb-20">
 
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} style={{ marginBottom: 32 }}>
-          <p style={{ fontSize: 12, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>Dashboard</p>
-          <h1 style={{ fontSize: "clamp(26px, 4vw, 38px)", fontWeight: 800, letterSpacing: "-0.5px", color: "var(--text-1)" }}>
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="mb-6 md:mb-8">
+          <p className="text-xs font-bold text-blue-500 uppercase tracking-widest mb-1">Dashboard</p>
+          <h1 className="text-2xl md:text-4xl font-extrabold text-slate-900" style={{ letterSpacing: "-0.5px" }}>
             Hey, {name} 👋
           </h1>
-          <p style={{ fontSize: 15, color: "var(--text-2)", marginTop: 6 }}>
+          <p className="text-sm md:text-base text-slate-500 mt-2">
             Ready to beat the ATS? Upload your resume below.
           </p>
         </motion.div>
 
-        {/* Main grid: analyze + tips */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 24, alignItems: "start" }}>
+        {/* Main grid: stacks on mobile, side-by-side on large screens */}
+        <div className="flex flex-col lg:flex-row gap-5 items-start">
 
-          {/* Analyze section */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, delay: 0.1 }}>
+          {/* Analyze section — takes up full width on mobile */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, delay: 0.1 }} className="w-full lg:flex-1">
             <AnalyzeSection />
           </motion.div>
 
-          {/* Right panel */}
-          <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.45, delay: 0.2 }} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {/* Right panel — stacks below on mobile */}
+          <motion.div initial={{ opacity: 0, x: 0 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.45, delay: 0.2 }} className="w-full lg:w-72 flex flex-col gap-4 flex-shrink-0">
 
             {/* Quick tips */}
-            <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 20, padding: 24 }}>
-              <p style={{ fontWeight: 700, fontSize: 14, color: "var(--text-1)", marginBottom: 16 }}>💡 Quick Tips</p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div className="bg-white border border-slate-200 rounded-2xl p-5">
+              <p className="font-bold text-sm text-slate-900 mb-4">💡 Quick Tips</p>
+              <div className="flex flex-col gap-4">
                 {tips.map((t, i) => (
-                  <div key={i} style={{ display: "flex", gap: 12 }}>
-                    <span style={{ fontSize: 18, flexShrink: 0 }}>{t.icon}</span>
+                  <div key={i} className="flex gap-3">
+                    <span className="text-lg flex-shrink-0">{t.icon}</span>
                     <div>
-                      <p style={{ fontWeight: 600, fontSize: 13, color: "var(--text-1)" }}>{t.title}</p>
-                      <p style={{ fontSize: 12, color: "var(--text-3)", marginTop: 2, lineHeight: 1.5 }}>{t.desc}</p>
+                      <p className="font-semibold text-sm text-slate-900">{t.title}</p>
+                      <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{t.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -61,13 +61,11 @@ export default function Home() {
             {/* History shortcut */}
             <button
               onClick={() => navigate("/history")}
-              style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 20, padding: 24, textAlign: "left", cursor: "pointer", transition: "background 0.15s" }}
-              onMouseEnter={e => e.currentTarget.style.background = "#DBEAFE"}
-              onMouseLeave={e => e.currentTarget.style.background = "#EFF6FF"}
+              className="bg-blue-50 border border-blue-200 rounded-2xl p-5 text-left cursor-pointer transition-colors hover:bg-blue-100 w-full"
             >
-              <p style={{ fontWeight: 700, fontSize: 14, color: "var(--accent)", marginBottom: 6 }}>📋 Past Analyses</p>
-              <p style={{ fontSize: 12, color: "#3B82F6", lineHeight: 1.5 }}>View your analysis history, compare scores, and track improvements.</p>
-              <p style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600, marginTop: 10 }}>View History →</p>
+              <p className="font-bold text-sm text-blue-600 mb-1">📋 Past Analyses</p>
+              <p className="text-xs text-blue-500 leading-relaxed">View your analysis history, compare scores, and track improvements.</p>
+              <p className="text-xs text-blue-600 font-semibold mt-3">View History →</p>
             </button>
 
           </motion.div>
@@ -75,4 +73,4 @@ export default function Home() {
       </div>
     </div>
   )
-}
+}
