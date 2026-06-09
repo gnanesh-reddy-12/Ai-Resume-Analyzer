@@ -1,6 +1,8 @@
+import { useContext, useEffect } from "react"
 import Navbar from "../components/Navbar"
 import AnalyzeSection from "../components/AnalyzeSection"
 import { useAuth } from "../context/useAuth"
+import { ResumeContext } from "../context/ResumeContext"
 import { motion } from "framer-motion"
 import { useNavigate } from "react-router-dom"
 
@@ -13,7 +15,12 @@ const tips = [
 export default function Home() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { resetContext } = useContext(ResumeContext)
   const name = localStorage.getItem("display_name") || user?.email?.split("@")[0] || "there"
+
+  useEffect(() => {
+    resetContext()
+  }, [resetContext])
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -31,19 +38,16 @@ export default function Home() {
           </p>
         </motion.div>
 
-        {/* Main grid: stacks on mobile, side-by-side on large screens */}
-        <div className="flex flex-col lg:flex-row gap-5 items-start">
-
-          {/* Analyze section — takes up full width on mobile */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, delay: 0.1 }} className="w-full lg:flex-1">
+        {/* Main layout: Stacked vertically, AnalyzeSection full width on top */}
+        <div className="flex flex-col gap-6">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, delay: 0.1 }} className="w-full">
             <AnalyzeSection />
           </motion.div>
 
-          {/* Right panel — stacks below on mobile */}
-          <motion.div initial={{ opacity: 0, x: 0 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.45, delay: 0.2 }} className="w-full lg:w-72 flex flex-col gap-4 flex-shrink-0">
-
+          {/* Bottom row: Quick Tips and Past Analyses side-by-side on tablet/desktop, stacked on mobile */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Quick tips */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-5">
+            <div className="bg-white border border-slate-200 rounded-2xl p-5" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.03)" }}>
               <p className="font-bold text-sm text-slate-900 mb-4">💡 Quick Tips</p>
               <div className="flex flex-col gap-4">
                 {tips.map((t, i) => (
@@ -61,14 +65,16 @@ export default function Home() {
             {/* History shortcut */}
             <button
               onClick={() => navigate("/history")}
-              className="bg-blue-50 border border-blue-200 rounded-2xl p-5 text-left cursor-pointer transition-colors hover:bg-blue-100 w-full"
+              className="bg-blue-50 border border-blue-200 rounded-2xl p-5 text-left cursor-pointer transition-all hover:bg-blue-100 hover:border-blue-300 w-full flex flex-col justify-between"
+              style={{ boxShadow: "0 2px 12px rgba(59,130,246,0.05)" }}
             >
-              <p className="font-bold text-sm text-blue-600 mb-1">📋 Past Analyses</p>
-              <p className="text-xs text-blue-500 leading-relaxed">View your analysis history, compare scores, and track improvements.</p>
+              <div>
+                <p className="font-bold text-sm text-blue-600 mb-1">📋 Past Analyses</p>
+                <p className="text-xs text-blue-500 leading-relaxed">View your analysis history, compare scores, and track improvements.</p>
+              </div>
               <p className="text-xs text-blue-600 font-semibold mt-3">View History →</p>
             </button>
-
-          </motion.div>
+          </div>
         </div>
       </div>
     </div>

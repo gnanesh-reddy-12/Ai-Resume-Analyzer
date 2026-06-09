@@ -85,97 +85,102 @@ function History() {
         )}
 
         {!loading && analyses.length > 0 && (
-          <div className="flex flex-col lg:flex-row gap-5 items-start">
-
-            {/* Sidebar list */}
-            <div className="w-full lg:w-80 flex flex-col gap-3 flex-shrink-0">
-              {analyses.map((a, idx) => {
-                const isSelected = selected?.id === a.id
-                return (
-                  <motion.div key={a.id}
-                    initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}
-                    onClick={() => setSelected(a)}
-                    className="card cursor-pointer transition-all"
-                    style={{ padding: 14, border: `1.5px solid ${isSelected ? "var(--accent)" : "var(--border)"}`, boxShadow: isSelected ? "0 0 0 3px rgba(59,130,246,0.1)" : "none", borderRadius: 16 }}
+          <div className="flex flex-col gap-4">
+            {analyses.map((a, idx) => {
+              const isExpanded = selected?.id === a.id
+              return (
+                <motion.div key={a.id}
+                  initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}
+                  className="card p-4 md:p-6 transition-all border border-slate-200 hover:border-slate-300"
+                  style={{ boxShadow: isExpanded ? "0 4px 20px rgba(0,0,0,0.06)" : "none", borderRadius: 16 }}
+                >
+                  {/* Card Header Row */}
+                  <div 
+                    onClick={() => setSelected(isExpanded ? null : a)}
+                    className="flex items-center gap-4 cursor-pointer select-none"
                   >
+                    <ScoreRing score={a.ats_score} size={64} stroke={6} />
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {a.company_name && <span className="font-extrabold text-sm md:text-base text-slate-900">{a.company_name}</span>}
+                        {a.job_role && <span className="text-xs bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded">{a.job_role}</span>}
+                      </div>
+                      <p className="text-xs text-slate-400 mt-1 truncate max-w-md">{a.filename}</p>
+                      <p className="text-[10px] md:text-xs text-slate-400 mt-0.5">
+                        {new Date(a.created_at).toLocaleDateString()} · {new Date(a.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+
                     <div className="flex items-center gap-3">
-                      <ScoreRing score={a.ats_score} />
-                      <div className="flex-1 min-w-0">
-                        {a.company_name && <p className="font-bold text-sm text-slate-900 truncate">{a.company_name}</p>}
-                        {a.job_role && <p className="text-xs text-blue-500 font-semibold">{a.job_role}</p>}
-                        {!a.company_name && !a.job_role && <p className="font-semibold text-sm text-slate-900 truncate">{a.filename}</p>}
-                        <p className="text-xs text-slate-400 truncate mt-0.5">{a.job_description_preview}</p>
-                        <div className="flex justify-between items-center mt-2">
-                          <span className="text-xs text-slate-400">{new Date(a.created_at).toLocaleDateString()}</span>
-                          <button onClick={e => { e.stopPropagation(); handleDelete(a.id) }} className="text-xs text-red-400 hover:text-red-600 bg-none border-none cursor-pointer">Delete</button>
-                        </div>
-                      </div>
+                      <button 
+                        onClick={e => { e.stopPropagation(); handleDelete(a.id) }} 
+                        className="text-xs text-red-500 hover:text-red-700 bg-none border-none cursor-pointer px-2 py-1 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        Delete
+                      </button>
+                      
+                      {/* Chevron indicator */}
+                      <span className="text-slate-400 transition-transform duration-200" style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)" }}>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                      </span>
                     </div>
-                  </motion.div>
-                )
-              })}
-            </div>
+                  </div>
 
-            {/* Detail panel */}
-            <div className="flex-1 min-w-0">
-              <AnimatePresence mode="wait">
-                {selected && (
-                  <motion.div key={selected.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="flex flex-col gap-4">
+                  {/* Expandable Details Section */}
+                  <AnimatePresence initial={false}>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25, ease: "easeInOut" }}
+                        className="overflow-hidden mt-4 pt-4 border-t border-slate-100"
+                      >
+                        {/* Detail Contents */}
+                        <div className="flex flex-col gap-4">
+                          {/* Scores */}
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-slate-50 rounded-xl p-3 md:p-4">
+                              <p className="text-[10px] md:text-xs text-slate-400 font-bold uppercase tracking-wider">Keyword Score</p>
+                              <p className="text-lg md:text-2xl font-extrabold text-blue-500 mt-1">{a.keyword_score}%</p>
+                            </div>
+                            <div className="bg-slate-50 rounded-xl p-3 md:p-4">
+                              <p className="text-[10px] md:text-xs text-slate-400 font-bold uppercase tracking-wider">Semantic Score</p>
+                              <p className="text-lg md:text-2xl font-extrabold text-emerald-500 mt-1">{a.semantic_score}%</p>
+                            </div>
+                          </div>
 
-                    {/* Header card */}
-                    <div className="card p-5 md:p-7">
-                      <div className="flex items-start justify-between gap-4 flex-wrap mb-4">
-                        <div className="min-w-0">
-                          {selected.company_name && <p className="font-bold text-lg text-slate-900">{selected.company_name}</p>}
-                          {selected.job_role && <p className="text-sm text-blue-500 font-semibold mt-0.5">{selected.job_role}</p>}
-                          <p className="text-xs text-slate-400 mt-1 truncate">{selected.filename}</p>
-                          <p className="text-xs text-slate-400">{new Date(selected.created_at).toLocaleString()}</p>
-                        </div>
-                        <ScoreRing score={selected.ats_score} size={80} stroke={7} />
-                      </div>
-
-                      {/* Scores */}
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-slate-50 rounded-xl p-3">
-                          <p className="text-xs text-slate-400 font-semibold uppercase">Keyword Score</p>
-                          <p className="text-2xl font-bold text-blue-500 mt-1">{selected.keyword_score}%</p>
-                        </div>
-                        <div className="bg-slate-50 rounded-xl p-3">
-                          <p className="text-xs text-slate-400 font-semibold uppercase">Semantic Score</p>
-                          <p className="text-2xl font-bold text-emerald-500 mt-1">{selected.semantic_score}%</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Keywords */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {selected.matched_keywords?.length > 0 && (
-                        <div className="card p-4 md:p-5">
-                          <p className="font-bold text-sm text-slate-900 mb-3">
-                            ✓ Matched <span className="bg-green-100 text-green-700 rounded-full px-2 py-0.5 text-xs ml-1">{selected.matched_keywords.length}</span>
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {selected.matched_keywords.map((k, i) => <span key={i} className="tag tag-green">{k}</span>)}
+                          {/* Keywords */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {a.matched_keywords?.length > 0 && (
+                              <div className="bg-green-50/50 border border-green-100 rounded-xl p-4">
+                                <p className="font-bold text-xs text-green-800 mb-3 flex items-center gap-1">
+                                  <span>✓</span> Matched Keywords <span className="bg-green-100 text-green-700 rounded-full px-2 py-0.5 text-[10px] ml-1">{a.matched_keywords.length}</span>
+                                </p>
+                                <div className="flex flex-wrap gap-1.5 font-mono text-[11px]">
+                                  {a.matched_keywords.map((kw, i) => <span key={i} className="bg-green-100 text-green-800 px-2 py-0.5 rounded">{kw}</span>)}
+                                </div>
+                              </div>
+                            )}
+                            {a.missing_keywords?.length > 0 && (
+                              <div className="bg-red-50/50 border border-red-100 rounded-xl p-4">
+                                <p className="font-bold text-xs text-red-800 mb-3 flex items-center gap-1">
+                                  <span>✗</span> Missing Keywords <span className="bg-red-100 text-red-700 rounded-full px-2 py-0.5 text-[10px] ml-1">{a.missing_keywords.length}</span>
+                                </p>
+                                <div className="flex flex-wrap gap-1.5 font-mono text-[11px]">
+                                  {a.missing_keywords.map((kw, i) => <span key={i} className="bg-red-100 text-red-800 px-2 py-0.5 rounded">{kw}</span>)}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
-                      )}
-                      {selected.missing_keywords?.length > 0 && (
-                        <div className="card p-4 md:p-5">
-                          <p className="font-bold text-sm text-slate-900 mb-3">
-                            ✗ Missing <span className="bg-red-100 text-red-700 rounded-full px-2 py-0.5 text-xs ml-1">{selected.missing_keywords.length}</span>
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {selected.missing_keywords.map((k, i) => <span key={i} className="tag tag-red">{k}</span>)}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              )
+            })}
           </div>
         )}
       </div>

@@ -74,6 +74,7 @@ function Results() {
   const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
+  const [copied, setCopied] = useState(false)
 
   // AI Improvement State
   const [isAiLoading, setIsAiLoading] = useState(false)
@@ -183,6 +184,27 @@ function Results() {
           </div>
         </motion.div>
 
+        {data.eligibility && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
+              <span className="text-2xl mt-0.5">💼</span>
+              <div>
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Estimated Experience</p>
+                <p className="text-base font-bold text-slate-900 mt-0.5">{data.eligibility.experience?.estimated_years_str || `${data.eligibility.experience?.estimated_years} years`}</p>
+                <p className="text-xs text-slate-500 mt-1 leading-relaxed">{data.eligibility.experience?.note}</p>
+              </div>
+            </div>
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
+              <span className="text-2xl mt-0.5">🎓</span>
+              <div>
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Detected Education</p>
+                <p className="text-base font-bold text-slate-900 mt-0.5">{data.eligibility.education?.resume_level || "Not detected"}</p>
+                <p className="text-xs text-slate-500 mt-1 leading-relaxed">{data.eligibility.education?.note}</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
           <motion.div variants={item} className="card p-6 md:p-8 flex flex-col items-center justify-center text-center">
             <ScoreRing score={data.ats_score || 0} />
@@ -250,53 +272,115 @@ function Results() {
         {aiSuggestions && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 mb-8">
             
+            {/* AI Snapshot */}
+            {aiSuggestions.ai_snapshot && (
+              <div className="card p-5 md:p-6 border-blue-100">
+                <h2 className="font-bold text-slate-900 text-lg mb-4 flex items-center gap-2">
+                  <span>✨</span> AI Snapshot & Gaps
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <div className="bg-emerald-50/50 border border-emerald-100 rounded-xl p-4">
+                    <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <span>🌟</span> What to Keep
+                    </p>
+                    <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line">{aiSuggestions.ai_snapshot.keep}</p>
+                  </div>
+                  <div className="bg-amber-50/50 border border-amber-100 rounded-xl p-4">
+                    <p className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <span>⚠️</span> What is Missing
+                    </p>
+                    <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line">{aiSuggestions.ai_snapshot.missing}</p>
+                  </div>
+                  <div className="bg-rose-50/50 border border-rose-100 rounded-xl p-4">
+                    <p className="text-xs font-bold text-rose-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <span>⏳</span> Experience Gaps
+                    </p>
+                    <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line">{aiSuggestions.ai_snapshot.experience_gap}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Professional Summary */}
             {aiSuggestions.summary && (
               <div className="card p-5 md:p-8 border-green-100">
-                <h2 className="font-bold text-slate-900 text-lg mb-3">Professional Summary</h2>
-                <p className="text-slate-500 text-xs mb-3 uppercase tracking-wide font-semibold">Tailored for this role — paste this at the top of your resume</p>
-                <div className="bg-green-50 border border-green-200 rounded-xl p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h2 className="font-bold text-slate-900 text-lg">Recruiter-Optimized Summary</h2>
+                    <p className="text-slate-500 text-xs mt-0.5 uppercase tracking-wide font-semibold">Copy-paste ready for the top of your resume</p>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(aiSuggestions.summary);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors"
+                  >
+                    {copied ? "Copied! ✓" : "Copy"}
+                  </button>
+                </div>
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
                   <p className="text-slate-900 text-sm leading-relaxed">{aiSuggestions.summary}</p>
                 </div>
               </div>
             )}
 
-            {/* Experience & Education Quick Check */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              {aiSuggestions.experience_match && (
-                <div className="card p-6 border-blue-100">
-                  <h3 className="font-bold text-slate-900 text-sm mb-2 uppercase tracking-wide">Experience Relevance</h3>
-                  <p className="text-slate-700 text-sm leading-relaxed">{aiSuggestions.experience_match}</p>
-                </div>
-              )}
-              {aiSuggestions.education_check && (
-                <div className="card p-6 border-blue-100">
-                  <h3 className="font-bold text-slate-900 text-sm mb-2 uppercase tracking-wide">Education Check</h3>
-                  <p className="text-slate-700 text-sm leading-relaxed">{aiSuggestions.education_check}</p>
-                </div>
-              )}
-            </div>
-
-            {/* Bullet Point Suggestions */}
-            {aiSuggestions.bullets && aiSuggestions.bullets.length > 0 && (
+            {/* Bullet Point Suggestions grouped by Section */}
+            {((aiSuggestions.sections && aiSuggestions.sections.length > 0) || (aiSuggestions.bullets && aiSuggestions.bullets.length > 0)) && (
               <div className="card p-5 md:p-8 border-indigo-100">
-                <h2 className="font-bold text-slate-900 text-lg mb-4 md:mb-6">Improved Bullet Points</h2>
-                <div className="space-y-6">
-                  {aiSuggestions.bullets.map((s, i) => (
-                    <div key={i} className="flex flex-col gap-2">
-                      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                        <span className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2 block">Your Bullet</span>
-                        <p className="text-slate-600 text-sm">{s.original}</p>
+                <h2 className="font-bold text-slate-900 text-lg mb-1">Tailored Bullet Point Suggestions</h2>
+                <p className="text-slate-500 text-xs mb-6 font-semibold uppercase tracking-wide">
+                  Google XYZ formula: Accomplished [X], as measured by [Y], by doing [Z]
+                </p>
+                <div className="space-y-8">
+                  {aiSuggestions.sections && aiSuggestions.sections.length > 0 ? (
+                    aiSuggestions.sections.map((section, idx) => (
+                      <div key={idx} className="space-y-4">
+                        <h3 className="font-bold text-sm text-indigo-600 uppercase tracking-wide bg-indigo-50/50 px-3 py-1.5 rounded-lg w-fit">
+                          {section.title}
+                        </h3>
+                        <div className="space-y-4 pl-1">
+                          {section.bullets.map((b, bIdx) => (
+                            <div key={bIdx} className="border-b border-slate-100 pb-4 last:border-b-0">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Original Bullet</span>
+                                  <p className="text-slate-500 text-sm line-through decoration-red-200 decoration-1">{b.original}</p>
+                                </div>
+                                <div className="space-y-1 border-l-0 md:border-l md:pl-4 border-slate-200">
+                                  <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
+                                    ⚡ XYZ Formula Rewrite
+                                  </span>
+                                  <p className="text-slate-900 text-sm font-medium leading-relaxed">{b.rewritten}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <div className="flex items-center justify-center">
-                        <svg className="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                      </div>
-                      <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
-                        <span className="text-xs font-semibold uppercase tracking-wide text-indigo-500 mb-2 block">Enhanced Version</span>
-                        <p className="text-slate-900 text-sm font-medium leading-relaxed">{s.rewritten}</p>
-                      </div>
+                    ))
+                  ) : (
+                    /* Fallback for legacy format if any */
+                    <div className="space-y-4">
+                      {aiSuggestions.bullets.map((s, i) => (
+                        <div key={i} className="border-b border-slate-100 pb-4 last:border-b-0">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Original Bullet</span>
+                              <p className="text-slate-500 text-sm line-through decoration-red-200 decoration-1">{s.original}</p>
+                            </div>
+                            <div className="space-y-1 border-l-0 md:border-l md:pl-4 border-slate-200">
+                              <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
+                                ⚡ XYZ Formula Rewrite
+                              </span>
+                              <p className="text-slate-900 text-sm font-medium leading-relaxed">{s.rewritten}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             )}
