@@ -64,12 +64,14 @@ async def global_exception_handler(request: Request, exc: Exception):
 class AuthRequest(BaseModel):
     email: str
     password: str
+    name: str | None = None  # optional — only used during signup
 
 
-def create_token(user_id: str, email: str) -> str:
+def create_token(user_id: str, email: str, name: str = "") -> str:
     payload = {
         "user_id": user_id,
         "email": email,
+        "name": name,
         "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRY_HOURS)
     }
     return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
@@ -94,6 +96,7 @@ def home():
 async def signup(body: AuthRequest):
     email = body.email.strip().lower()
     password = body.password
+    name = (body.name or "").strip()
     if len(password) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
     try:
@@ -101,12 +104,15 @@ async def signup(body: AuthRequest):
         if existing.data:
             raise HTTPException(status_code=400, detail="Email already registered")
         password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-        result = supabase.table("users").insert({"email": email, "password_hash": password_hash}).execute()
+        insert_data = {"email": email, "password_hash": password_hash}
+        if name:
+            insert_data["name"] = name
+        result = supabase.table("users").insert(insert_data).execute()
         if not result.data:
-            raise HTTPException(status_code=500, detail="Failed to create user — database returned empty result. Check Supabase table RLS policies.")
+            raise HTTPException(status_code=500, detail="Failed to create user — check Supabase RLS policies.")
         user = result.data[0]
-        token = create_token(user["id"], user["email"])
-        return {"token": token, "email": user["email"], "user_id": user["id"]}
+        token = create_token(user["id"], user["email"], user.get("name", ""))
+        return {"token": token, "email": user["email"], "user_id": user["id"], "name": user.get("name", "")}
     except HTTPException:
         raise
     except Exception as e:

@@ -23,11 +23,12 @@ export default function Signup() {
       const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password, name })
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail || "Signup failed")
-      localStorage.setItem("display_name", name)
+      // Store name: prefer what came from DB, fallback to what user typed
+      localStorage.setItem("display_name", data.name || name)
       login(data)
       navigate("/")
     } catch (err) {
