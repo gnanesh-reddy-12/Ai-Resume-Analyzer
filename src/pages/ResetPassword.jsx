@@ -27,7 +27,12 @@ export default function ResetPassword() {
 
   const handleSubmit = async () => {
     setError("")
-    if (password.length < 6) return setError("Password must be at least 6 characters")
+    
+    // Password Validation
+    if (password.length < 8) return setError("Password must be at least 8 characters")
+    if (!/[A-Z]/.test(password)) return setError("Password must contain at least one uppercase letter")
+    if (!/[!@#$%^&*()_+\-=\[\]{}|':"\\<>?]/.test(password)) return setError("Password must contain at least one special character")
+
     setLoading(true)
     try {
       const { error } = await supabase.auth.updateUser({ password })
