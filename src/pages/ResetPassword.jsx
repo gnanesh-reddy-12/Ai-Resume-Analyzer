@@ -12,12 +12,17 @@ export default function ResetPassword() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Check if we actually have a session from the recovery link
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
+    // Listen for the PASSWORD_RECOVERY event from the email link
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        // We are successfully in recovery mode, stay on page
+      } else if (!session) {
+        // If there's no session and it's not a recovery, then redirect
         navigate("/login")
       }
     })
+
+    return () => subscription.unsubscribe()
   }, [navigate])
 
   const handleSubmit = async () => {
