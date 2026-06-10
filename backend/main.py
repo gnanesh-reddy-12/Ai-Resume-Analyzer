@@ -19,7 +19,10 @@ from pydantic import BaseModel
 load_dotenv()
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-supabase: Client = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_ANON_KEY"))
+# Use service_role key on production (bypasses RLS safely — backend is trusted).
+# Falls back to anon key for local development.
+supabase_key = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_ANON_KEY")
+supabase: Client = create_client(os.getenv("SUPABASE_URL"), supabase_key)
 security = HTTPBearer()
 JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key-change-this")
 JWT_EXPIRY_HOURS = 24
