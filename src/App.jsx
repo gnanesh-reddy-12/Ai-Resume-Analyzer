@@ -10,10 +10,13 @@ import GuestResults from "./pages/GuestResults"
 import Results from "./pages/Results"
 import Login from "./pages/Login"
 import Signup from "./pages/Signup"
+import ForgotPassword from "./pages/ForgotPassword"
+import ResetPassword from "./pages/ResetPassword"
 import History from "./pages/History"
 
 function ProtectedRoute({ children }) {
-  const { token } = useAuth()
+  const { token, loading } = useAuth()
+  if (loading) return null // or a loading spinner
   return token ? children : <Navigate to="/landing" />
 }
 
@@ -26,6 +29,8 @@ function App() {
             <Route path="/landing" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/guest-loading" element={<GuestLoading />} />
             <Route path="/guest-results" element={<GuestResults />} />
             <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />

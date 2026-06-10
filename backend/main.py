@@ -5,15 +5,13 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from groq import Groq
 from dotenv import load_dotenv
 from supabase import create_client, Client
-import bcrypt
-import jwt
 import os
 import pdfplumber
 import io
 import re
 import json
 from difflib import SequenceMatcher
-from datetime import datetime, timedelta
+from datetime import datetime
 from pydantic import BaseModel
 
 load_dotenv()
@@ -24,8 +22,6 @@ client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 supabase_key = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_ANON_KEY")
 supabase: Client = create_client(os.getenv("SUPABASE_URL"), supabase_key)
 security = HTTPBearer()
-JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key-change-this")
-JWT_EXPIRY_HOURS = 24
 
 ALLOWED_ORIGINS = [
     "https://ai-resume-analyzer-two-red.vercel.app",
@@ -61,75 +57,14 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
-class AuthRequest(BaseModel):
-    email: str
-    password: str
-    name: str | None = None  # optional — only used during signup
-
-
-def create_token(user_id: str, email: str, name: str = "") -> str:
-    payload = {
-        "user_id": user_id,
-        "email": email,
-        "name": name,
-        "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRY_HOURS)
-    }
-    return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
-
-
-def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
+async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
     try:
-        payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=["HS256"])
-        return payload
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
-
-
-@app.get("/")
-def home():
-    return {"message": "Backend is working"}
-
-
-@app.post("/signup")
-async def signup(body: AuthRequest):
-    email = body.email.strip().lower()
-    password = body.password
-    name = (body.name or "").strip()
-    if len(password) < 6:
-        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
-    try:
-        existing = supabase.table("users").select("id").eq("email", email).execute()
-        if existing.data:
-            raise HTTPException(status_code=400, detail="Email already registered")
-        password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-        insert_data = {"email": email, "password_hash": password_hash}
-        if name:
-            insert_data["name"] = name
-        result = supabase.table("users").insert(insert_data).execute()
-        if not result.data:
-            raise HTTPException(status_code=500, detail="Failed to create user — check Supabase RLS policies.")
-        user = result.data[0]
-        token = create_token(user["id"], user["email"], user.get("name", ""))
-        return {"token": token, "email": user["email"], "user_id": user["id"], "name": user.get("name", "")}
-    except HTTPException:
-        raise
+        response = supabase.auth.get_user(credentials.credentials)
+        if not response or not response.user:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return {"user_id": response.user.id, "email": response.user.email}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Signup error: {str(e)}")
-
-
-@app.post("/login")
-async def login(body: AuthRequest):
-    email = body.email.strip().lower()
-    result = supabase.table("users").select("*").eq("email", email).execute()
-    if not result.data:
-        raise HTTPException(status_code=401, detail="Invalid email or password")
-    user = result.data[0]
-    if not bcrypt.checkpw(body.password.encode(), user["password_hash"].encode()):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
-    token = create_token(user["id"], user["email"])
-    return {"token": token, "email": user["email"], "user_id": user["id"]}
+        raise HTTPException(status_code=401, detail=f"Authentication failed: {str(e)}")
 
 
 @app.get("/history")

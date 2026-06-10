@@ -1,36 +1,40 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { AuthContext } from "./AuthContext"
+import { supabase } from "../supabase"
 
 export default function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => localStorage.getItem("token"))
-  const [user, setUser] = useState(() => {
-    const t = localStorage.getItem("token")
-    if (!t) return null
-    return {
-      email: localStorage.getItem("email"),
-      user_id: localStorage.getItem("user_id")
-    }
-  })
+  const [session, setSession] = useState(null)
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  const login = (data) => {
-    localStorage.setItem("token", data.token)
-    localStorage.setItem("email", data.email)
-    localStorage.setItem("user_id", data.user_id)
-    setToken(data.token)
-    setUser({ email: data.email, user_id: data.user_id })
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const logout = async () => {
+    await supabase.auth.signOut()
   }
 
-  const logout = () => {
-    localStorage.removeItem("token")
-    localStorage.removeItem("email")
-    localStorage.removeItem("user_id")
-    setToken(null)
-    setUser(null)
-  }
+  // We expose token as session?.access_token to keep compatibility with backend requests
+  const token = session?.access_token
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
-      {children}
+    <AuthContext.Provider value={{ user, token, session, logout, loading }}>
+      {!loading && children}
     </AuthContext.Provider>
   )
 }
