@@ -1,5 +1,6 @@
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from groq import Groq
 from dotenv import load_dotenv
@@ -23,20 +24,38 @@ security = HTTPBearer()
 JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key-change-this")
 JWT_EXPIRY_HOURS = 24
 
+ALLOWED_ORIGINS = [
+    "https://ai-resume-analyzer-two-red.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+]
+
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://ai-resume-analyzer-two-red.vercel.app",
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:5173",
-    ],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
+
+
+# Ensure CORS headers are present even on unhandled 500 errors
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    origin = request.headers.get("origin", "")
+    headers = {}
+    if origin in ALLOWED_ORIGINS:
+        headers["Access-Control-Allow-Origin"] = origin
+        headers["Access-Control-Allow-Credentials"] = "true"
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"Internal server error: {str(exc)}"},
+        headers=headers,
+    )
 
 
 class AuthRequest(BaseModel):
@@ -74,14 +93,21 @@ async def signup(body: AuthRequest):
     password = body.password
     if len(password) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
-    existing = supabase.table("users").select("id").eq("email", email).execute()
-    if existing.data:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-    result = supabase.table("users").insert({"email": email, "password_hash": password_hash}).execute()
-    user = result.data[0]
-    token = create_token(user["id"], user["email"])
-    return {"token": token, "email": user["email"], "user_id": user["id"]}
+    try:
+        existing = supabase.table("users").select("id").eq("email", email).execute()
+        if existing.data:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+        result = supabase.table("users").insert({"email": email, "password_hash": password_hash}).execute()
+        if not result.data:
+            raise HTTPException(status_code=500, detail="Failed to create user — database returned empty result. Check Supabase table RLS policies.")
+        user = result.data[0]
+        token = create_token(user["id"], user["email"])
+        return {"token": token, "email": user["email"], "user_id": user["id"]}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Signup error: {str(e)}")
 
 
 @app.post("/login")
