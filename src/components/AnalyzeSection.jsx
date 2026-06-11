@@ -1,26 +1,58 @@
-import { useContext, useState } from "react"
+import { useContext, useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { ResumeContext } from "../context/ResumeContext"
+import { useAuth } from "../context/useAuth"
 
 const ease = [0.16, 1, 0.3, 1]
 
 export default function AnalyzeSection() {
   const navigate = useNavigate()
   const { resumeFile, setResumeFile, jobDescription, setJobDescription, company, setCompany, role, setRole } = useContext(ResumeContext)
+  const { user } = useAuth()
+  const defaultResumeUrl = user?.user_metadata?.default_resume_url
+
   const [jdOpen, setJdOpen] = useState(false)
   const [dragOver, setDragOver] = useState(false)
+  const [uploadMode, setUploadMode] = useState(defaultResumeUrl ? "saved" : "new")
+  const [fetchingSaved, setFetchingSaved] = useState(false)
+
+  // Reset to saved if defaultResumeUrl appears later
+  useEffect(() => {
+    if (defaultResumeUrl && !resumeFile) setUploadMode("saved")
+  }, [defaultResumeUrl, resumeFile])
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]
     if (!file) return
     if (!file.type.includes("pdf")) { alert("Only PDF files are allowed"); return }
     setResumeFile(file)
+    setUploadMode("new")
   }
 
-  const handleAnalyze = () => {
-    if (!resumeFile) { alert("Please upload a resume"); return }
+  const handleAnalyze = async () => {
     if (!jobDescription.trim()) { alert("Please paste a job description"); return }
+    
+    if (uploadMode === "new" && !resumeFile) { 
+      alert("Please upload a resume"); return 
+    }
+
+    if (uploadMode === "saved") {
+      if (!defaultResumeUrl) { alert("No saved resume found. Please upload one in your Profile."); return }
+      setFetchingSaved(true)
+      try {
+        const res = await fetch(defaultResumeUrl)
+        const blob = await res.blob()
+        const file = new File([blob], "Saved_Resume.pdf", { type: "application/pdf" })
+        setResumeFile(file)
+      } catch (err) {
+        alert("Failed to load saved resume.")
+        setFetchingSaved(false)
+        return
+      }
+      setFetchingSaved(false)
+    }
+
     navigate("/loading")
   }
 
@@ -56,43 +88,81 @@ export default function AnalyzeSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
 
           {/* Upload zone */}
-          <div
-            style={{
-              border: `1.5px dashed ${dragOver ? "var(--accent)" : "var(--border-2)"}`,
-              background: dragOver ? "var(--accent-soft)" : "var(--bg)",
-              borderRadius: "var(--r-md)", padding: "24px 20px",
-              display: "flex", flexDirection: "column", alignItems: "center",
-              justifyContent: "center", textAlign: "center", minHeight: 180,
-              transition: "border-color 0.18s, background 0.18s", cursor: "default"
-            }}
-            onDragOver={e => { e.preventDefault(); setDragOver(true) }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={e => {
-              e.preventDefault(); setDragOver(false)
-              const file = e.dataTransfer.files[0]
-              if (file) handleFileChange({ target: { files: [file] } })
-            }}
-          >
-            <div style={{ width: 44, height: 44, background: "var(--accent-soft)", border: "1px solid var(--accent-mid)", borderRadius: "var(--r-sm)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12, color: "var(--accent)" }}>
-              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-            </div>
-            <p style={{ fontWeight: 700, fontSize: 13, color: "var(--text-1)", marginBottom: 4 }}>Upload Resume</p>
-            <p style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 14 }}>PDF only · drag & drop or browse</p>
-            <label className="btn-primary" style={{ fontSize: 12, padding: "7px 16px", cursor: "pointer" }}>
-              Choose File
-              <input type="file" accept=".pdf" style={{ display: "none" }} onChange={handleFileChange} />
-            </label>
-            {resumeFile && (
-              <motion.div
-                initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
-                style={{ marginTop: 12, background: "var(--success-bg)", border: "1px solid var(--success-bd)", borderRadius: "var(--r-xs)", padding: "5px 12px", fontSize: 12, color: "#166534", display: "flex", alignItems: "center", gap: 6, maxWidth: "100%" }}
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {defaultResumeUrl && (
+              <div style={{ display: "flex", background: "var(--bg-2)", padding: 4, borderRadius: "var(--r-md)", border: "1px solid var(--border)" }}>
+                <button
+                  onClick={() => setUploadMode("saved")}
+                  style={{ flex: 1, padding: "8px 0", fontSize: 13, fontWeight: 600, borderRadius: "var(--r-sm)", border: "none", cursor: "pointer", transition: "all 0.2s", background: uploadMode === "saved" ? "var(--surface)" : "transparent", color: uploadMode === "saved" ? "var(--text-1)" : "var(--text-3)", boxShadow: uploadMode === "saved" ? "var(--shadow-sm)" : "none" }}
+                >
+                  Saved Resume
+                </button>
+                <button
+                  onClick={() => setUploadMode("new")}
+                  style={{ flex: 1, padding: "8px 0", fontSize: 13, fontWeight: 600, borderRadius: "var(--r-sm)", border: "none", cursor: "pointer", transition: "all 0.2s", background: uploadMode === "new" ? "var(--surface)" : "transparent", color: uploadMode === "new" ? "var(--text-1)" : "var(--text-3)", boxShadow: uploadMode === "new" ? "var(--shadow-sm)" : "none" }}
+                >
+                  Upload New
+                </button>
+              </div>
+            )}
+
+            {uploadMode === "saved" && defaultResumeUrl ? (
+              <div
+                style={{
+                  border: `1.5px solid var(--accent-mid)`,
+                  background: "var(--accent-soft)",
+                  borderRadius: "var(--r-md)", padding: "24px 20px",
+                  display: "flex", flexDirection: "column", alignItems: "center",
+                  justifyContent: "center", textAlign: "center", minHeight: 180,
+                }}
               >
-                <svg width="11" height="11" fill="#16A34A" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 180 }}>{resumeFile.name}</span>
-                <button onClick={() => setResumeFile(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#16A34A", fontSize: 13, lineHeight: 1, flexShrink: 0, marginLeft: "auto" }}>✕</button>
-              </motion.div>
+                <div style={{ width: 44, height: 44, background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12, color: "var(--accent)" }}>
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                </div>
+                <p style={{ fontWeight: 700, fontSize: 13, color: "var(--text-1)", marginBottom: 4 }}>Using Saved Resume</p>
+                <p style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 14 }}>This will use your default resume from your profile.</p>
+                <a href={defaultResumeUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600, textDecoration: "none" }}>View PDF ↗</a>
+              </div>
+            ) : (
+              <div
+                style={{
+                  border: `1.5px dashed ${dragOver ? "var(--accent)" : "var(--border-2)"}`,
+                  background: dragOver ? "var(--accent-soft)" : "var(--bg)",
+                  borderRadius: "var(--r-md)", padding: "24px 20px",
+                  display: "flex", flexDirection: "column", alignItems: "center",
+                  justifyContent: "center", textAlign: "center", minHeight: 180,
+                  transition: "border-color 0.18s, background 0.18s", cursor: "default"
+                }}
+                onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={e => {
+                  e.preventDefault(); setDragOver(false)
+                  const file = e.dataTransfer.files[0]
+                  if (file) handleFileChange({ target: { files: [file] } })
+                }}
+              >
+                <div style={{ width: 44, height: 44, background: "var(--accent-soft)", border: "1px solid var(--accent-mid)", borderRadius: "var(--r-sm)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12, color: "var(--accent)" }}>
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                </div>
+                <p style={{ fontWeight: 700, fontSize: 13, color: "var(--text-1)", marginBottom: 4 }}>Upload Resume</p>
+                <p style={{ fontSize: 12, color: "var(--text-3)", marginBottom: 14 }}>PDF only · drag & drop or browse</p>
+                <label className="btn-primary" style={{ fontSize: 12, padding: "7px 16px", cursor: "pointer" }}>
+                  Choose File
+                  <input type="file" accept=".pdf,application/pdf" style={{ display: "none" }} onChange={handleFileChange} />
+                </label>
+                {resumeFile && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                    style={{ marginTop: 12, background: "var(--success-bg)", border: "1px solid var(--success-bd)", borderRadius: "var(--r-xs)", padding: "5px 12px", fontSize: 12, color: "#166534", display: "flex", alignItems: "center", gap: 6, maxWidth: "100%" }}
+                  >
+                    <svg width="11" height="11" fill="#16A34A" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 180 }}>{resumeFile.name}</span>
+                    <button onClick={() => setResumeFile(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#16A34A", fontSize: 13, lineHeight: 1, flexShrink: 0, marginLeft: "auto" }}>✕</button>
+                  </motion.div>
+                )}
+              </div>
             )}
           </div>
 

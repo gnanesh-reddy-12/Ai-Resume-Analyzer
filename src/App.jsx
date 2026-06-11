@@ -13,6 +13,7 @@ import Signup from "./pages/Signup"
 import ForgotPassword from "./pages/ForgotPassword"
 import ResetPassword from "./pages/ResetPassword"
 import History from "./pages/History"
+import Profile from "./pages/Profile"
 
 function ProtectedRoute({ children }) {
   const { token, loading } = useAuth()
@@ -37,6 +38,7 @@ function App() {
             <Route path="/loading" element={<ProtectedRoute><Loading /></ProtectedRoute>} />
             <Route path="/results" element={<ProtectedRoute><Results /></ProtectedRoute>} />
             <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/landing" />} />
           </Routes>
         </ResumeProvider>

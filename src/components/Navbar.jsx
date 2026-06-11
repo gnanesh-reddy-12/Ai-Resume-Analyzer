@@ -118,6 +118,7 @@ export default function Navbar() {
                     <div className="divider" />
 
                     <div style={{ padding: "6px 8px" }}>
+                      <MenuBtn label="My Profile" icon="👤" onClick={() => { navigate("/profile"); setShowAccount(false) }} />
                       <MenuBtn label="Analyze Resume" icon="⟐" onClick={() => { navigate("/"); setShowAccount(false) }} />
                       <MenuBtn label="History" icon="◫" onClick={() => { navigate("/history"); setShowAccount(false) }} />
                     </div>
