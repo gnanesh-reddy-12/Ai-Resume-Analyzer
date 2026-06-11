@@ -18,17 +18,10 @@ export default function AnalyzeSection() {
   const [dragOver, setDragOver] = useState(false)
   const [uploadMode, setUploadMode] = useState(defaultResumeUrl ? "saved" : "new")
   const [fetchingSaved, setFetchingSaved] = useState(false)
-  const jdInputRef = useRef(null)
 
   useEffect(() => {
     if (defaultResumeUrl && !resumeFile) setUploadMode("saved")
   }, [defaultResumeUrl, resumeFile])
-
-  useEffect(() => {
-    if (jdOpen && jdInputRef.current) {
-      setTimeout(() => jdInputRef.current.focus(), 50)
-    }
-  }, [jdOpen])
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]
@@ -146,26 +139,35 @@ export default function AnalyzeSection() {
             </div>
           </div>
 
-          {/* Job Description Block */}
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <div style={{ height: defaultResumeUrl ? 40 : 0, transition: "height 0.2s" }} className="hidden sm:block" />
-            <button
+            <div
               onClick={() => setJdOpen(true)}
-              style={{ flex: 1, background: "var(--surface)", borderRadius: "var(--r-md)", boxShadow: "0 0 0 1px var(--border) inset", padding: 20, textAlign: "left", display: "flex", flexDirection: "column", cursor: "pointer", border: "none", outline: "none", transition: "background 0.2s" }}
-              onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
-              onMouseLeave={e => e.currentTarget.style.background = "var(--surface)"}
+              style={{ flex: 1, background: "var(--surface)", border: "1.5px solid var(--border)", borderRadius: "var(--r-md)", padding: 20, textAlign: "left", display: "flex", flexDirection: "column", cursor: "pointer", transition: "border-color 0.18s, box-shadow 0.18s", minHeight: 200 }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.boxShadow = "var(--shadow-md)" }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.boxShadow = "none" }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", marginBottom: 12 }}>
                 <p style={{ fontWeight: 600, fontSize: "var(--text-sm)", color: "var(--text-1)", margin: 0 }}>Job Description</p>
-                <div style={{ width: 8, height: 8, borderRadius: "50%", background: jobDescription ? "var(--success)" : "var(--border-focus)" }} />
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  {jobDescription ? (
+                     <span style={{ fontSize: "11px", background: "var(--success-bg)", color: "var(--success)", padding: "3px 8px", borderRadius: "99px", fontWeight: 600 }}>✓ Added</span>
+                  ) : (
+                     <span style={{ fontSize: "11px", background: "var(--bg)", color: "var(--text-3)", padding: "3px 8px", borderRadius: "99px", fontWeight: 600, border: "1px solid var(--border)" }}>Click to add</span>
+                  )}
+                </div>
               </div>
-              <div style={{ flex: 1, overflow: "hidden" }}>
-                <p style={{ fontSize: "var(--text-xs)", color: jobDescription ? "var(--text-2)" : "var(--text-3)", lineHeight: 1.6, margin: 0, display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                  {jobDescription || "Click to paste the full job posting requirements…"}
-                </p>
+              <div className="custom-scrollbar" style={{ flex: 1, overflowY: "auto", maxHeight: 110, paddingRight: 4 }}>
+                {jobDescription ? (
+                  <p style={{ fontSize: "13px", color: "var(--text-2)", lineHeight: 1.65, whiteSpace: "pre-wrap", margin: 0 }}>
+                    {jobDescription}
+                  </p>
+                ) : (
+                  <p style={{ fontSize: "13px", color: "var(--text-3)", margin: 0 }}>
+                    Paste the full job description for best results...
+                  </p>
+                )}
               </div>
-            </button>
-          </div>
+              <p style={{ fontSize: 11, color: "var(--text-3)", textAlign: "right", marginTop: 10, margin: "10px 0 0 0" }}>{jobDescription.length} characters</p>
+            </div>
         </div>
 
         <motion.button
@@ -188,28 +190,27 @@ export default function AnalyzeSection() {
 
       <AnimatePresence>
         {jdOpen && (
-          <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
+          <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
-              style={{ position: "absolute", inset: 0, background: "rgba(250,247,242,0.8)", backdropFilter: "blur(8px)" }}
+              style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(26,22,17,0.5)", backdropFilter: "blur(6px)" }}
               onClick={() => setJdOpen(false)}
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.96, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96, y: 16 }}
               transition={spring}
               className="ek-card"
-              style={{ position: "relative", width: "100%", maxWidth: 640, display: "flex", flexDirection: "column", maxHeight: "85vh" }}
+              style={{ position: "relative", width: "100%", maxWidth: 640, display: "flex", flexDirection: "column", maxHeight: "85vh", zIndex: 101 }}
             >
               <div style={{ padding: "20px 24px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
-                  <h3 style={{ fontSize: "var(--text-base)", margin: 0 }}>Job Description</h3>
+                  <h3 style={{ fontSize: "var(--text-base)", margin: 0, fontWeight: 700, color: "var(--text-1)" }}>Job Description</h3>
                   <p style={{ fontSize: "var(--text-xs)", color: "var(--text-3)", margin: 0 }}>Paste the complete posting.</p>
                 </div>
-                <button onClick={() => setJdOpen(false)} style={{ background: "transparent", border: "none", color: "var(--text-3)", cursor: "pointer", padding: 4 }}>✕</button>
+                <button onClick={() => setJdOpen(false)} style={{ width: 34, height: 34, borderRadius: "50%", background: "var(--bg)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-3)", cursor: "pointer" }}>✕</button>
               </div>
               <div style={{ padding: 24, flex: 1, overflow: "hidden" }}>
                 <textarea
-                  ref={jdInputRef}
                   value={jobDescription}
                   onChange={e => setJobDescription(e.target.value)}
                   placeholder="Paste requirements here…"
@@ -219,7 +220,7 @@ export default function AnalyzeSection() {
               </div>
               <div style={{ padding: "16px 24px", borderTop: "1px solid var(--border)", display: "flex", justifyContent: "flex-end", gap: 8 }}>
                 {jobDescription && <button className="btn-ek btn-ghost" onClick={() => setJobDescription("")}>Clear</button>}
-                <button className="btn-ek btn-primary" onClick={() => setJdOpen(false)}>Save & Close</button>
+                <button className="btn-ek btn-primary" onClick={() => setJdOpen(false)}>Done ✓</button>
               </div>
             </motion.div>
           </div>

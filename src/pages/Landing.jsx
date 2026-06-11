@@ -310,14 +310,14 @@ export default function Landing() {
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
-            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6"
-            style={{ background: "rgba(26,22,17,0.5)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px", background: "rgba(26,22,17,0.5)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }}
             onClick={e => { if (e.target === e.currentTarget) setJdOpen(false) }}
           >
             <motion.div
               initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 32 }}
               transition={{ type: "spring", stiffness: 320, damping: 32 }}
-              style={{ background: "var(--surface)", width: "100%", maxWidth: 640, borderRadius: "20px 20px 0 0", maxHeight: "88vh", boxShadow: "0 -8px 40px rgba(0,0,0,0.12)", display: "flex", flexDirection: "column" }}
+              style={{ background: "var(--surface)", width: "100%", maxWidth: 640, borderRadius: "20px", maxHeight: "88vh", boxShadow: "0 8px 40px rgba(0,0,0,0.12)", display: "flex", flexDirection: "column" }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 20px 12px" }}>
                 <div>
@@ -333,7 +333,7 @@ export default function Landing() {
               </div>
               <div style={{ padding: "0 20px", flex: 1, overflow: "hidden" }}>
                 <textarea
-                  autoFocus value={jobDescription}
+                  value={jobDescription}
                   onChange={e => setJobDescription(e.target.value)}
                   placeholder="Paste the full job description here — requirements, responsibilities, qualifications..."
                   style={{ width: "100%", height: "100%", minHeight: 280, border: "none", outline: "none", resize: "none", fontSize: 14, color: "var(--text-1)", lineHeight: 1.7, fontFamily: "Inter, sans-serif", background: "transparent" }}
