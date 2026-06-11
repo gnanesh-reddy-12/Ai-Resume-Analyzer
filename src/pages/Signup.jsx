@@ -70,11 +70,11 @@ export default function Signup() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease }}
-          className="card"
+          className="ek-card"
           style={{ width: "100%", maxWidth: 400, padding: "clamp(32px, 6vw, 44px)" }}
         >
           <div style={{ textAlign: "center", marginBottom: 32 }}>
-            <div style={{ width: 52, height: 52, borderRadius: "50%", background: "var(--accent-soft)", border: "1px solid var(--accent-mid)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: "var(--accent)" }}>
+            <div style={{ width: 52, height: 52, borderRadius: "50%", background: "var(--accent-soft)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: "var(--accent)" }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/>
                 <circle cx="9" cy="7" r="4"/>
@@ -82,29 +82,29 @@ export default function Signup() {
                 <line x1="22" y1="11" x2="16" y2="11"/>
               </svg>
             </div>
-            <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.6px", marginBottom: 6, color: "var(--text-1)" }}>Create account</h1>
-            <p style={{ fontSize: 14, color: "var(--text-3)", lineHeight: 1.5 }}>Start analyzing your resume for free</p>
+            <h1 style={{ fontSize: "var(--text-xl)", marginBottom: 6 }}>Create account</h1>
+            <p style={{ fontSize: "var(--text-sm)", color: "var(--text-3)", lineHeight: 1.5 }}>Start analyzing your resume for free</p>
           </div>
 
           {error && (
-            <div style={{ background: "var(--danger-bg)", border: "1px solid var(--danger-bd)", color: "var(--danger)", borderRadius: "var(--r-sm)", padding: "10px 14px", fontSize: 13, marginBottom: 20 }}>
+            <div style={{ background: "var(--danger-bg)", border: "1px solid var(--danger-bd)", color: "var(--danger)", borderRadius: "var(--r-sm)", padding: "10px 14px", fontSize: "var(--text-sm)", marginBottom: 20 }}>
               {error}
             </div>
           )}
 
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text-2)", marginBottom: 6 }}>Full Name</label>
-              <input className="input" type="text" placeholder="John Doe" value={name} onChange={e => setName(e.target.value)} />
+              <label style={{ display: "block", fontSize: "var(--text-xs)", fontWeight: 600, color: "var(--text-2)", marginBottom: 6 }}>Full Name</label>
+              <input className="input-ek" type="text" placeholder="John Doe" value={name} onChange={e => setName(e.target.value)} />
             </div>
             <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text-2)", marginBottom: 6 }}>Email</label>
-              <input className="input" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} />
+              <label style={{ display: "block", fontSize: "var(--text-xs)", fontWeight: 600, color: "var(--text-2)", marginBottom: 6 }}>Email</label>
+              <input className="input-ek" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} />
             </div>
             <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text-2)", marginBottom: 6 }}>Password</label>
+              <label style={{ display: "block", fontSize: "var(--text-xs)", fontWeight: 600, color: "var(--text-2)", marginBottom: 6 }}>Password</label>
               <div style={{ position: "relative" }}>
-                <input className="input" type={showPassword ? "text" : "password"} placeholder="Min. 8 characters" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSubmit()} style={{ paddingRight: 40 }} />
+                <input className="input-ek" type={showPassword ? "text" : "password"} placeholder="Min. 8 characters" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSubmit()} style={{ paddingRight: 40 }} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-3)", cursor: "pointer", padding: 0, display: "flex" }}>
                   {showPassword ? (
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
@@ -117,26 +117,26 @@ export default function Signup() {
           </div>
 
           <motion.button
-            className="btn-primary"
+            className="btn-ek btn-primary"
             onClick={handleSubmit}
             disabled={loading}
             whileTap={{ scale: 0.97 }}
-            style={{ width: "100%", marginTop: 24, padding: "13px", fontSize: 14 }}
+            style={{ width: "100%", marginTop: 24, padding: "12px", fontSize: "var(--text-sm)" }}
           >
             {loading ? "Creating account…" : "Create Account"}
           </motion.button>
 
           <div style={{ margin: "24px 0", display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
-            <span style={{ fontSize: 13, color: "var(--text-3)" }}>OR</span>
+            <span style={{ fontSize: "var(--text-xs)", color: "var(--text-3)" }}>OR</span>
             <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
           </div>
 
           <motion.button
-            className="btn-ghost"
+            className="btn-ek btn-secondary"
             onClick={handleGoogleLogin}
             whileTap={{ scale: 0.97 }}
-            style={{ width: "100%", padding: "13px", fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "#fff", border: "1px solid var(--border)", color: "var(--text-1)" }}
+            style={{ width: "100%", padding: "12px", fontSize: "var(--text-sm)", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -147,7 +147,7 @@ export default function Signup() {
             Continue with Google
           </motion.button>
 
-          <p style={{ textAlign: "center", fontSize: 13, color: "var(--text-3)", marginTop: 24 }}>
+          <p style={{ textAlign: "center", fontSize: "var(--text-sm)", color: "var(--text-3)", marginTop: 24 }}>
             Already have an account?{" "}
             <Link to="/login" style={{ color: "var(--accent)", fontWeight: 600, textDecoration: "none" }}>Sign in</Link>
           </p>

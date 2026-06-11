@@ -6,12 +6,12 @@ import { ResumeContext } from "../context/ResumeContext"
 import { motion } from "framer-motion"
 import { useNavigate } from "react-router-dom"
 
-const ease = [0.16, 1, 0.3, 1]
+const spring = { type: "spring", stiffness: 400, damping: 30 }
 
 const tips = [
-  { icon: "🎯", title: "Mirror the job language", desc: "Use exact phrases from the posting — ATS scans for literal matches." },
-  { icon: "📊", title: "Quantify every impact", desc: "Numbers make achievements concrete. Recruiters pause on them." },
-  { icon: "⚡", title: "Keep formatting clean", desc: "Simple, single-column layouts parse reliably in every ATS." },
+  { icon: "✧", title: "Mirror exact language", desc: "Use literal phrases from the posting. ATS looks for exact matches." },
+  { icon: "✧", title: "Quantify your impact", desc: "Numbers make achievements concrete. They prove your value." },
+  { icon: "✧", title: "Keep formats clean", desc: "Use simple, single-column layouts. They parse reliably everywhere." },
 ]
 
 export default function Home() {
@@ -23,89 +23,79 @@ export default function Home() {
   useEffect(() => { resetContext() }, [resetContext])
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
+    <>
       <Navbar />
-      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "clamp(24px, 4vw, 40px) clamp(16px, 4vw, 24px) 80px" }}>
-
+      <div className="container" style={{ paddingTop: "clamp(40px, 8vw, 80px)", paddingBottom: 80, maxWidth: 800 }}>
+        
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease }}
-          style={{ marginBottom: 28 }}
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+          transition={spring}
+          style={{ marginBottom: 40 }}
         >
-          <span className="section-label">Dashboard</span>
-          <h1 style={{ fontSize: "clamp(24px, 4vw, 34px)", fontWeight: 800, letterSpacing: "-0.8px", color: "var(--text-1)", marginBottom: 6 }}>
-            Hey, {name} 👋
+          <h1 style={{ fontSize: "var(--text-3xl)", marginBottom: 8 }}>
+            Welcome, {name}
           </h1>
-          <p style={{ fontSize: 15, color: "var(--text-3)", lineHeight: 1.6 }}>
-            Ready to beat the ATS? Upload your resume and paste a job description below.
+          <p style={{ fontSize: "var(--text-lg)", color: "var(--text-3)", fontWeight: 500 }}>
+            Upload your resume and paste a job description to begin analysis.
           </p>
         </motion.div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
           <motion.div
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.08, ease }}
+            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ ...spring, delay: 0.05 }}
           >
             <AnalyzeSection />
           </motion.div>
 
-          {/* Tips + History row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-            {/* Quick tips */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.15, ease }}
-              className="card" style={{ padding: "24px 24px 20px" }}
-            >
-              <p style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 18 }}>💡 Quick Tips</p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-                {tips.map((t, i) => (
-                  <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                    <span style={{ fontSize: 18, flexShrink: 0, lineHeight: 1 }}>{t.icon}</span>
-                    <div>
-                      <p style={{ fontWeight: 600, fontSize: 13, color: "var(--text-1)", marginBottom: 3 }}>{t.title}</p>
-                      <p style={{ fontSize: 12, color: "var(--text-3)", lineHeight: 1.6 }}>{t.desc}</p>
-                    </div>
+          {/* Resume Checklist section */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ ...spring, delay: 0.1 }}
+            className="ek-card"
+            style={{ padding: "clamp(24px, 5vw, 32px)" }}
+          >
+            <h3 style={{ fontSize: "var(--text-base)", marginBottom: 20, fontWeight: 600, color: "var(--text-1)", display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ display: "flex", width: 8, height: 8, borderRadius: "50%", background: "var(--accent)" }} />
+              ATS Optimization Best Practices
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {tips.map((t, i) => (
+                <motion.div
+                  key={i}
+                  whileHover={{ y: -4, scale: 1.01 }}
+                  transition={spring}
+                  className="ek-card-sm"
+                  style={{
+                    padding: "20px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 8,
+                    background: "var(--surface)",
+                    border: "1px solid var(--border)",
+                    boxShadow: "0 2px 8px rgba(92, 62, 47, 0.04)"
+                  }}
+                >
+                  <div style={{
+                    width: 28, height: 28, borderRadius: "50%",
+                    background: "var(--accent-soft)",
+                    color: "var(--accent)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: "var(--text-sm)", fontWeight: 700,
+                    marginBottom: 4
+                  }}>
+                    {i + 1}
                   </div>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* History shortcut */}
-            <motion.button
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2, ease }}
-              whileHover={{ y: -2, boxShadow: "var(--shadow-md)" }}
-              onClick={() => navigate("/history")}
-              style={{
-                background: "linear-gradient(135deg, var(--accent-soft) 0%, var(--bg-2) 100%)",
-                border: "1px solid var(--accent-mid)",
-                borderRadius: "var(--r-lg)",
-                padding: "24px", textAlign: "left",
-                cursor: "pointer", transition: "box-shadow 0.2s, transform 0.2s",
-                display: "flex", flexDirection: "column", justifyContent: "space-between",
-                minHeight: 150
-              }}
-            >
-              <div>
-                <div style={{ width: 40, height: 40, background: "var(--accent-soft)", border: "1px solid var(--accent-mid)", borderRadius: "var(--r-sm)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14, color: "var(--accent)" }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
-                    <line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" />
-                  </svg>
-                </div>
-                <p style={{ fontWeight: 700, fontSize: 14, color: "var(--accent)", marginBottom: 6 }}>Past Analyses</p>
-                <p style={{ fontSize: 13, color: "var(--text-2)", lineHeight: 1.6 }}>
-                  View your full analysis history, track scores, and compare results over time.
-                </p>
-              </div>
-              <p style={{ fontSize: 13, color: "var(--accent)", fontWeight: 600, marginTop: 16 }}>View History →</p>
-            </motion.button>
-          </div>
+                  <p style={{ fontWeight: 600, fontSize: "var(--text-sm)", color: "var(--text-1)" }}>{t.title}</p>
+                  <p style={{ fontSize: "var(--text-xs)", color: "var(--text-3)", lineHeight: 1.5 }}>{t.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
         </div>
       </div>
-    </div>
+    </>
   )
 }

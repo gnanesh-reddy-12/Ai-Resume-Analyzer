@@ -3,7 +3,8 @@ import { useAuth } from "../context/useAuth"
 import { motion, AnimatePresence } from "framer-motion"
 import { useState, useRef, useEffect } from "react"
 
-const ease = [0.16, 1, 0.3, 1]
+const spring = { type: "spring", stiffness: 400, damping: 30 }
+const layoutSpring = { type: "spring", stiffness: 350, damping: 30 }
 
 export default function Navbar() {
   const { user, logout } = useAuth()
@@ -12,9 +13,7 @@ export default function Navbar() {
   const path = location.pathname
   const isAuth = path === "/login" || path === "/signup"
   const [showAccount, setShowAccount] = useState(false)
-  const [name, setName] = useState(localStorage.getItem("display_name") || user?.email?.split("@")[0] || "User")
-  const [editName, setEditName] = useState(name)
-  const [editing, setEditing] = useState(false)
+  const [name] = useState(localStorage.getItem("display_name") || user?.user_metadata?.full_name || "User")
   const ref = useRef(null)
 
   useEffect(() => {
@@ -23,57 +22,66 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handler)
   }, [])
 
-  const saveName = () => {
-    if (editName.trim()) { localStorage.setItem("display_name", editName.trim()); setName(editName.trim()) }
-    setEditing(false)
-  }
-
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease }}
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={spring}
       style={{
-        position: "sticky", top: 0, zIndex: 50,
-        background: "rgba(250,248,245,0.92)",
-        backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-        borderBottom: "1px solid var(--border)", height: 60
+        position: "sticky", top: 16, zIndex: 100,
+        margin: "0 auto", maxWidth: 960, width: "calc(100% - 32px)",
+        background: "rgba(255, 255, 255, 0.9)",
+        backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+        borderRadius: 99,
+        border: "1px solid var(--border)",
+        boxShadow: "0 10px 30px -10px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.02)",
+        height: 60,
+        display: "flex", alignItems: "center",
       }}
     >
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 clamp(16px, 4vw, 24px)", height: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-
+      <div style={{ width: "100%", padding: "0 20px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative" }}>
+        
+        {/* Logo */}
         <button
           onClick={() => navigate(user ? "/" : "/landing")}
-          style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.5px", background: "none", border: "none", cursor: "pointer", color: "var(--text-1)", padding: 0 }}
+          style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, outline: "none" }}
         >
-          Resume<span style={{ color: "var(--accent)" }}>AI</span>
+          <div style={{ width: 24, height: 24, background: "var(--accent)", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+          </div>
+          <span style={{ fontWeight: 600, fontSize: "var(--text-base)", letterSpacing: "-0.03em", color: "var(--text-1)" }}>
+            Resume<span style={{ color: "var(--accent)", opacity: 0.9 }}>AI</span>
+          </span>
         </button>
 
+        {/* Center Nav */}
         {!isAuth && user && (
-          <nav className="hidden md:flex" style={{ alignItems: "center", gap: 2 }}>
+          <nav className="hidden md:flex" style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", background: "var(--bg)", padding: 4, borderRadius: 99, display: "flex", gap: 4 }}>
             <NavLink label="Analyze" onClick={() => navigate("/")} active={path === "/"} />
             <NavLink label="History" onClick={() => navigate("/history")} active={path === "/history"} />
           </nav>
         )}
 
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {/* Right Actions */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           {user ? (
             <div ref={ref} style={{ position: "relative" }}>
-              <button
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                transition={spring}
                 onClick={() => setShowAccount(v => !v)}
                 style={{
                   display: "flex", alignItems: "center", gap: 8,
-                  background: showAccount ? "var(--accent-soft)" : "var(--surface)",
-                  border: `1.5px solid ${showAccount ? "var(--accent-mid)" : "var(--border)"}`,
-                  borderRadius: "var(--r-sm)", padding: "7px 12px",
-                  cursor: "pointer", transition: "all 0.18s", outline: "none"
+                  background: showAccount ? "var(--bg)" : "transparent",
+                  border: "none", borderRadius: 99, padding: "4px 12px 4px 4px",
+                  cursor: "pointer", outline: "none", transition: "background 0.2s"
                 }}
               >
-                <div style={{ width: 26, height: 26, background: "var(--accent)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 700, fontSize: 12, flexShrink: 0 }}>
+                <div style={{ width: 28, height: 28, background: "var(--accent)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 600, fontSize: 13, flexShrink: 0 }}>
                   {name.charAt(0).toUpperCase()}
                 </div>
-                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-1)", maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="2.5" style={{ flexShrink: 0, transition: "transform 0.18s", transform: showAccount ? "rotate(180deg)" : "rotate(0deg)" }}><path d="M6 9l6 6 6-6"/></svg>
-              </button>
+                <span style={{ fontSize: "var(--text-sm)", fontWeight: 500, color: "var(--text-1)", maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
+              </motion.button>
 
               <AnimatePresence>
                 {showAccount && (
@@ -81,52 +89,25 @@ export default function Navbar() {
                     initial={{ opacity: 0, y: 8, scale: 0.96 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                    transition={{ duration: 0.2, ease }}
-                    style={{ position: "absolute", right: 0, top: "calc(100% + 8px)", width: 272, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", boxShadow: "var(--shadow-lg)", overflow: "hidden" }}
+                    transition={spring}
+                    className="ek-card"
+                    style={{
+                      position: "absolute", right: 0, top: "calc(100% + 8px)", width: 220, overflow: "hidden",
+                    }}
                   >
-                    <div style={{ padding: "18px 18px 14px" }}>
-                      <p style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}>Account</p>
-                      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
-                        <div style={{ width: 42, height: 42, background: "var(--accent)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 700, fontSize: 17, flexShrink: 0 }}>
-                          {name.charAt(0).toUpperCase()}
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          {editing ? (
-                            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                              <input autoFocus value={editName} onChange={e => setEditName(e.target.value)}
-                                onKeyDown={e => { if (e.key === "Enter") saveName(); if (e.key === "Escape") setEditing(false) }}
-                                style={{ width: "100%", border: "1.5px solid var(--accent)", borderRadius: "var(--r-xs)", padding: "6px 10px", fontSize: 13, outline: "none", fontFamily: "Inter", boxSizing: "border-box", background: "var(--surface)", color: "var(--text-1)" }}
-                              />
-                              <div style={{ display: "flex", gap: 6 }}>
-                                <button onClick={saveName} style={{ flex: 1, background: "var(--accent)", color: "white", border: "none", borderRadius: "var(--r-xs)", padding: "6px 0", fontSize: 12, cursor: "pointer", fontWeight: 600 }}>Save</button>
-                                <button onClick={() => setEditing(false)} style={{ flex: 1, background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--r-xs)", padding: "6px 0", fontSize: 12, cursor: "pointer", color: "var(--text-2)" }}>Cancel</button>
-                              </div>
-                            </div>
-                          ) : (
-                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                              <span style={{ fontWeight: 700, fontSize: 14, color: "var(--text-1)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
-                              <button onClick={() => { setEditName(name); setEditing(true) }} style={{ background: "none", border: "none", cursor: "pointer", padding: 2, color: "var(--text-3)", flexShrink: 0 }}>
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                              </button>
-                            </div>
-                          )}
-                          <p style={{ fontSize: 12, color: "var(--text-3)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</p>
-                        </div>
-                      </div>
+                    <div style={{ padding: "16px 16px 12px", borderBottom: "1px solid var(--border)" }}>
+                      <p style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text-1)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
+                      <p style={{ fontSize: "var(--text-xs)", color: "var(--text-3)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</p>
                     </div>
 
-                    <div className="divider" />
-
-                    <div style={{ padding: "6px 8px" }}>
-                      <MenuBtn label="My Profile" icon="👤" onClick={() => { navigate("/profile"); setShowAccount(false) }} />
-                      <MenuBtn label="Analyze Resume" icon="⟐" onClick={() => { navigate("/"); setShowAccount(false) }} />
-                      <MenuBtn label="History" icon="◫" onClick={() => { navigate("/history"); setShowAccount(false) }} />
+                    <div style={{ padding: 6 }}>
+                      <MenuBtn label="Profile Settings" onClick={() => { navigate("/profile"); setShowAccount(false) }} />
+                      <MenuBtn label="Analyze Resume" onClick={() => { navigate("/"); setShowAccount(false) }} />
+                      <MenuBtn label="History" onClick={() => { navigate("/history"); setShowAccount(false) }} />
                     </div>
 
-                    <div className="divider" />
-
-                    <div style={{ padding: "6px 8px 10px" }}>
-                      <MenuBtn label="Logout" icon="→" onClick={() => { logout(); navigate("/landing") }} danger />
+                    <div style={{ padding: 6, borderTop: "1px solid var(--border)" }}>
+                      <MenuBtn label="Log out" onClick={() => { logout(); navigate("/landing") }} />
                     </div>
                   </motion.div>
                 )}
@@ -134,42 +115,66 @@ export default function Navbar() {
             </div>
           ) : !isAuth ? (
             <>
-              <button className="btn-ghost" style={{ padding: "7px 16px", fontSize: 13 }} onClick={() => navigate("/login")}>Sign In</button>
-              <button className="btn-primary" style={{ padding: "7px 16px", fontSize: 13 }} onClick={() => navigate("/signup")}>Get Started</button>
+              <button
+                className="btn-ek"
+                onClick={() => navigate("/login")}
+                style={{ background: "transparent", color: "var(--text-2)", fontSize: "var(--text-sm)", border: "none", cursor: "pointer", outline: "none", padding: "8px 16px" }}
+              >
+                Sign in
+              </button>
+              <button
+                className="btn-ek btn-accent"
+                onClick={() => navigate("/signup")}
+                style={{ borderRadius: 99, padding: "8px 18px", fontWeight: 600 }}
+              >
+                Get Started
+              </button>
             </>
           ) : null}
         </div>
       </div>
-    </motion.header>
+    </motion.div>
   )
 }
 
 function NavLink({ label, onClick, active }) {
   return (
-    <button
-      onClick={onClick}
-      style={{
-        padding: "6px 14px", borderRadius: "var(--r-xs)", fontSize: 13, fontWeight: 500,
-        background: active ? "var(--accent-soft)" : "transparent",
-        color: active ? "var(--accent)" : "var(--text-2)",
-        border: active ? "1px solid var(--accent-mid)" : "1px solid transparent",
-        cursor: "pointer", transition: "all 0.15s", outline: "none"
-      }}
-    >
-      {label}
-    </button>
+    <div style={{ position: "relative" }}>
+      <button
+        onClick={onClick}
+        style={{
+          position: "relative", zIndex: 2,
+          padding: "6px 16px", borderRadius: 99, fontSize: "var(--text-sm)", fontWeight: 500,
+          background: "transparent", border: "none", cursor: "pointer", outline: "none",
+          color: active ? "var(--text-1)" : "var(--text-3)", transition: "color 0.2s"
+        }}
+      >
+        {label}
+      </button>
+      {active && (
+        <motion.div
+          layoutId="navbar-indicator"
+          transition={layoutSpring}
+          style={{ position: "absolute", inset: 0, background: "var(--surface)", borderRadius: 99, boxShadow: "0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px var(--border) inset", zIndex: 1 }}
+        />
+      )}
+    </div>
   )
 }
 
-function MenuBtn({ label, onClick, danger, icon }) {
+function MenuBtn({ label, onClick }) {
   return (
     <button
       onClick={onClick}
-      style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "9px 10px", borderRadius: "var(--r-xs)", border: "none", background: "none", cursor: "pointer", fontSize: 13, fontWeight: 500, color: danger ? "var(--danger)" : "var(--text-1)", textAlign: "left", transition: "background 0.12s" }}
-      onMouseEnter={e => e.currentTarget.style.background = danger ? "var(--danger-bg)" : "var(--bg-2)"}
-      onMouseLeave={e => e.currentTarget.style.background = "none"}
+      style={{
+        width: "100%", display: "block", padding: "8px 10px", borderRadius: "var(--r-xs)",
+        border: "none", background: "transparent", cursor: "pointer", fontSize: "var(--text-sm)",
+        fontWeight: 500, color: "var(--text-2)", textAlign: "left", outline: "none",
+        transition: "background 0.15s, color 0.15s"
+      }}
+      onMouseEnter={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.color = "var(--text-1)" }}
+      onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-2)" }}
     >
-      <span style={{ fontSize: 14, opacity: 0.6 }}>{icon}</span>
       {label}
     </button>
   )
