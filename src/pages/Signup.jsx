@@ -18,10 +18,10 @@ export default function Signup() {
     setError("")
     if (!name || !email || !password) return setError("All fields are required")
     
-    // Password Validation
-    if (password.length < 8) return setError("Password must be at least 8 characters")
-    if (!/[A-Z]/.test(password)) return setError("Password must contain at least one uppercase letter")
-    if (!/[!@#$%^&*()_+\-=\[\]{}|':"\\<>?]/.test(password)) return setError("Password must contain at least one special character")
+    const validatePassword = (pwd) => {
+      return pwd.length >= 8 && /[A-Z]/.test(pwd) && /[a-z]/.test(pwd) && /[0-9]/.test(pwd) && /[^A-Za-z0-9]/.test(pwd)
+    }
+    if (!validatePassword(password)) return setError("Password must be at least 8 characters, include uppercase, lowercase, number, and special character")
 
     setLoading(true)
     try {
