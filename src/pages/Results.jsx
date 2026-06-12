@@ -264,84 +264,88 @@ export default function Results() {
             )}
           </AnimatePresence>
 
-          {/* AI suggestions */}
+          {/* AI Suggestions (History Layout Style) */}
           {aiSuggestions && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+            <Section title="AI Improvements" subtitle="Detailed feedback and rewrites">
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
-              {aiSuggestions.summary && (
-                <Section title="Optimized Summary" subtitle="Copy-paste ready">
-                  <div style={{ background: "var(--bg)", borderRadius: "var(--r-md)", padding: 24, boxShadow: "0 0 0 1px var(--border) inset" }}>
-                    <p style={{ fontSize: "var(--text-sm)", color: "var(--text-1)", lineHeight: 1.7, marginBottom: 16 }}>{aiSuggestions.summary}</p>
-                    <button onClick={() => { navigator.clipboard.writeText(aiSuggestions.summary); setCopied(true); setTimeout(() => setCopied(false), 2000) }} className="btn-ek btn-secondary">
-                      {copied ? "Copied" : "Copy Summary"}
-                    </button>
-                  </div>
-                </Section>
-              )}
-
-              {aiSuggestions.ai_snapshot && (
-                <Section title="AI Assessment Snapshot" subtitle="Key strengths and gaps">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <InfoCard label="🌟 Strengths to Keep" value={aiSuggestions.ai_snapshot.keep} accent="success" />
-                    <InfoCard label="⚠️ Missing Elements" value={aiSuggestions.ai_snapshot.missing} accent="warning" />
-                    <InfoCard label="⏳ Experience & Gaps" value={aiSuggestions.ai_snapshot.experience_gap} accent="danger" />
-                  </div>
-                </Section>
-              )}
-
-              {aiSuggestions.skills_recommendation && (
-                <Section title="Skills Analysis" subtitle="Targeted skills optimization">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{ marginBottom: 16 }}>
-                    <div style={{ background: "var(--success-bg)", border: "1px solid var(--success-bd)", borderRadius: "var(--r-sm)", padding: "16px 20px" }}>
-                      <p style={{ fontSize: "var(--text-xs)", fontWeight: 700, color: "var(--success)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>✓ Skills to Keep</p>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                        {aiSuggestions.skills_recommendation.keep_skills?.map((sk, i) => <Tag key={i} type="success">{sk}</Tag>)}
-                        {!aiSuggestions.skills_recommendation.keep_skills?.length && <p style={{ fontSize: "var(--text-xs)", color: "var(--text-3)" }}>None identified</p>}
-                      </div>
-                    </div>
-                    <div style={{ background: "var(--accent-soft)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", padding: "16px 20px" }}>
-                      <p style={{ fontSize: "var(--text-xs)", fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>💡 Skills to Add</p>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                        {aiSuggestions.skills_recommendation.add_skills?.map((sk, i) => <span key={i} style={{ display: "inline-flex", background: "var(--surface)", color: "var(--text-2)", fontSize: "var(--text-xs)", fontWeight: 500, padding: "4px 10px", borderRadius: 99, boxShadow: "0 0 0 1px var(--border) inset" }}>{sk}</span>)}
-                        {!aiSuggestions.skills_recommendation.add_skills?.length && <p style={{ fontSize: "var(--text-xs)", color: "var(--text-3)" }}>None identified</p>}
-                      </div>
+                {aiSuggestions.summary && (
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 800, color: "var(--text-1)", letterSpacing: "-0.2px", marginBottom: 12 }}>Professional Summary</p>
+                    <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", padding: "14px 16px", fontSize: 13, color: "var(--text-1)", lineHeight: 1.7 }}>
+                      {aiSuggestions.summary}
+                      <button onClick={() => { navigator.clipboard.writeText(aiSuggestions.summary); setCopied(true); setTimeout(() => setCopied(false), 2000) }} style={{ display: "block", marginTop: 12, fontSize: 11, color: "var(--accent)", background: "transparent", border: "none", cursor: "pointer", fontWeight: 600 }}>
+                        {copied ? "Copied!" : "Copy Summary"}
+                      </button>
                     </div>
                   </div>
-                  {aiSuggestions.skills_recommendation.integration_advice && (
-                    <div style={{ background: "var(--bg)", borderRadius: "var(--r-md)", padding: 20, boxShadow: "0 0 0 1px var(--border) inset", fontSize: "var(--text-sm)", color: "var(--text-2)", lineHeight: 1.6 }}>
-                      <span style={{ fontWeight: 700, color: "var(--text-1)" }}>Contextual Integration Advice:</span>
-                      <p style={{ marginTop: 6 }}>{aiSuggestions.skills_recommendation.integration_advice}</p>
-                    </div>
-                  )}
-                </Section>
-              )}
+                )}
 
-              {aiSuggestions.sections?.length > 0 && (
-                <Section title="Bullet Rewrites" subtitle="Enhance your ATS match rate">
-                  <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-                    {aiSuggestions.sections.map((section, si) => (
-                      <div key={si}>
-                        <p style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text-1)", marginBottom: 16 }}>{section.title}</p>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                          {section.bullets?.map((b, bi) => (
-                            <div key={bi} className="grid grid-cols-1 md:grid-cols-2 gap-4" style={{ paddingBottom: 16, borderBottom: "1px solid var(--border)" }}>
-                              <div>
-                                <p style={{ fontSize: "var(--text-xs)", fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Original</p>
-                                <p style={{ fontSize: "var(--text-sm)", color: "var(--text-3)", textDecoration: "line-through", lineHeight: 1.6 }}>{b.original}</p>
-                              </div>
-                              <div style={{ background: "var(--bg)", padding: 16, borderRadius: "var(--r-sm)" }}>
-                                <p style={{ fontSize: "var(--text-xs)", fontWeight: 700, color: "var(--text-1)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Rewrite</p>
-                                <p style={{ fontSize: "var(--text-sm)", color: "var(--text-1)", lineHeight: 1.6, fontWeight: 500 }}>{b.rewritten}</p>
-                              </div>
-                            </div>
-                          ))}
+                {aiSuggestions.ai_snapshot && (
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 800, color: "var(--text-1)", letterSpacing: "-0.2px", marginBottom: 12 }}>AI Assessment Snapshot</p>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+                      <InfoCard label="🌟 Keep" value={aiSuggestions.ai_snapshot.keep} accent="success" />
+                      <InfoCard label="⚠️ Missing" value={aiSuggestions.ai_snapshot.missing} accent="warning" />
+                      <InfoCard label="⏳ Gaps" value={aiSuggestions.ai_snapshot.experience_gap} accent="danger" />
+                    </div>
+                  </div>
+                )}
+
+                {aiSuggestions.skills_recommendation && (
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 800, color: "var(--text-1)", letterSpacing: "-0.2px", marginBottom: 12 }}>Skills</p>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                      <div style={{ background: "var(--success-bg)", border: "1px solid var(--success-bd)", borderRadius: "var(--r-sm)", padding: "12px 14px" }}>
+                        <p style={{ fontSize: 11, fontWeight: 700, color: "#166534", marginBottom: 8 }}>✓ Keep</p>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                          {aiSuggestions.skills_recommendation.keep_skills?.map((sk, i) => <span key={i} className="tag tag-green" style={{ fontSize: 10 }}>{sk}</span>)}
                         </div>
                       </div>
-                    ))}
+                      <div style={{ background: "var(--accent-soft)", border: "1px solid var(--accent-mid)", borderRadius: "var(--r-sm)", padding: "12px 14px" }}>
+                        <p style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", marginBottom: 8 }}>💡 Add</p>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                          {aiSuggestions.skills_recommendation.add_skills?.map((sk, i) => <span key={i} className="tag tag-blue" style={{ fontSize: 10 }}>{sk}</span>)}
+                        </div>
+                      </div>
+                    </div>
+                    {aiSuggestions.skills_recommendation.integration_advice && (
+                      <div style={{ marginTop: 10, background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", padding: "12px 14px", fontSize: 12, color: "var(--text-2)", lineHeight: 1.6 }}>
+                        <span style={{ fontWeight: 700, color: "var(--text-1)" }}>💡 Integration advice: </span>
+                        {aiSuggestions.skills_recommendation.integration_advice}
+                      </div>
+                    )}
                   </div>
-                </Section>
-              )}
-            </div>
+                )}
+
+                {aiSuggestions.sections?.length > 0 && (
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 800, color: "var(--text-1)", letterSpacing: "-0.2px", marginBottom: 12 }}>Bullet Rewrites</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                      {aiSuggestions.sections.map((sect, i) => (
+                        <div key={i}>
+                          <p style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.06em", background: "var(--accent-soft)", border: "1px solid var(--accent-mid)", borderRadius: "var(--r-xs)", padding: "3px 10px", display: "inline-block", marginBottom: 10 }}>{sect.title}</p>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                            {sect.bullets?.map((b, bi) => (
+                              <div key={bi} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", padding: "12px 14px" }}>
+                                <div>
+                                  <p style={{ fontSize: 10, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>Original</p>
+                                  <p style={{ fontSize: 12, color: "var(--text-3)", textDecoration: "line-through", lineHeight: 1.5 }}>{b.original}</p>
+                                </div>
+                                <div style={{ borderLeft: "1px solid var(--border)", paddingLeft: 12 }}>
+                                  <p style={{ fontSize: 10, fontWeight: 700, color: "#16A34A", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>Rewrite</p>
+                                  <p style={{ fontSize: 12, color: "var(--text-1)", fontWeight: 500, lineHeight: 1.5 }}>{b.rewritten}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Section>
           )}
 
           <div style={{ display: "flex", justifyContent: "center", marginTop: 20 }}>
