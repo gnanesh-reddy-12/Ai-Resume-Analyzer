@@ -371,7 +371,7 @@ async def analyze_resume(
     job_role: str = Form(default=""),
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
-    user = verify_token(credentials)
+    user = await verify_token(credentials)
 
     if not resume.filename.endswith(".pdf"):
         return {"error": "Only PDF files are supported"}
@@ -451,7 +451,7 @@ async def improve_resume(
     analysis_id: str = Form(default=""),
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
-    verify_token(credentials)
+    await verify_token(credentials)
 
     if not resume.filename.endswith(".pdf"):
         return {"error": "Only PDF files are supported"}
