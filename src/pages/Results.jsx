@@ -29,6 +29,17 @@ function ScoreRing({ score, size = 120, stroke = 8 }) {
   )
 }
 
+function InfoCard({ label, value, accent }) {
+  const bg = accent === "success" ? "var(--success-bg)" : accent === "warning" ? "var(--warning-bg)" : accent === "danger" ? "var(--danger-bg)" : "var(--bg)"
+  const bd = accent === "success" ? "var(--success-bd)" : accent === "warning" ? "var(--warning-bd)" : accent === "danger" ? "var(--danger-bd)" : "var(--border)"
+  return (
+    <div style={{ background: bg, border: `1px solid ${bd}`, borderRadius: "var(--r-md)", padding: 20, boxShadow: accent ? "none" : "0 0 0 1px var(--border) inset" }}>
+      <p style={{ fontSize: "var(--text-xs)", fontWeight: 700, color: accent === "success" ? "var(--success)" : accent === "warning" ? "var(--warning)" : accent === "danger" ? "var(--danger)" : "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>{label}</p>
+      <p style={{ fontSize: "var(--text-sm)", color: "var(--text-2)", lineHeight: 1.6, whiteSpace: "pre-line" }}>{value}</p>
+    </div>
+  )
+}
+
 function HighlightedJobDescription({ text, matched, missing, optional }) {
   if (!text) return <p style={{ color: "var(--text-3)", fontSize: "var(--text-sm)" }}>No job description provided.</p>
   const allKeywords = [
@@ -201,6 +212,16 @@ export default function Results() {
             </Section>
           </div>
 
+          {/* Warnings */}
+          {data.warnings?.length > 0 && (
+            <div style={{ background: "var(--warning-bg)", border: "1px solid var(--warning-bd)", borderRadius: "var(--r-md)", padding: "20px 24px" }}>
+              <p style={{ fontSize: "var(--text-xs)", fontWeight: 700, color: "var(--warning)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>⚠️ Resume Formatting Warnings ({data.warnings.length})</p>
+              <ul style={{ paddingLeft: 16, display: "flex", flexDirection: "column", gap: 6 }}>
+                {data.warnings.map((w, i) => <li key={i} style={{ fontSize: "var(--text-sm)", color: "var(--text-2)", lineHeight: 1.5 }}>{w}</li>)}
+              </ul>
+            </div>
+          )}
+
           {/* JD Analysis */}
           <Section title="Job Description Analysis">
             {jobAnalysis && (
@@ -255,6 +276,43 @@ export default function Results() {
                       {copied ? "Copied" : "Copy Summary"}
                     </button>
                   </div>
+                </Section>
+              )}
+
+              {aiSuggestions.ai_snapshot && (
+                <Section title="AI Assessment Snapshot" subtitle="Key strengths and gaps">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <InfoCard label="🌟 Strengths to Keep" value={aiSuggestions.ai_snapshot.keep} accent="success" />
+                    <InfoCard label="⚠️ Missing Elements" value={aiSuggestions.ai_snapshot.missing} accent="warning" />
+                    <InfoCard label="⏳ Experience & Gaps" value={aiSuggestions.ai_snapshot.experience_gap} accent="danger" />
+                  </div>
+                </Section>
+              )}
+
+              {aiSuggestions.skills_recommendation && (
+                <Section title="Skills Analysis" subtitle="Targeted skills optimization">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{ marginBottom: 16 }}>
+                    <div style={{ background: "var(--success-bg)", border: "1px solid var(--success-bd)", borderRadius: "var(--r-sm)", padding: "16px 20px" }}>
+                      <p style={{ fontSize: "var(--text-xs)", fontWeight: 700, color: "var(--success)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>✓ Skills to Keep</p>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                        {aiSuggestions.skills_recommendation.keep_skills?.map((sk, i) => <Tag key={i} type="success">{sk}</Tag>)}
+                        {!aiSuggestions.skills_recommendation.keep_skills?.length && <p style={{ fontSize: "var(--text-xs)", color: "var(--text-3)" }}>None identified</p>}
+                      </div>
+                    </div>
+                    <div style={{ background: "var(--accent-soft)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", padding: "16px 20px" }}>
+                      <p style={{ fontSize: "var(--text-xs)", fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>💡 Skills to Add</p>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                        {aiSuggestions.skills_recommendation.add_skills?.map((sk, i) => <span key={i} style={{ display: "inline-flex", background: "var(--surface)", color: "var(--text-2)", fontSize: "var(--text-xs)", fontWeight: 500, padding: "4px 10px", borderRadius: 99, boxShadow: "0 0 0 1px var(--border) inset" }}>{sk}</span>)}
+                        {!aiSuggestions.skills_recommendation.add_skills?.length && <p style={{ fontSize: "var(--text-xs)", color: "var(--text-3)" }}>None identified</p>}
+                      </div>
+                    </div>
+                  </div>
+                  {aiSuggestions.skills_recommendation.integration_advice && (
+                    <div style={{ background: "var(--bg)", borderRadius: "var(--r-md)", padding: 20, boxShadow: "0 0 0 1px var(--border) inset", fontSize: "var(--text-sm)", color: "var(--text-2)", lineHeight: 1.6 }}>
+                      <span style={{ fontWeight: 700, color: "var(--text-1)" }}>Contextual Integration Advice:</span>
+                      <p style={{ marginTop: 6 }}>{aiSuggestions.skills_recommendation.integration_advice}</p>
+                    </div>
+                  )}
                 </Section>
               )}
 
