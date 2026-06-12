@@ -11,27 +11,29 @@ function Loading() {
   const { resumeFile, jobDescription } = useContext(ResumeContext)
 
   useEffect(() => {
-    const timer = setTimeout(() => navigate("/results"), 3000)
+    const timer = setTimeout(() => navigate("/results"), 3200)
     return () => clearTimeout(timer)
   }, [navigate, resumeFile, jobDescription])
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center px-6">
-      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }} className="text-center">
-
-        <div className="relative w-20 h-20 mx-auto mb-8">
-          <div className="w-20 h-20 border-4 border-slate-200 rounded-full"></div>
-          <div className="w-20 h-20 border-4 border-blue-500 border-t-transparent rounded-full animate-spin absolute inset-0"></div>
+    <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} style={{ textAlign: "center" }}>
+        
+        <div style={{ position: "relative", width: 72, height: 72, margin: "0 auto 32px" }}>
+          <div style={{ position: "absolute", inset: 0, width: 72, height: 72, border: "4px solid var(--border)", borderRadius: "50%" }}></div>
+          <div style={{ position: "absolute", inset: 0, width: 72, height: 72, border: "4px solid transparent", borderTopColor: "var(--accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }}></div>
         </div>
 
-        <h1 className="text-3xl font-bold text-slate-900">Analyzing Resume</h1>
-        <p className="text-slate-500 mt-3">Our AI is reviewing your resume against the job description</p>
+        <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.5px", marginBottom: 8, color: "var(--text-1)" }}>Analyzing Resume</h1>
+        <p style={{ color: "var(--text-2)", marginBottom: 32 }}>Our AI is reviewing your resume against the job description</p>
 
-        <div className="mt-10 space-y-3 max-w-xs mx-auto">
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 260, margin: "0 auto" }}>
           {steps.map((s, i) => (
-            <motion.div key={i} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.6, duration: 0.4 }} className="flex items-center gap-3 text-sm text-slate-600">
-              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.6 + 0.3 }} className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+            <motion.div key={i} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.6 }}
+              style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, color: "var(--text-2)" }}>
+              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.6 + 0.3 }}
+                style={{ width: 20, height: 20, background: "var(--accent)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <svg width="10" height="10" viewBox="0 0 20 20" fill="white"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
               </motion.div>
               {s}
             </motion.div>
