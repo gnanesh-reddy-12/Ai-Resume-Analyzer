@@ -192,36 +192,19 @@ h1, h2, h3, h4, h5, h6 {
   cursor: not-allowed;
 }
 @media (max-width: 768px) {
-  .profile-stats {
-    grid-template-columns: 1fr 1fr !important;
-  }
-  .profile-main-grid {
-    grid-template-columns: 1fr !important;
-  }
-  .app-tracker-form {
-    grid-template-columns: 1fr 1fr !important;
-  }
-  .app-tracker-form button {
-    grid-column: span 2;
-  }
-  .app-table-row {
-    grid-template-columns: 1fr 1fr auto auto !important;
-  }
-  .app-table-row .app-date {
-    display: none;
-  }
+  .profile-stats { grid-template-columns: 1fr 1fr !important; }
+  .profile-main-grid { grid-template-columns: 1fr !important; }
+  .app-tracker-form { grid-template-columns: 1fr 1fr !important; }
+  .app-tracker-form button { grid-column: span 2; }
+  .app-table-row { grid-template-columns: 1fr auto auto !important; }
+  .app-date { display: none !important; }
+  .app-table-row p:nth-child(2) { display: none !important; }
 }
 
 @media (max-width: 480px) {
-  .profile-stats {
-    grid-template-columns: 1fr 1fr !important;
-  }
-  .app-tracker-form {
-    grid-template-columns: 1fr !important;
-  }
-  .app-tracker-form button {
-    grid-column: span 1;
-  }
+  .profile-stats { grid-template-columns: 1fr 1fr !important; }
+  .app-tracker-form { grid-template-columns: 1fr !important; }
+  .app-tracker-form button { grid-column: span 1 !important; }
 }
 @media (max-width: 768px) {
   .hidden-mobile { display: none !important; }
