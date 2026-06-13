@@ -98,7 +98,7 @@ export default function Landing() {
       {/* Nav */}
       <nav style={{
         position: "sticky", top: 0, zIndex: 50,
-        background: "rgba(250,248,245,0.92)", backdropFilter: "blur(20px)",
+        background: "rgba(248,249,251,0.92)", backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
         borderBottom: "1px solid var(--border)",
         padding: "0 clamp(20px, 5vw, 56px)", height: 60,
@@ -278,16 +278,16 @@ export default function Landing() {
           initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }} transition={{ duration: 0.5, ease }}
           style={{
-            background: "var(--accent-soft)",
-            border: "1px solid var(--accent-mid)",
+            background: "var(--text-1)",
+            border: "none",
             borderRadius: "var(--r-xl)",
             padding: "clamp(36px, 6vw, 56px) clamp(28px, 5vw, 48px)"
           }}
         >
-          <h2 style={{ fontSize: "clamp(24px, 4vw, 32px)", fontWeight: 800, letterSpacing: "-0.8px", marginBottom: 12, color: "var(--text-1)" }}>
+          <h2 style={{ fontSize: "clamp(24px, 4vw, 32px)", fontWeight: 800, letterSpacing: "-0.8px", marginBottom: 12, color: "#FFFFFF" }}>
             Ready to beat the ATS?
           </h2>
-          <p style={{ color: "var(--text-2)", marginBottom: 28, fontSize: 15, lineHeight: 1.65 }}>
+          <p style={{ color: "var(--text-3)", marginBottom: 28, fontSize: 15, lineHeight: 1.65 }}>
             Join students and professionals who use ResumeAI to land more interviews.
           </p>
           <button className="btn-primary" style={{ padding: "13px 32px", fontSize: 14 }} onClick={() => navigate("/signup")}>

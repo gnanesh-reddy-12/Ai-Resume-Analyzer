@@ -37,7 +37,7 @@ export default function Navbar() {
         style={{
           position: "sticky", top: 16, zIndex: 100,
           margin: "0 auto", maxWidth: 960, width: "calc(100% - 32px)",
-          background: "rgba(255, 255, 255, 0.9)",
+          background: "rgba(248,249,251,0.92)",
           backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
           borderRadius: 99,
           border: "1px solid var(--border)",
@@ -182,7 +182,7 @@ function NavLink({ label, onClick, active }) {
       </button>
       {active && (
         <motion.div layoutId="navbar-indicator" transition={layoutSpring}
-          style={{ position: "absolute", inset: 0, background: "var(--surface)", borderRadius: 99, boxShadow: "0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px var(--border) inset", zIndex: 1 }} />
+          style={{ position: "absolute", inset: 0, background: "var(--surface)", borderRadius: 99, border: "1px solid #E9EAEC", zIndex: 1 }} />
       )}
     </div>
   )

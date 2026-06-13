@@ -1,34 +1,36 @@
 :root {
-  /* 60-30-10 Color Palette (Warm Sand Linen, White, Espresso, Chestnut) */
-  --bg: #FAF7F2;            /* Base Background (Warm Sand Linen) - 60% */
-  --surface: #FFFFFF;       /* Surfaces/Cards - White */
-  --surface-hover: #F3EFE6; /* Warm tan-cream hover state */
-  
-  --text-1: #1E1816;        /* Primary Text (Deep Espresso Charcoal) - 30% */
-  --text-2: #4A3E39;        /* Secondary Text (Warm Roast Brown) */
-  --text-3: #8C7D73;        /* Tertiary Text (Muted Sand Brown) */
-  
-  --border: rgba(92, 62, 47, 0.12); /* Translucent warm brown border */
-  --border-focus: rgba(92, 62, 47, 0.3);
-  
-  --accent: #5C3E2F;        /* Chestnut Chocolate Brown - 10% Accent */
-  --accent-soft: #F5EFEB;   /* Very soft linen peach background */
-  --accent-hover: #4C3225;  /* Darker Chestnut */
-  
-  /* Status Colors */
-  --success: #2C4A3E;       /* Muted Forest Green */
-  --success-bg: #EAF2EE;
-  --success-bd: #C2D6CE;
-  
-  --danger: #7A2E2B;        /* Muted Crimson */
-  --danger-bg: #F9EAEA;
-  --danger-bd: #E8C3C2;
-  
-  --warning: #7A552B;       /* Muted Amber */
-  --warning-bg: #F9F2EA;
-  --warning-bd: #E8D3C2;
+  --bg: #F8F9FB;
+  --surface: #FFFFFF;
+  --surface-hover: #F3F4F6;
 
-  /* Typography Scale */
+  --text-1: #0F1117;
+  --text-2: #374151;
+  --text-3: #9CA3AF;
+
+  --border: rgba(0, 0, 0, 0.08);
+  --border-2: #D1D5DB;
+  --border-focus: #6366F1;
+
+  --accent: #6366F1;
+  --accent-soft: #EEF2FF;
+  --accent-mid: #C7D2FE;
+  --accent-hover: #4F46E5;
+
+  --success: #166534;
+  --success-bg: #F0FDF4;
+  --success-bd: #BBF7D0;
+
+  --danger: #991B1B;
+  --danger-bg: #FEF2F2;
+  --danger-bd: #FECACA;
+
+  --warning: #92400E;
+  --warning-bg: #FFFBEB;
+  --warning-bd: #FDE68A;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+
   --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.8125rem);
   --text-sm: clamp(0.8125rem, 0.76rem + 0.26vw, 0.875rem);
   --text-base: clamp(0.9375rem, 0.88rem + 0.29vw, 1rem);
@@ -37,12 +39,11 @@
   --text-2xl: clamp(1.5rem, 1.3rem + 1vw, 2rem);
   --text-3xl: clamp(2rem, 1.7rem + 1.5vw, 2.75rem);
 
-  /* Radii */
   --r-xs: 6px;
   --r-sm: 8px;
   --r-md: 12px;
   --r-lg: 16px;
-  --r-xl: 24px;
+  --r-xl: 20px;
 }
 
 * {
@@ -69,15 +70,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Emil Kowalski style card */
-.ek-card {
-  background: var(--surface);
-  border-radius: var(--r-xl);
-  box-shadow: 
-    0 0 0 1px var(--border) inset, 
-    0 4px 24px -6px rgba(0,0,0,0.02),
-    0 1px 3px rgba(0,0,0,0.02);
-}
-
 .ek-card-sm {
   background: var(--surface);
   border-radius: var(--r-lg);
@@ -86,7 +78,60 @@ h1, h2, h3, h4, h5, h6 {
     0 2px 8px rgba(0,0,0,0.02);
 }
 
-/* Base Button */
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text-1);
+  box-shadow: 0 0 0 1px var(--border) inset, 0 1px 2px rgba(0,0,0,0.03);
+}
+.btn-secondary:hover { background: var(--surface-hover); }
+
+.btn-primary {
+  background: #0F1117;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 99px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s;
+}
+.btn-primary:hover { opacity: 0.85; }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-accent {
+  background: var(--accent);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 99px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.btn-accent:hover { background: var(--accent-hover); }
+.btn-accent:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-2);
+  border: 1px solid var(--border-2);
+  border-radius: 99px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-ghost:hover { background: var(--surface-hover); color: var(--text-1); }
+
 .btn-ek {
   display: inline-flex;
   align-items: center;
@@ -99,31 +144,44 @@ h1, h2, h3, h4, h5, h6 {
   cursor: pointer;
   outline: none;
   border: none;
-  transition: opacity 0.2s, background 0.2s;
-  text-decoration: none;
+  transition: opacity 0.15s, background 0.15s;
 }
 
-.btn-primary {
-  background: var(--text-1);
-  color: #FFFFFF;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.05) inset;
-}
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.btn-secondary {
+.card {
   background: var(--surface);
-  color: var(--text-1);
-  box-shadow: 0 0 0 1px var(--border) inset, 0 1px 2px rgba(0,0,0,0.03);
+  border: 1px solid #E9EAEC;
+  border-radius: 20px;
 }
-.btn-secondary:hover { background: var(--surface-hover); }
 
-.btn-ghost {
-  background: transparent;
-  color: var(--text-2);
+.ek-card {
+  background: var(--surface);
+  border-radius: var(--r-xl);
+  border: 1px solid #E9EAEC;
+  box-shadow: var(--shadow-sm);
 }
-.btn-ghost:hover {
-  background: var(--surface-hover);
-  color: var(--text-1);
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 99px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.badge-accent {
+  background: var(--accent-soft);
+  color: var(--accent-hover);
+  font-size: 11px;
+}
+
+.section-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
 }
 
 /* Input Fields */
@@ -175,22 +233,6 @@ h1, h2, h3, h4, h5, h6 {
   animation: spin 0.8s linear infinite;
 }
 
-.btn-accent {
-  background: var(--accent);
-  color: #FFFFFF;
-  box-shadow: 0 4px 14px 0 rgba(92, 62, 47, 0.25), 0 1px 3px rgba(0,0,0,0.1), 0 0 0 1px rgba(92, 62, 47, 0.1) inset;
-  transition: background 0.2s, box-shadow 0.2s;
-}
-
-.btn-accent:hover {
-  background: var(--accent-hover);
-  box-shadow: 0 6px 20px 0 rgba(92, 62, 47, 0.35), 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.btn-accent:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 @media (max-width: 768px) {
   .profile-stats { grid-template-columns: 1fr 1fr !important; }
   .profile-main-grid { grid-template-columns: 1fr !important; }
