@@ -580,7 +580,7 @@ export default function Profile() {
         {/* Application Tracker */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring, delay: 0.14 }}
           style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-xl)", marginBottom: 16 }}>
-          <div style={{ padding: "18px 22px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+          <div style={{ padding: "16px 18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.2" strokeLinecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
               <h2 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-1)" }}>Application Tracker</h2>
@@ -600,7 +600,7 @@ export default function Profile() {
               </div>
             )}
           </div>
-          <div style={{ padding: "18px 22px" }}>
+          <div style={{ padding: "18px 12px" }}>
             {/* Add form */}
             <div className="app-tracker-form" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto auto", gap: 10, marginBottom: 20, alignItems: "end" }}>
               <div>
@@ -635,7 +635,7 @@ export default function Profile() {
                 <p style={{ fontSize: 12.5, color: "var(--text-3)" }}>Add your first application above to start tracking</p>
               </div>
             ) : (
-              <div style={{ paddingRight: 8 }}>
+              <div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {applications.map((app, idx) => (
                   <motion.div
