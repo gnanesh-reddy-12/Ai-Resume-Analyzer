@@ -465,12 +465,9 @@ export default function Landing() {
           Resume<span style={{ color: "var(--accent)" }}>AI</span>
         </span>
         <div style={{ display: "flex", gap: 24 }}>
-          {["Privacy", "Terms", "Support"].map(l => (
-            <span key={l} style={{ cursor: "pointer", transition: "color 0.15s" }}
-              onMouseEnter={e => e.currentTarget.style.color = "var(--text-1)"}
-              onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}
-            >{l}</span>
-          ))}
+          <Link to="/privacy" style={{ cursor: "pointer", textDecoration: "none", color: "var(--text-3)", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-1)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}>Privacy</Link>
+          <Link to="/terms" style={{ cursor: "pointer", textDecoration: "none", color: "var(--text-3)", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-1)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}>Terms</Link>
+          <a href="mailto:reddygnanesh1205@gmail.com" style={{ cursor: "pointer", textDecoration: "none", color: "var(--text-3)", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-1)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}>Support</a>
         </div>
         <span>Built for students and professionals</span>
       </footer>
