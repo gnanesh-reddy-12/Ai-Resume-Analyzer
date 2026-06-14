@@ -10,13 +10,21 @@ export default function Signup() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
+  const [agreeTerms, setAgreeTerms] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
   const handleSubmit = async () => {
     setError("")
-    if (!name || !email || !password) return setError("All fields are required")
+    if (!name.trim() || !email.trim() || !password) {
+      setError("Please fill in all fields.")
+      return
+    }
+    if (!agreeTerms) {
+      setError("You must agree to the Terms of Service and Privacy Policy.")
+      return
+    }
     
     const validatePassword = (pwd) => {
       return pwd.length >= 8 && /[A-Z]/.test(pwd) && /[!@#$%^&*()_+\-=\[\]{}|':"\\<>?]/.test(pwd)
@@ -144,6 +152,19 @@ export default function Signup() {
               </AnimatePresence>
 
             </div>
+          </div>
+
+          <div style={{ marginTop: 20, display: "flex", alignItems: "flex-start", gap: 10 }}>
+            <input 
+              type="checkbox" 
+              id="terms" 
+              checked={agreeTerms} 
+              onChange={e => setAgreeTerms(e.target.checked)} 
+              style={{ marginTop: 3, cursor: "pointer", width: 16, height: 16, accentColor: "var(--accent)" }}
+            />
+            <label htmlFor="terms" style={{ fontSize: 13, color: "var(--text-2)", lineHeight: 1.5, cursor: "pointer" }}>
+              I agree to the <Link to="/terms" target="_blank" style={{ color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}>Terms of Service</Link> and <Link to="/privacy" target="_blank" style={{ color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}>Privacy Policy</Link>
+            </label>
           </div>
 
           <motion.button

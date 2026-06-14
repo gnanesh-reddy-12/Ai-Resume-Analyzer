@@ -467,7 +467,7 @@ export default function Landing() {
         <div style={{ display: "flex", gap: 24 }}>
           <Link to="/privacy" style={{ cursor: "pointer", textDecoration: "none", color: "var(--text-3)", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-1)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}>Privacy</Link>
           <Link to="/terms" style={{ cursor: "pointer", textDecoration: "none", color: "var(--text-3)", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-1)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}>Terms</Link>
-          <a href="mailto:reddygnanesh1205@gmail.com" style={{ cursor: "pointer", textDecoration: "none", color: "var(--text-3)", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-1)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}>Support</a>
+          <Link to="/support" style={{ cursor: "pointer", textDecoration: "none", color: "var(--text-3)", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-1)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}>Support</Link>
         </div>
         <span>Built for students and professionals</span>
       </footer>

@@ -1,14 +1,11 @@
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
+import Navbar from "../components/Navbar"
 
 export default function Privacy() {
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", flexDirection: "column" }}>
-      <nav style={{ padding: "0 clamp(20px, 5vw, 40px)", height: 60, display: "flex", alignItems: "center", borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>
-        <Link to="/landing" style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.5px", textDecoration: "none", color: "var(--text-1)" }}>
-          Resume<span style={{ color: "var(--accent)" }}>AI</span>
-        </Link>
-      </nav>
+      <Navbar />
 
       <div style={{ flex: 1, padding: "40px 20px" }}>
         <motion.div
