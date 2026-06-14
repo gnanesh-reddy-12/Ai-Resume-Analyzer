@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import { supabase } from "../supabase"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 
 const ease = [0.16, 1, 0.3, 1]
 
@@ -119,6 +119,36 @@ export default function ResetPassword() {
                       )}
                     </button>
                   </div>
+                  
+                  {/* Dynamic Password Checklist */}
+                  <AnimatePresence>
+                    {password.length > 0 && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0 }} 
+                        animate={{ opacity: 1, height: "auto" }} 
+                        exit={{ opacity: 0, height: 0 }}
+                        style={{ overflow: "hidden" }}
+                      >
+                        <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 6, padding: "12px 14px", background: "var(--bg)", border: "1px solid var(--border-2)", borderRadius: "var(--r-md)" }}>
+                          {[
+                            { label: "At least 8 characters", valid: password.length >= 8 },
+                            { label: "One uppercase letter", valid: /[A-Z]/.test(password) },
+                            { label: "One special character", valid: /[!@#$%^&*()_+\-=\[\]{}|':"\\<>?]/.test(password) }
+                          ].map((req, i) => (
+                            <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: req.valid ? 600 : 500, color: req.valid ? "var(--success)" : "var(--text-3)", transition: "all 0.2s ease" }}>
+                              {req.valid ? (
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                              ) : (
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle></svg>
+                              )}
+                              <span>{req.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
                 </div>
               </div>
 
