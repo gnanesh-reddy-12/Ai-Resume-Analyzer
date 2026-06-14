@@ -465,7 +465,8 @@ export default function Landing() {
             </div>
             Resume<span style={{ color: "var(--accent)" }}>AI</span>
           </span>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "16px 32px", fontWeight: 500 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "16px 32px", fontWeight: 500 }}>
+            <Link to="/about" style={{ cursor: "pointer", textDecoration: "none", color: "var(--text-3)", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-1)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}>About Us</Link>
             <Link to="/privacy" style={{ cursor: "pointer", textDecoration: "none", color: "var(--text-3)", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-1)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}>Privacy Policy</Link>
             <Link to="/terms" style={{ cursor: "pointer", textDecoration: "none", color: "var(--text-3)", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-1)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}>Terms of Service</Link>
             <Link to="/support" style={{ cursor: "pointer", textDecoration: "none", color: "var(--text-3)", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-1)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}>Contact Support</Link>
