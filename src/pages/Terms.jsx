@@ -17,30 +17,45 @@ export default function Terms() {
           <h1 style={{ fontSize: "var(--text-2xl)", fontWeight: 800, color: "var(--text-1)", marginBottom: 8 }}>Terms of Service</h1>
           <p style={{ color: "var(--text-3)", marginBottom: 32 }}>Last updated: June 2026</p>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 24, color: "var(--text-2)", lineHeight: 1.6 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 32, color: "var(--text-2)", lineHeight: 1.7, fontSize: 15 }}>
             <section>
-              <h2 style={{ fontSize: "var(--text-lg)", fontWeight: 700, color: "var(--text-1)", marginBottom: 12 }}>1. Acceptance of Terms</h2>
-              <p>By accessing or using ResumeAI, you agree to be bound by these Terms of Service. If you disagree with any part of the terms, you do not have permission to access the Service.</p>
+              <h2 style={{ fontSize: "var(--text-lg)", fontWeight: 700, color: "var(--text-1)", marginBottom: 12 }}>1. Agreement to Terms</h2>
+              <p>These Terms of Service constitute a legally binding agreement made between you, whether personally or on behalf of an entity ("you") and ResumeAI ("Company," "we," "us," or "our"), concerning your access to and use of the ResumeAI website as well as any other media form, media channel, mobile website or mobile application related, linked, or otherwise connected thereto (collectively, the "Site").</p>
+              <p style={{ marginTop: 12 }}>You agree that by accessing the Site, you have read, understood, and agreed to be bound by all of these Terms of Service. IF YOU DO NOT AGREE WITH ALL OF THESE TERMS OF SERVICE, THEN YOU ARE EXPRESSLY PROHIBITED FROM USING THE SITE AND YOU MUST DISCONTINUE USE IMMEDIATELY.</p>
             </section>
 
             <section>
-              <h2 style={{ fontSize: "var(--text-lg)", fontWeight: 700, color: "var(--text-1)", marginBottom: 12 }}>2. Description of Service</h2>
-              <p>ResumeAI provides an AI-powered resume analysis tool. We do not guarantee employment, job interviews, or specific outcomes as a result of using our feedback.</p>
+              <h2 style={{ fontSize: "var(--text-lg)", fontWeight: 700, color: "var(--text-1)", marginBottom: 12 }}>2. Intellectual Property Rights</h2>
+              <p>Unless otherwise indicated, the Site and its original content, features, and functionality (including but not limited to the ResumeAI algorithms, design, text, graphics, and logos) are our proprietary property and are protected by copyright, trademark, and other intellectual property laws. You are granted a limited, non-exclusive, non-transferable license to access and use the Site strictly in accordance with these Terms.</p>
             </section>
 
             <section>
-              <h2 style={{ fontSize: "var(--text-lg)", fontWeight: 700, color: "var(--text-1)", marginBottom: 12 }}>3. User Accounts</h2>
-              <p>You are responsible for maintaining the confidentiality of your account and password. You agree to accept responsibility for all activities that occur under your account.</p>
+              <h2 style={{ fontSize: "var(--text-lg)", fontWeight: 700, color: "var(--text-1)", marginBottom: 12 }}>3. User Representations & Responsibilities</h2>
+              <p>By using the Site, you represent and warrant that:</p>
+              <ul style={{ paddingLeft: 24, marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+                <li>All registration information you submit will be true, accurate, current, and complete.</li>
+                <li>You will maintain the accuracy of such information and promptly update such registration information as necessary.</li>
+                <li>You have the legal capacity and you agree to comply with these Terms of Service.</li>
+                <li>You will not access the Site through automated or non-human means, whether through a bot, script, or otherwise.</li>
+                <li>You will not use the Site for any illegal or unauthorized purpose.</li>
+                <li>You are the sole owner of the documents and resumes you upload, or you have explicitly secured the rights to use them.</li>
+              </ul>
             </section>
 
             <section>
-              <h2 style={{ fontSize: "var(--text-lg)", fontWeight: 700, color: "var(--text-1)", marginBottom: 12 }}>4. Fair Use</h2>
-              <p>You agree to use the service fairly and responsibly. Automated scraping, reverse engineering, or attempting to overload the API services is strictly prohibited and will result in immediate account termination.</p>
+              <h2 style={{ fontSize: "var(--text-lg)", fontWeight: 700, color: "var(--text-1)", marginBottom: 12 }}>4. Disclaimer Regarding AI Analysis & Employment</h2>
+              <p>ResumeAI provides automated, artificial intelligence-driven feedback on resumes and job descriptions. While we strive to provide high-quality, actionable advice, <strong>we make no guarantees regarding employment, interviews, or hiring outcomes.</strong> The AI suggestions should be reviewed and verified by you before submitting your resume to any employer. The use of our service is strictly at your own risk.</p>
             </section>
 
             <section>
               <h2 style={{ fontSize: "var(--text-lg)", fontWeight: 700, color: "var(--text-1)", marginBottom: 12 }}>5. Limitation of Liability</h2>
-              <p>In no event shall ResumeAI, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the Service.</p>
+              <p>In no event will we or our directors, employees, or agents be liable to you or any third party for any direct, indirect, consequential, exemplary, incidental, special, or punitive damages, including lost profit, lost revenue, loss of data, or other damages arising from your use of the site, even if we have been advised of the possibility of such damages.</p>
+            </section>
+
+            <section>
+              <h2 style={{ fontSize: "var(--text-lg)", fontWeight: 700, color: "var(--text-1)", marginBottom: 12 }}>6. Contact Us</h2>
+              <p>In order to resolve a complaint regarding the Site or to receive further information regarding use of the Site, please contact us at:</p>
+              <p style={{ marginTop: 8, fontWeight: 600, color: "var(--text-1)" }}>reddygnanesh1205@gmail.com</p>
             </section>
           </div>
         </motion.div>

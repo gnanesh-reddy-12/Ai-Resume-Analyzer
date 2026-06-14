@@ -454,22 +454,27 @@ export default function Landing() {
       {/* Footer */}
       <footer style={{
         borderTop: "1px solid var(--border)",
-        padding: "24px clamp(20px,5vw,56px)",
-        display: "flex", justifyContent: "space-between", alignItems: "center",
-        color: "var(--text-3)", fontSize: 13, flexWrap: "wrap", gap: 12
+        padding: "40px clamp(20px,5vw,56px) 32px",
+        display: "flex", flexDirection: "column", gap: 32,
+        color: "var(--text-3)", fontSize: 13
       }}>
-        <span style={{ fontWeight: 700, fontSize: 15, letterSpacing: "-0.4px", color: "var(--text-1)", display: "flex", alignItems: "center", gap: 7 }}>
-          <div style={{ width: 20, height: 20, background: "var(--accent)", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+        <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 24 }}>
+          <span style={{ fontWeight: 800, fontSize: 16, letterSpacing: "-0.5px", color: "var(--text-1)", display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ width: 22, height: 22, background: "var(--accent)", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+            </div>
+            Resume<span style={{ color: "var(--accent)" }}>AI</span>
+          </span>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "16px 32px", fontWeight: 500 }}>
+            <Link to="/privacy" style={{ cursor: "pointer", textDecoration: "none", color: "var(--text-3)", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-1)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}>Privacy Policy</Link>
+            <Link to="/terms" style={{ cursor: "pointer", textDecoration: "none", color: "var(--text-3)", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-1)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}>Terms of Service</Link>
+            <Link to="/support" style={{ cursor: "pointer", textDecoration: "none", color: "var(--text-3)", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-1)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}>Contact Support</Link>
           </div>
-          Resume<span style={{ color: "var(--accent)" }}>AI</span>
-        </span>
-        <div style={{ display: "flex", gap: 24 }}>
-          <Link to="/privacy" style={{ cursor: "pointer", textDecoration: "none", color: "var(--text-3)", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-1)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}>Privacy</Link>
-          <Link to="/terms" style={{ cursor: "pointer", textDecoration: "none", color: "var(--text-3)", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-1)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}>Terms</Link>
-          <Link to="/support" style={{ cursor: "pointer", textDecoration: "none", color: "var(--text-3)", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-1)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}>Support</Link>
         </div>
-        <span>Built for students and professionals</span>
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, borderTop: "1px solid var(--border)", paddingTop: 24 }}>
+          <span>© 2026 ResumeAI. All rights reserved.</span>
+          <span>Built for students and professionals.</span>
+        </div>
       </footer>
 
       {/* JD Modal */}
