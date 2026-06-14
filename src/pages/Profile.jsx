@@ -362,14 +362,14 @@ export default function Profile() {
         <div className="profile-main-grid" style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: 16, marginBottom: 16, alignItems: "start" }}>
 
           {/* LEFT: Profile card and Target Companies */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring, delay: 0.08 }}
               className="ek-card"
               style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-xl)", overflow: "hidden" }}>
 
             {/* Avatar header */}
-            <div style={{ padding: "22px 22px 18px", borderBottom: "1px solid var(--border)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ padding: "12px 14px", borderBottom: "1px solid var(--border)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <div style={{
                   width: 52, height: 52, borderRadius: "50%", background: "var(--accent)",
                   color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
@@ -507,7 +507,7 @@ export default function Profile() {
           </div>
 
           {/* RIGHT: Resume */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
 
             {/* Resume card */}
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring, delay: 0.1 }}
