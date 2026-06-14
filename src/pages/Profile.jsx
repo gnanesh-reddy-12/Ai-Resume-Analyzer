@@ -331,9 +331,10 @@ export default function Profile() {
         {/* Main grid: profile + resume */}
         <div className="profile-main-grid" style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: 16, marginBottom: 16, alignItems: "start" }}>
 
-          {/* LEFT: Profile card */}
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring, delay: 0.08 }}
-            style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-xl)", overflow: "hidden" }}>
+          {/* LEFT: Profile card and Target Companies */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring, delay: 0.08 }}
+              style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-xl)", overflow: "hidden" }}>
 
             {/* Avatar header */}
             <div style={{ padding: "22px 22px 18px", borderBottom: "1px solid var(--border)" }}>
@@ -472,7 +473,53 @@ export default function Profile() {
             </div>
           </motion.div>
 
-          {/* RIGHT: Resume + Target companies */}
+          {/* Target companies */}
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring, delay: 0.12 }}
+            style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-xl)", overflow: "hidden" }}>
+            <div style={{ padding: "18px 22px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+              <h2 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-1)" }}>Target Companies</h2>
+            </div>
+            <div style={{ padding: "18px 22px" }}>
+              <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+                <input
+                  className="input-ek"
+                  value={companyInput}
+                  onChange={e => setCompanyInput(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && addCompany()}
+                  placeholder="e.g. Google, Microsoft"
+                  style={{ flex: 1 }}
+                />
+                <button className="btn-accent" onClick={addCompany} style={{ padding: "10px 18px", flexShrink: 0 }}>Add</button>
+              </div>
+              {targetCompanies.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "20px 0" }}>
+                  <p style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 4 }}>No target companies yet.</p>
+                  <p style={{ fontSize: 12, color: "var(--text-3)" }}>Add companies you're targeting to track your progress.</p>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+                  {targetCompanies.map((c, i) => (
+                    <span key={i} style={{
+                      display: "inline-flex", alignItems: "center", gap: 6,
+                      background: "var(--accent-soft)", color: "var(--accent)",
+                      fontSize: 12.5, fontWeight: 600, padding: "5px 12px",
+                      borderRadius: 99, border: "1px solid var(--accent-mid)"
+                    }}>
+                      {c}
+                      <button
+                        onClick={() => setTargetCompanies(p => p.filter((_, j) => j !== i))}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--accent)", lineHeight: 1, padding: 0, fontSize: 14, opacity: 0.6, fontFamily: "inherit" }}
+                      >×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.div>
+          </div>
+
+          {/* RIGHT: Resume */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
             {/* Resume card */}
@@ -505,7 +552,7 @@ export default function Profile() {
                         </button>
                       </div>
                     </div>
-                    <iframe src={`${resumeUrl}#toolbar=0&navpanes=0`} style={{ width: "100%", height: 280, border: "none", borderRadius: "var(--r-md)", background: "#f8f8f8" }} title="Resume" />
+                    <iframe src={`https://docs.google.com/gview?url=${encodeURIComponent(resumeUrl)}&embedded=true`} style={{ width: "100%", height: 280, border: "none", borderRadius: "var(--r-md)", background: "#f8f8f8" }} title="Resume" />
                     <label htmlFor="resume-upload" className="btn-secondary" style={{ textAlign: "center", cursor: "pointer", padding: "10px", fontSize: 13, display: "block" }}>Replace Resume</label>
                   </div>
                 ) : (
@@ -540,50 +587,6 @@ export default function Profile() {
               </div>
             </motion.div>
 
-            {/* Target companies */}
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring, delay: 0.12 }}
-              style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-xl)", overflow: "hidden" }}>
-              <div style={{ padding: "18px 22px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
-                <h2 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-1)" }}>Target Companies</h2>
-              </div>
-              <div style={{ padding: "18px 22px" }}>
-                <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-                  <input
-                    className="input-ek"
-                    value={companyInput}
-                    onChange={e => setCompanyInput(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && addCompany()}
-                    placeholder="e.g. Google, Microsoft"
-                    style={{ flex: 1 }}
-                  />
-                  <button className="btn-accent" onClick={addCompany} style={{ padding: "10px 18px", flexShrink: 0 }}>Add</button>
-                </div>
-                {targetCompanies.length === 0 ? (
-                  <div style={{ textAlign: "center", padding: "20px 0" }}>
-                    <p style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 4 }}>No target companies yet.</p>
-                    <p style={{ fontSize: 12, color: "var(--text-3)" }}>Add companies you're targeting to track your progress.</p>
-                  </div>
-                ) : (
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-                    {targetCompanies.map((c, i) => (
-                      <span key={i} style={{
-                        display: "inline-flex", alignItems: "center", gap: 6,
-                        background: "var(--accent-soft)", color: "var(--accent)",
-                        fontSize: 12.5, fontWeight: 600, padding: "5px 12px",
-                        borderRadius: 99, border: "1px solid var(--accent-mid)"
-                      }}>
-                        {c}
-                        <button
-                          onClick={() => setTargetCompanies(p => p.filter((_, j) => j !== i))}
-                          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--accent)", lineHeight: 1, padding: 0, fontSize: 14, opacity: 0.6, fontFamily: "inherit" }}
-                        >×</button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </motion.div>
           </div>
         </div>
 
@@ -641,43 +644,51 @@ export default function Profile() {
                 <p style={{ fontSize: 12.5, color: "var(--text-3)" }}>Add your first application above to start tracking</p>
               </div>
             ) : (
-              <div style={{ border: "1px solid var(--border)", borderRadius: "var(--r-lg)", overflow: "hidden" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto auto auto", gap: 12, padding: "9px 16px", background: "var(--bg)" }}>
-                  {["Company", "Role", "Date", "Status", ""].map(h => (
-                    <p key={h} style={{ fontSize: 10.5, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.07em" }}>{h}</p>
-                  ))}
-                </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
                 {applications.map((app, idx) => (
                   <motion.div
                     key={app.id}
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                    transition={{ delay: idx * 0.03 }}
-                    className="app-table-row"
-                    style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto auto auto", gap: 12, padding: "12px 16px", background: "var(--surface)", alignItems: "center", borderTop: "1px solid var(--border)" }}
+                    initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", padding: "20px", position: "relative", boxShadow: "var(--shadow-xs)" }}
                   >
-                    <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text-1)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{app.company}</p>
-                    <p style={{ fontSize: 13, color: "var(--text-2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{app.role}</p>
-                    <p className="app-date" style={{ fontSize: 12, color: "var(--text-3)", whiteSpace: "nowrap" }}>
-                      {new Date(app.applied_date || app.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
-                    </p>
-                    <select
-                      value={app.status}
-                      onChange={e => updateAppStatus(app.id, e.target.value)}
-                      style={{
-                        fontSize: 11.5, fontWeight: 700, padding: "4px 10px",
-                        borderRadius: 99, border: `1px solid ${statusMeta[app.status]?.bd || "var(--border)"}`,
-                        cursor: "pointer",
-                        background: statusMeta[app.status]?.bg || "var(--bg)",
-                        color: statusMeta[app.status]?.color || "var(--text-2)",
-                        outline: "none", appearance: "none",
-                        textAlign: "center", fontFamily: "inherit"
-                      }}
-                    >
-                      {APP_STATUSES.map(s => <option key={s}>{s}</option>)}
-                    </select>
+                    <div style={{ marginBottom: 14 }}>
+                      <select
+                        value={app.status}
+                        onChange={e => updateAppStatus(app.id, e.target.value)}
+                        style={{
+                          fontSize: 11.5, fontWeight: 700, padding: "5px 12px",
+                          borderRadius: "4px", border: "none",
+                          cursor: "pointer",
+                          background: statusMeta[app.status]?.bg || "var(--bg)",
+                          color: statusMeta[app.status]?.color || "var(--text-2)",
+                          outline: "none", appearance: "none",
+                          fontFamily: "inherit"
+                        }}
+                      >
+                        {APP_STATUSES.map(s => <option key={s}>{s}</option>)}
+                      </select>
+                    </div>
+                    
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--accent)", marginBottom: 8, lineHeight: 1.3, paddingRight: 20 }}>{app.role}</h3>
+                    
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 8, color: "var(--text-2)", fontSize: 13.5, fontWeight: 500 }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0, marginTop: 2, color: "var(--text-3)" }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      {app.company}
+                    </div>
+                    
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18, color: "var(--text-3)", fontSize: 13 }}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                      Applied on {new Date(app.applied_date || app.created_at).toLocaleDateString("en-US", { year: 'numeric', month: 'short', day: 'numeric' })}
+                    </div>
+                    
+                    <div style={{ borderTop: "1px solid var(--border-2)", paddingTop: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>Job ID: #{app.id.split('-')[0].toUpperCase()}</span>
+                    </div>
+
                     <button
                       onClick={() => deleteApp(app.id)}
-                      style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-3)", fontSize: 18, lineHeight: 1, padding: "2px 6px", fontFamily: "inherit", transition: "color 0.15s" }}
+                      style={{ position: "absolute", top: 12, right: 12, background: "none", border: "none", cursor: "pointer", color: "var(--text-3)", fontSize: 20, lineHeight: 1, padding: "4px", fontFamily: "inherit", transition: "color 0.15s" }}
                       onMouseEnter={e => e.currentTarget.style.color = "var(--danger)"}
                       onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}
                     >×</button>
@@ -694,35 +705,56 @@ export default function Profile() {
           <div style={{ padding: "18px 22px", borderBottom: "1px solid var(--border)" }}>
             <h2 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-1)" }}>Account</h2>
           </div>
-          <div style={{ padding: "18px 22px", display: "flex", flexDirection: "column", gap: 20 }}>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <button className="btn-secondary" onClick={() => navigate("/forgot-password")} style={{ fontSize: 13, padding: "10px 22px" }}>Change Password</button>
-              <button
-                onClick={async () => { await supabase.auth.signOut(); navigate("/") }}
-                style={{
-                  fontSize: 13, padding: "10px 22px",
-                  background: "var(--danger-bg)", color: "var(--danger)",
-                  border: "1px solid var(--danger-bd)", borderRadius: 99,
-                  cursor: "pointer", fontWeight: 600, fontFamily: "inherit"
-                }}
-              >
-                Sign Out
-              </button>
+          <div style={{ padding: "18px 22px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
+              {/* Block 1: Security */}
+              <div style={{ padding: "20px", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", background: "var(--bg)", transition: "transform 0.2s, box-shadow 0.2s" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                  <div style={{ width: 34, height: 34, background: "var(--accent-soft)", color: "var(--accent)", borderRadius: "var(--r-md)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                  </div>
+                  <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-1)" }}>Security</h3>
+                </div>
+                <p style={{ fontSize: 12.5, color: "var(--text-3)", marginBottom: 18, lineHeight: 1.6 }}>Update your password to keep your account secure.</p>
+                <button className="btn-secondary" onClick={() => navigate("/forgot-password")} style={{ width: "100%", padding: "10px", fontSize: 13, background: "#fff" }}>Change Password</button>
+              </div>
+
+              {/* Block 2: Session */}
+              <div style={{ padding: "20px", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", background: "var(--bg)", transition: "transform 0.2s, box-shadow 0.2s" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                  <div style={{ width: 34, height: 34, background: "var(--accent-soft)", color: "var(--accent)", borderRadius: "var(--r-md)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                  </div>
+                  <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-1)" }}>Session</h3>
+                </div>
+                <p style={{ fontSize: 12.5, color: "var(--text-3)", marginBottom: 18, lineHeight: 1.6 }}>Log out of this device. You will need to sign in again.</p>
+                <button
+                  onClick={async () => { await supabase.auth.signOut(); navigate("/") }}
+                  className="btn-secondary"
+                  style={{ width: "100%", padding: "10px", fontSize: 13, background: "#fff" }}
+                >
+                  Sign Out
+                </button>
+              </div>
             </div>
 
-            <div style={{ borderTop: "1px solid var(--border)", paddingTop: 20 }}>
+            {/* Danger Zone */}
+            <div style={{ marginTop: 24, padding: "20px", border: "1px solid var(--danger-bd)", borderRadius: "var(--r-lg)", background: "var(--danger-bg)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                 <div>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: "var(--danger)", marginBottom: 3 }}>Danger Zone</p>
-                  <p style={{ fontSize: 12.5, color: "var(--text-3)" }}>Permanently delete your account and all data</p>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" strokeWidth="2.5"><path d="M10.29 3.86l-6.46 11.2A2 2 0 005.56 18h12.88a2 2 0 001.73-3l-6.46-11.2a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--danger)" }}>Danger Zone</h3>
+                  </div>
+                  <p style={{ fontSize: 12.5, color: "var(--danger)", opacity: 0.8 }}>Permanently delete your account and all data</p>
                 </div>
                 <button
                   onClick={() => setShowDeleteZone(p => !p)}
                   style={{
                     fontSize: 13, padding: "9px 18px",
-                    background: "var(--danger-bg)", color: "var(--danger)",
+                    background: "#fff", color: "var(--danger)",
                     border: "1px solid var(--danger-bd)", borderRadius: 99,
-                    cursor: "pointer", fontWeight: 600, fontFamily: "inherit", flexShrink: 0
+                    cursor: "pointer", fontWeight: 700, fontFamily: "inherit", flexShrink: 0
                   }}
                 >
                   {showDeleteZone ? "Cancel" : "Delete Account"}
@@ -735,12 +767,12 @@ export default function Profile() {
                     initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }} style={{ overflow: "hidden", marginTop: 16 }}
                   >
-                    <div style={{ background: "var(--danger-bg)", border: "1px solid var(--danger-bd)", borderRadius: "var(--r-md)", padding: "16px 18px" }}>
+                    <div style={{ borderTop: "1px dashed var(--danger-bd)", paddingTop: 16 }}>
                       <p style={{ fontSize: 13, color: "var(--danger)", fontWeight: 600, marginBottom: 12, lineHeight: 1.6 }}>
                         This permanently deletes all your analyses, applications, and resume. Type <strong>DELETE</strong> to confirm.
                       </p>
                       <div style={{ display: "flex", gap: 8 }}>
-                        <input className="input-ek" value={deleteConfirm} onChange={e => setDeleteConfirm(e.target.value)} placeholder="Type DELETE" style={{ flex: 1 }} />
+                        <input className="input-ek" value={deleteConfirm} onChange={e => setDeleteConfirm(e.target.value)} placeholder="Type DELETE" style={{ flex: 1, borderColor: "var(--danger-bd)", background: "#fff" }} />
                         <button
                           onClick={handleDeleteAccount}
                           disabled={deleteConfirm !== "DELETE" || deletingAccount}

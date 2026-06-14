@@ -37,23 +37,7 @@ export default function Navbar() {
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={spring}
-        style={{
-          position: "sticky",
-          top: 12,
-          zIndex: 100,
-          margin: "0 auto",
-          maxWidth: 1000,
-          width: "calc(100% - 32px)",
-          background: "rgba(255,255,255,0.88)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          borderRadius: 99,
-          border: "1px solid rgba(13,15,18,0.09)",
-          boxShadow: "0 2px 20px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)",
-          height: 52,
-          display: "flex",
-          alignItems: "center",
-        }}
+        className="ek-navbar"
       >
         <div style={{
           width: "100%",

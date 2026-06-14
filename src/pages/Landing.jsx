@@ -201,19 +201,20 @@ export default function Landing() {
         }}
       >
         <div style={{
-          display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12
+          display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12
         }}>
           {[
-            { num: "94%", label: "ATS pass rate reported by users" },
-            { num: "2min", label: "Average analysis time" },
-            { num: "10k+", label: "Resumes analyzed to date" },
+            { num: "2x", label: "More Interview Callbacks" },
+            { num: "< 5s", label: "Instant Resume Feedback" },
+            { num: "500+", label: "Active Job Seekers" },
           ].map(s => (
             <div key={s.label} style={{
               background: "var(--surface)", border: "1px solid var(--border)",
-              borderRadius: "var(--r-xl)", padding: "24px 20px", textAlign: "center"
+              borderRadius: "var(--r-xl)", padding: "24px 20px", textAlign: "center",
+              display: "flex", flexDirection: "column", justifyContent: "center"
             }}>
-              <p style={{ fontSize: "clamp(24px,4vw,32px)", fontWeight: 800, color: "var(--text-1)", letterSpacing: "-1.5px", marginBottom: 4 }}>{s.num}</p>
-              <p style={{ fontSize: 12.5, color: "var(--text-3)", lineHeight: 1.5 }}>{s.label}</p>
+              <p style={{ fontSize: "clamp(26px,4vw,36px)", fontWeight: 800, color: "var(--text-1)", letterSpacing: "-1.5px", marginBottom: 6 }}>{s.num}</p>
+              <p style={{ fontSize: 13, color: "var(--text-3)", lineHeight: 1.4, fontWeight: 500 }}>{s.label}</p>
             </div>
           ))}
         </div>
