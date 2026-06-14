@@ -14,6 +14,8 @@ import ForgotPassword from "./pages/ForgotPassword"
 import ResetPassword from "./pages/ResetPassword"
 import History from "./pages/History"
 import Profile from "./pages/Profile"
+import Privacy from "./pages/Privacy"
+import Terms from "./pages/Terms"
 
 function ProtectedRoute({ children }) {
   const { token, loading } = useAuth()
@@ -39,6 +41,8 @@ function App() {
             <Route path="/results" element={<ProtectedRoute><Results /></ProtectedRoute>} />
             <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
             <Route path="*" element={<Navigate to="/landing" />} />
           </Routes>
         </ResumeProvider>
