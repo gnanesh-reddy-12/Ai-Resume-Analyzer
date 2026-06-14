@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom"
+import { useEffect } from "react"
 import AuthProvider from "./context/AuthProvider"
 import ResumeProvider from "./context/ResumeProvider"
 import { useAuth } from "./context/useAuth"
@@ -24,9 +25,18 @@ function ProtectedRoute({ children }) {
   return token ? children : <Navigate to="/landing" />
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+  return null
+}
+
 function App() {
   return (
-    <BrowserRouter>
+    <Router>
+      <ScrollToTop />
       <AuthProvider>
         <ResumeProvider>
           <Routes>
@@ -49,8 +59,9 @@ function App() {
           </Routes>
         </ResumeProvider>
       </AuthProvider>
-    </BrowserRouter>
+    </Router>
   )
 }
+
 
 export default App
