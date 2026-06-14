@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
 import Navbar from "../components/Navbar"
+import Footer from "../components/Footer"
 
 export default function Privacy() {
   return (
@@ -61,6 +62,7 @@ export default function Privacy() {
           </div>
         </motion.div>
       </div>
+      <Footer />
     </div>
   )
 }

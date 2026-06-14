@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
 import Navbar from "../components/Navbar"
+import Footer from "../components/Footer"
 
 export default function Terms() {
   return (
@@ -55,6 +56,7 @@ export default function Terms() {
           </div>
         </motion.div>
       </div>
+      <Footer />
     </div>
   )
 }
