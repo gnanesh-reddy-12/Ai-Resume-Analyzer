@@ -19,9 +19,9 @@ export default function Signup() {
     if (!name || !email || !password) return setError("All fields are required")
     
     const validatePassword = (pwd) => {
-      return pwd.length >= 8 && /[A-Z]/.test(pwd) && /[a-z]/.test(pwd) && /[0-9]/.test(pwd) && /[^A-Za-z0-9]/.test(pwd)
+      return pwd.length >= 8 && /[A-Z]/.test(pwd) && /[!@#$%^&*()_+\-=\[\]{}|':"\\<>?]/.test(pwd)
     }
-    if (!validatePassword(password)) return setError("Password must be at least 8 characters, include uppercase, lowercase, number, and special character")
+    if (!validatePassword(password)) return setError("Password must be at least 8 characters, and include at least one uppercase letter and one special character.")
 
     setLoading(true)
     try {
