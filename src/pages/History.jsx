@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
+import CompanyLogo from "../components/CompanyLogo"
 import { useAuth } from "../context/useAuth"
 import Navbar from "../components/Navbar"
 
@@ -48,6 +49,7 @@ export default function History() {
   const [selected, setSelected] = useState(null)
   const [search, setSearch] = useState("")
   const [sortBy, setSortBy] = useState("date")
+  const [activeMenuId, setActiveMenuId] = useState(null)
 
   useEffect(() => {
     if (!token) { navigate("/login"); return }
@@ -58,6 +60,14 @@ export default function History() {
       .then(d => setAnalyses(d.analyses || []))
       .finally(() => setLoading(false))
   }, [token, navigate])
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (!e.target.closest('.hist-menu-container')) setActiveMenuId(null)
+    }
+    document.addEventListener('click', handleClick)
+    return () => document.removeEventListener('click', handleClick)
+  }, [])
 
   useEffect(() => {
     document.body.style.overflow = selected ? "hidden" : "unset"
@@ -171,14 +181,16 @@ export default function History() {
               return (
                 <motion.div
                   key={a.id}
+                  className="ek-card"
                   initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.035, duration: 0.4, ease }}
-                  onClick={() => setSelected(isSelected ? null : a)}
+                  whileHover={{ scale: 1.015, y: -2, transition: { type: "spring", stiffness: 400, damping: 25 } }}
                   style={{
+                    zIndex: activeMenuId === a.id ? 50 : 1,
                     background: isSelected ? "var(--accent-soft)" : "var(--surface)",
                     border: `1px solid ${isSelected ? "var(--accent)" : "var(--border)"}`,
                     borderRadius: "var(--r-xl)", padding: "clamp(14px,3vw,18px) clamp(16px,3vw,22px)",
-                    cursor: "pointer", userSelect: "none",
+                    userSelect: "none",
                     transition: "border-color 0.15s, background 0.15s, box-shadow 0.15s"
                   }}
                   onMouseEnter={e => { if (!isSelected) { e.currentTarget.style.borderColor = "var(--border-2)"; e.currentTarget.style.boxShadow = "var(--shadow-md)" } }}
@@ -188,7 +200,12 @@ export default function History() {
                     <ScoreRing score={a.ats_score} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
-                        {a.company_name && <span style={{ fontWeight: 800, fontSize: 14, color: "var(--text-1)", letterSpacing: "-0.3px" }}>{a.company_name}</span>}
+                        {a.company_name && (
+                          <>
+                            <CompanyLogo name={a.company_name} size={18} />
+                            <span style={{ fontWeight: 800, fontSize: 14, color: "var(--text-1)", letterSpacing: "-0.3px" }}>{a.company_name}</span>
+                          </>
+                        )}
                         {a.job_role && <span className="badge badge-accent">{a.job_role}</span>}
                         {delta !== null && (
                           <span style={{ fontSize: 11.5, fontWeight: 700, color: delta > 0 ? "var(--success)" : delta < 0 ? "var(--danger)" : "var(--text-3)" }}>
@@ -202,17 +219,62 @@ export default function History() {
                       </p>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                      <button
-                        onClick={e => { e.stopPropagation(); handleDelete(a.id) }}
-                        style={{ fontSize: 12.5, color: "var(--text-3)", background: "none", border: "none", cursor: "pointer", padding: "5px 10px", borderRadius: "var(--r-sm)", fontFamily: "inherit", transition: "background 0.15s, color 0.15s" }}
-                        onMouseEnter={e => { e.currentTarget.style.background = "var(--danger-bg)"; e.currentTarget.style.color = "var(--danger)" }}
-                        onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "var(--text-3)" }}
-                      >
-                        Delete
-                      </button>
-                      <motion.div animate={{ rotate: isSelected ? 90 : 0 }} transition={{ duration: 0.2 }}>
-                        <svg width="15" height="15" fill="none" stroke="var(--text-3)" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/></svg>
-                      </motion.div>
+                      {/* Menu */}
+                      <div className="hist-menu-container" style={{ position: "relative" }}>
+                        <button
+                          onClick={e => { e.stopPropagation(); setActiveMenuId(activeMenuId === a.id ? null : a.id) }}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-1)", padding: "4px", transition: "color 0.15s", display: "flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, borderRadius: "50%" }}
+                          onMouseEnter={e => e.currentTarget.style.color = "var(--accent)"}
+                          onMouseLeave={e => e.currentTarget.style.color = "var(--text-1)"}
+                        >
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                        </button>
+                        <AnimatePresence>
+                          {activeMenuId === a.id && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+                              transition={{ duration: 0.1 }}
+                              style={{
+                                position: "absolute", top: "100%", right: 0, marginTop: 4,
+                                background: "#fff", border: "1px solid var(--border)", borderRadius: "var(--r-md)",
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.1)", zIndex: 10, width: 160, overflow: "hidden"
+                              }}
+                            >
+                              <button
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  setActiveMenuId(null);
+                                  setSelected(a);
+                                }}
+                                style={{
+                                  width: "100%", padding: "12px 16px", textAlign: "left", background: "none", border: "none",
+                                  fontSize: 13, fontWeight: 500, color: "var(--text-1)", cursor: "pointer", fontFamily: "inherit",
+                                  borderBottom: "1px solid var(--border-2)"
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.background = "var(--surface)"}
+                                onMouseLeave={e => e.currentTarget.style.background = "none"}
+                              >
+                                View Analysis
+                              </button>
+                              <button
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  setActiveMenuId(null);
+                                  if (window.confirm("Are you sure you want to delete this analysis?")) handleDelete(a.id);
+                                }}
+                                style={{
+                                  width: "100%", padding: "12px 16px", textAlign: "left", background: "none", border: "none",
+                                  fontSize: 13, fontWeight: 500, color: "var(--danger)", cursor: "pointer", fontFamily: "inherit"
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.background = "var(--danger-bg)"}
+                                onMouseLeave={e => e.currentTarget.style.background = "none"}
+                              >
+                                Remove Analysis
+                              </button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -279,6 +341,35 @@ export default function History() {
   )
 }
 
+function HighlightedJD({ text, matched, missing, optional }) {
+  if (!text) return null
+  const allKeywords = [
+    ...(matched || []).map(k => ({ word: k, type: "matched" })),
+    ...(missing || []).map(k => ({ word: k, type: "missing" })),
+    ...(optional || []).map(k => ({ word: k, type: "optional" })),
+  ].sort((a, b) => b.word.length - a.word.length)
+  
+  if (!allKeywords.length) {
+    return <div className="custom-scrollbar" style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "13px 15px", fontSize: 12.5, whiteSpace: "pre-wrap", maxHeight: 130, overflowY: "auto", color: "var(--text-2)", lineHeight: 1.65 }}>{text}</div>
+  }
+  
+  const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  const pattern = new RegExp(`\\b(${allKeywords.map(k => escape(k.word)).join("|")})\\b`, "gi")
+  const parts = text.split(pattern)
+  
+  return (
+    <div className="custom-scrollbar" style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "13px 15px", fontSize: 12.5, whiteSpace: "pre-wrap", maxHeight: 130, overflowY: "auto", color: "var(--text-2)", lineHeight: 1.65 }}>
+      {parts.map((part, i) => {
+        const kw = allKeywords.find(k => k.word.toLowerCase() === part.toLowerCase())
+        if (kw?.type === "matched") return <mark key={i} style={{ background: "transparent", borderBottom: "2px solid var(--success)", color: "var(--text-1)", padding: "0 1px", fontWeight: 600 }}>{part}</mark>
+        if (kw?.type === "missing") return <mark key={i} style={{ background: "transparent", borderBottom: "2px solid var(--danger)", color: "var(--text-1)", padding: "0 1px", fontWeight: 600 }}>{part}</mark>
+        if (kw?.type === "optional") return <mark key={i} style={{ background: "transparent", borderBottom: "2px solid var(--warning)", color: "var(--text-1)", padding: "0 1px", fontWeight: 600 }}>{part}</mark>
+        return <span key={i}>{part}</span>
+      })}
+    </div>
+  )
+}
+
 function DrawerContent({ selected }) {
   const suggestionsData = selected.improvement_suggestions || {}
   const isNewFormat = suggestionsData && !Array.isArray(suggestionsData) && typeof suggestionsData === "object"
@@ -293,9 +384,12 @@ function DrawerContent({ selected }) {
 
       {selected.job_description_preview && (
         <DrawerSection label="Job Description">
-          <div className="custom-scrollbar" style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "13px 15px", fontSize: 12.5, whiteSpace: "pre-wrap", maxHeight: 130, overflowY: "auto", color: "var(--text-2)", lineHeight: 1.65 }}>
-            {selected.job_description_preview}
-          </div>
+          <HighlightedJD 
+            text={selected.job_description_preview} 
+            matched={selected.matched_keywords} 
+            missing={selected.missing_keywords} 
+            optional={selected.optional_keywords} 
+          />
         </DrawerSection>
       )}
 

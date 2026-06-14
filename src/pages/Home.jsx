@@ -4,6 +4,7 @@ import AnalyzeSection from "../components/AnalyzeSection"
 import { useAuth } from "../context/useAuth"
 import { ResumeContext } from "../context/ResumeContext"
 import { motion } from "framer-motion"
+import CompanyLogo from "../components/CompanyLogo"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "../supabase"
 
@@ -110,7 +111,7 @@ export default function Home() {
               { label: "Avg Score", value: `${stats.avg}%` },
               { label: "Best Score", value: `${stats.best}%` },
             ].map(s => (
-              <div key={s.label} style={{
+              <div key={s.label} className="ek-card" style={{
                 background: "var(--surface)", border: "1px solid var(--border)",
                 borderRadius: "var(--r-lg)", padding: "16px 18px"
               }}>
@@ -127,6 +128,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
             transition={{ ...spring, delay: 0.07 }}
             onClick={() => navigate("/history")}
+            className="ek-card"
             style={{
               background: "var(--surface)", border: "1px solid var(--border)",
               borderRadius: "var(--r-xl)", padding: "16px 20px", marginBottom: 28,
@@ -137,20 +139,23 @@ export default function Home() {
             onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.boxShadow = "none" }}
           >
             <div style={{
-              width: 48, height: 48, flexShrink: 0, borderRadius: "var(--r-md)",
+              minWidth: 56, height: 48, padding: "0 10px", flexShrink: 0, borderRadius: "var(--r-md)",
               background: scoreBg(lastAnalysis.ats_score),
               border: `1px solid ${scoreBd(lastAnalysis.ats_score)}`,
               display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center"
             }}>
               <span style={{ fontSize: 14, fontWeight: 800, color: scoreColor(lastAnalysis.ats_score), lineHeight: 1 }}>{lastAnalysis.ats_score}%</span>
-              <span style={{ fontSize: 9, fontWeight: 600, color: scoreColor(lastAnalysis.ats_score), marginTop: 2 }}>{scoreLabel(lastAnalysis.ats_score)}</span>
+              <span style={{ fontSize: 9, fontWeight: 700, color: scoreColor(lastAnalysis.ats_score), marginTop: 3, whiteSpace: "nowrap" }}>{scoreLabel(lastAnalysis.ats_score)}</span>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 3 }}>Last Analysis</p>
-              <p style={{ fontSize: 14, fontWeight: 700, color: "var(--text-1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {lastAnalysis.company_name || "Unnamed Company"}
-                {lastAnalysis.job_role && <span style={{ fontWeight: 500, color: "var(--text-3)" }}> · {lastAnalysis.job_role}</span>}
-              </p>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, overflow: "hidden" }}>
+                {lastAnalysis.company_name && <CompanyLogo name={lastAnalysis.company_name} size={18} />}
+                <p style={{ fontSize: 14, fontWeight: 700, color: "var(--text-1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {lastAnalysis.company_name || "Unnamed Company"}
+                  {lastAnalysis.job_role && <span style={{ fontWeight: 500, color: "var(--text-3)" }}> · {lastAnalysis.job_role}</span>}
+                </p>
+              </div>
               <p style={{ fontSize: 12, color: "var(--text-3)", marginTop: 2 }}>
                 {new Date(lastAnalysis.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
               </p>
@@ -176,6 +181,7 @@ export default function Home() {
         <motion.div
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
           transition={{ ...spring, delay: 0.15 }}
+          className="ek-card"
           style={{
             background: "var(--surface)", border: "1px solid var(--border)",
             borderRadius: "var(--r-xl)", padding: "clamp(22px,4vw,32px)", marginTop: 24
@@ -191,7 +197,7 @@ export default function Home() {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 12 }}>
             {tips.map((t, i) => (
-              <div key={i} style={{
+              <div key={i} className="ek-card" style={{
                 background: "var(--bg)", border: "1px solid var(--border)",
                 borderRadius: "var(--r-lg)", padding: "18px 18px 16px"
               }}>

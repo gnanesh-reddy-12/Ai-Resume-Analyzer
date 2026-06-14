@@ -112,14 +112,19 @@ export default function Landing() {
         padding: "0 clamp(20px,5vw,56px)", height: 58,
         display: "flex", alignItems: "center", justifyContent: "space-between"
       }}>
-        <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: "-0.5px", color: "var(--text-1)", display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{ width: 26, height: 26, background: "var(--accent)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{
+            width: 32, height: 32, background: "var(--accent)", borderRadius: 10,
+            display: "flex", alignItems: "center", justifyContent: "center"
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
             </svg>
           </div>
-          Resume<span style={{ color: "var(--accent)" }}>AI</span>
-        </span>
+          <span style={{ fontWeight: 800, fontSize: 20, letterSpacing: "-1px", color: "var(--text-1)" }}>
+            Resume<span style={{ color: "var(--accent)" }}>AI</span>
+          </span>
+        </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <button className="btn-ghost" style={{ padding: "8px 18px", fontSize: 13 }} onClick={() => navigate("/login")}>Sign In</button>
           <button className="btn-accent" style={{ padding: "8px 18px", fontSize: 13 }} onClick={() => navigate("/signup")}>Get Started</button>
@@ -208,7 +213,7 @@ export default function Landing() {
             { num: "< 5s", label: "Instant Resume Feedback" },
             { num: "500+", label: "Active Job Seekers" },
           ].map(s => (
-            <div key={s.label} style={{
+            <div key={s.label} className="ek-card" style={{
               background: "var(--surface)", border: "1px solid var(--border)",
               borderRadius: "var(--r-xl)", padding: "24px 20px", textAlign: "center",
               display: "flex", flexDirection: "column", justifyContent: "center"
@@ -354,12 +359,13 @@ export default function Landing() {
               key={f.title}
               initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }} transition={{ duration: 0.45, delay: i * 0.05, ease }}
-              whileHover={{ y: -4, boxShadow: "var(--shadow-md)" }}
+              whileHover={{ y: -4, scale: 1.015, transition: { type: "spring", stiffness: 400, damping: 25 } }}
               style={{
                 background: "var(--surface)", border: "1px solid var(--border)",
                 borderRadius: "var(--r-xl)", padding: "28px 28px 24px",
-                transition: "box-shadow 0.2s, transform 0.2s"
+                transition: "box-shadow 0.3s ease"
               }}
+              className="ek-card"
             >
               <div style={{
                 width: 44, height: 44, background: "var(--accent-soft)",
@@ -390,7 +396,7 @@ export default function Landing() {
             { step: "02", title: "Paste the job description", desc: "Copy the full job posting. The more detail, the more precise the keyword and semantic match." },
             { step: "03", title: "Get your ATS report", desc: "See your match score, missing keywords, AI-rewritten bullets, and exactly what to fix." },
           ].map(s => (
-            <div key={s.step} style={{
+            <div key={s.step} className="ek-card" style={{
               background: "var(--surface)", border: "1px solid var(--border)",
               borderRadius: "var(--r-xl)", padding: "28px 24px"
             }}>
@@ -426,19 +432,21 @@ export default function Landing() {
             >
               Get Started Free
             </button>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.015, y: -2 }}
+              whileTap={{ scale: 0.97 }}
               style={{
                 padding: "14px 28px", fontSize: 15, background: "rgba(255,255,255,0.1)",
                 color: "#fff", border: "1px solid rgba(255,255,255,0.15)",
                 borderRadius: 99, cursor: "pointer", fontFamily: "inherit", fontWeight: 500,
-                transition: "background 0.15s"
+                transition: "background 0.15s, box-shadow 0.3s ease"
               }}
               onClick={() => document.getElementById("try-free").scrollIntoView({ behavior: "smooth" })}
-              onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.15)"}
-              onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; e.currentTarget.style.boxShadow = "0 10px 20px rgba(0,0,0,0.1)" }}
+              onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.boxShadow = "none" }}
             >
               Try it free →
-            </button>
+            </motion.button>
           </div>
         </motion.div>
       </section>

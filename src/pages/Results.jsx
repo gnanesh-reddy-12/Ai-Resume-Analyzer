@@ -109,6 +109,7 @@ function HighlightedJD({ text, matched, missing, optional }) {
 function SectionCard({ title, children, style }) {
   return (
     <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={spring}
+      className="ek-card"
       style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-xl)", overflow: "hidden", ...style }}>
       {title && (
         <div style={{ padding: "16px 22px", borderBottom: "1px solid var(--border)" }}>
