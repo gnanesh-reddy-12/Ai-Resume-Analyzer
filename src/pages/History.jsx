@@ -379,7 +379,7 @@ function DrawerContent({ selected }) {
           )}
 
           {suggestions.ai_snapshot && (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
               <InfoCard label="Keep" value={suggestions.ai_snapshot.keep} accent="success" />
               <InfoCard label="Missing" value={suggestions.ai_snapshot.missing} accent="warning" />
               <InfoCard label="Gaps" value={suggestions.ai_snapshot.experience_gap} accent="danger" />

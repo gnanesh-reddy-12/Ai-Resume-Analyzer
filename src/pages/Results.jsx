@@ -376,7 +376,7 @@ export default function Results() {
                 {aiSuggestions.ai_snapshot && (
                   <div>
                     <p style={{ fontSize: 12, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>AI Assessment</p>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
                       {[
                         { label: "Keep", value: aiSuggestions.ai_snapshot.keep, accent: "success" },
                         { label: "Missing", value: aiSuggestions.ai_snapshot.missing, accent: "warning" },

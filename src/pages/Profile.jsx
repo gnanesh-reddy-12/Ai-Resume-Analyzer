@@ -286,7 +286,7 @@ export default function Profile() {
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={spring}
           style={{ marginBottom: 28 }}>
-          <h1 style={{ fontSize: "clamp(22px,4vw,30px)", fontWeight: 800, letterSpacing: "-0.8px", marginBottom: 4 }}>My Profile</h1>
+          <h1 style={{ fontSize: "clamp(22px,4vw,30px)", fontWeight: 800, letterSpacing: "-0.8px", marginBottom: 4 }}>{name ? name : "My Profile"}</h1>
           <p style={{ color: "var(--text-3)", fontSize: 14 }}>Manage your profile, resume and job applications</p>
         </motion.div>
 
@@ -644,7 +644,8 @@ export default function Profile() {
                 <p style={{ fontSize: 12.5, color: "var(--text-3)" }}>Add your first application above to start tracking</p>
               </div>
             ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+              <div className="custom-scrollbar" style={{ maxHeight: 440, overflowY: "auto", paddingRight: 8 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
                 {applications.map((app, idx) => (
                   <motion.div
                     key={app.id}
@@ -694,6 +695,7 @@ export default function Profile() {
                     >×</button>
                   </motion.div>
                 ))}
+                </div>
               </div>
             )}
           </div>
