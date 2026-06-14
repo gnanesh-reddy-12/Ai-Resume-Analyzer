@@ -7,85 +7,122 @@ import Navbar from "../components/Navbar"
 
 const spring = { type: "spring", stiffness: 400, damping: 30 }
 
-function ScoreRing({ score, size = 120, stroke = 8 }) {
+function Toast({ message, type, onClose }) {
+  useEffect(() => { const t = setTimeout(onClose, 3000); return () => clearTimeout(t) }, [onClose])
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 20, scale: 0.95 }}
+      transition={spring}
+      style={{
+        position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
+        zIndex: 500, background: "var(--text-1)", color: "#fff",
+        padding: "12px 20px", borderRadius: 99, fontSize: 13, fontWeight: 600,
+        display: "flex", alignItems: "center", gap: 8, boxShadow: "var(--shadow-lg)", whiteSpace: "nowrap"
+      }}
+    >
+      <div style={{ width: 8, height: 8, borderRadius: "50%", background: type === "success" ? "#4ade80" : "#f87171" }} />
+      {message}
+    </motion.div>
+  )
+}
+
+function ScoreRing({ score, size = 128, stroke = 9 }) {
   const r = (size - stroke) / 2
   const circ = 2 * Math.PI * r
   const offset = circ - (score / 100) * circ
   const color = score >= 75 ? "var(--success)" : score >= 55 ? "var(--warning)" : "var(--danger)"
-  
+  const label = score >= 75 ? "Strong" : score >= 55 ? "Fair" : "Needs Work"
+  const labelColor = score >= 75 ? "var(--success)" : score >= 55 ? "var(--warning)" : "var(--danger)"
   return (
-    <div style={{ position: "relative", width: size, height: size, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--border)" strokeWidth={stroke} />
-        <motion.circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke}
-          strokeLinecap="round" strokeDasharray={circ}
-          initial={{ strokeDashoffset: circ }} animate={{ strokeDashoffset: offset }}
-          transition={{ duration: 1.2, ease: "easeOut" }} />
-      </svg>
-      <div style={{ position: "absolute", textAlign: "center" }}>
-        <div style={{ fontSize: "var(--text-2xl)", fontWeight: 800, color: "var(--text-1)", letterSpacing: "-0.04em" }}>{score}</div>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+      <div style={{ position: "relative", width: size, height: size, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+          <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--bg)" strokeWidth={stroke}/>
+          <motion.circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke}
+            strokeLinecap="round" strokeDasharray={circ}
+            initial={{ strokeDashoffset: circ }} animate={{ strokeDashoffset: offset }}
+            transition={{ duration: 1.3, ease: "easeOut" }}/>
+        </svg>
+        <div style={{ position: "absolute", textAlign: "center" }}>
+          <div style={{ fontSize: 28, fontWeight: 800, color: "var(--text-1)", letterSpacing: "-1.5px", lineHeight: 1 }}>{score}</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-3)", marginTop: 3 }}>/ 100</div>
+        </div>
+      </div>
+      <span style={{
+        display: "inline-flex", alignItems: "center", gap: 5,
+        background: score >= 75 ? "var(--success-bg)" : score >= 55 ? "var(--warning-bg)" : "var(--danger-bg)",
+        color: labelColor,
+        border: `1px solid ${score >= 75 ? "var(--success-bd)" : score >= 55 ? "var(--warning-bd)" : "var(--danger-bd)"}`,
+        fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 99
+      }}>
+        <span style={{ width: 6, height: 6, borderRadius: "50%", background: labelColor }} />
+        {label}
+      </span>
+    </div>
+  )
+}
+
+function ScoreBar({ label, value, color }) {
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-2)" }}>{label}</span>
+        <span style={{ fontSize: 12, fontWeight: 800, color: "var(--text-1)" }}>{value}%</span>
+      </div>
+      <div style={{ height: 6, background: "var(--bg)", borderRadius: 99, overflow: "hidden" }}>
+        <motion.div
+          initial={{ width: 0 }} animate={{ width: `${value}%` }}
+          transition={{ duration: 0.9, ease: "easeOut" }}
+          style={{ height: "100%", background: color, borderRadius: 99 }}
+        />
       </div>
     </div>
   )
 }
 
-function InfoCard({ label, value, accent }) {
-  const bg = accent === "success" ? "var(--success-bg)" : accent === "warning" ? "var(--warning-bg)" : accent === "danger" ? "var(--danger-bg)" : "var(--bg)"
-  const bd = accent === "success" ? "var(--success-bd)" : accent === "warning" ? "var(--warning-bd)" : accent === "danger" ? "var(--danger-bd)" : "var(--border)"
-  return (
-    <div style={{ background: bg, border: `1px solid ${bd}`, borderRadius: "var(--r-md)", padding: 20, boxShadow: accent ? "none" : "0 0 0 1px var(--border) inset" }}>
-      <p style={{ fontSize: "var(--text-xs)", fontWeight: 700, color: accent === "success" ? "var(--success)" : accent === "warning" ? "var(--warning)" : accent === "danger" ? "var(--danger)" : "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>{label}</p>
-      <p style={{ fontSize: "var(--text-sm)", color: "var(--text-2)", lineHeight: 1.6, whiteSpace: "pre-line" }}>{value}</p>
-    </div>
-  )
-}
-
-function HighlightedJobDescription({ text, matched, missing, optional }) {
-  if (!text) return <p style={{ color: "var(--text-3)", fontSize: "var(--text-sm)" }}>No job description provided.</p>
+function HighlightedJD({ text, matched, missing, optional }) {
+  if (!text) return <p style={{ color: "var(--text-3)", fontSize: 13 }}>No job description provided.</p>
   const allKeywords = [
     ...(matched || []).map(k => ({ word: k, type: "matched" })),
     ...(missing || []).map(k => ({ word: k, type: "missing" })),
     ...(optional || []).map(k => ({ word: k, type: "optional" })),
   ].sort((a, b) => b.word.length - a.word.length)
-  
-  if (!allKeywords.length) return <p style={{ fontSize: "var(--text-sm)", color: "var(--text-2)", whiteSpace: "pre-wrap", lineHeight: 1.7 }}>{text}</p>
-  
+  if (!allKeywords.length) return <p style={{ fontSize: 13, color: "var(--text-2)", whiteSpace: "pre-wrap", lineHeight: 1.75 }}>{text}</p>
   const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
   const pattern = new RegExp(`\\b(${allKeywords.map(k => escape(k.word)).join("|")})\\b`, "gi")
   const parts = text.split(pattern)
-  
   return (
-    <div className="custom-scrollbar" style={{ fontSize: "var(--text-sm)", whiteSpace: "pre-wrap", lineHeight: 1.7, color: "var(--text-2)", background: "var(--bg)", padding: 20, borderRadius: "var(--r-md)", boxShadow: "0 0 0 1px var(--border) inset", height: 280, overflowY: "auto" }}>
+    <div className="custom-scrollbar" style={{ fontSize: 13, whiteSpace: "pre-wrap", lineHeight: 1.75, color: "var(--text-2)", background: "var(--bg)", padding: "18px 20px", borderRadius: "var(--r-md)", border: "1px solid var(--border)", height: 260, overflowY: "auto" }}>
       {parts.map((part, i) => {
         const kw = allKeywords.find(k => k.word.toLowerCase() === part.toLowerCase())
-        if (kw?.type === "matched") return <mark key={i} style={{ background: "transparent", borderBottom: "2px solid var(--success)", color: "var(--text-1)", padding: "0 2px", fontWeight: 600 }}>{part}</mark>
-        if (kw?.type === "missing") return <mark key={i} style={{ background: "transparent", borderBottom: "2px solid var(--danger)", color: "var(--text-1)", padding: "0 2px", fontWeight: 600 }}>{part}</mark>
-        if (kw?.type === "optional") return <mark key={i} style={{ background: "transparent", borderBottom: "2px solid var(--warning)", color: "var(--text-1)", padding: "0 2px", fontWeight: 600 }}>{part}</mark>
+        if (kw?.type === "matched") return <mark key={i} style={{ background: "transparent", borderBottom: "2px solid var(--success)", color: "var(--text-1)", padding: "0 1px", fontWeight: 600 }}>{part}</mark>
+        if (kw?.type === "missing") return <mark key={i} style={{ background: "transparent", borderBottom: "2px solid var(--danger)", color: "var(--text-1)", padding: "0 1px", fontWeight: 600 }}>{part}</mark>
+        if (kw?.type === "optional") return <mark key={i} style={{ background: "transparent", borderBottom: "2px solid var(--warning)", color: "var(--text-1)", padding: "0 1px", fontWeight: 600 }}>{part}</mark>
         return <span key={i}>{part}</span>
       })}
     </div>
   )
 }
 
-function Section({ title, subtitle, children, style }) {
+function SectionCard({ title, children, style }) {
   return (
-    <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={spring} className="ek-card" style={{ padding: "clamp(24px,5vw,32px)", ...style }}>
-      {(title || subtitle) && (
-        <div style={{ marginBottom: 24 }}>
-          {title && <h2 style={{ fontSize: "var(--text-lg)", marginBottom: subtitle ? 4 : 0 }}>{title}</h2>}
-          {subtitle && <p style={{ fontSize: "var(--text-xs)", color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 600 }}>{subtitle}</p>}
+    <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={spring}
+      style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-xl)", overflow: "hidden", ...style }}>
+      {title && (
+        <div style={{ padding: "16px 22px", borderBottom: "1px solid var(--border)" }}>
+          <h2 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-1)" }}>{title}</h2>
         </div>
       )}
-      {children}
-    </motion.section>
+      <div style={{ padding: "20px 22px" }}>{children}</div>
+    </motion.div>
   )
 }
 
 function Tag({ children, type }) {
-  const color = type === "success" ? "var(--success)" : type === "danger" ? "var(--danger)" : "var(--text-2)"
-  const bg = type === "success" ? "var(--success-bg)" : type === "danger" ? "var(--danger-bg)" : "var(--surface)"
   return (
-    <span style={{ display: "inline-flex", background: bg, color, fontSize: "var(--text-xs)", fontWeight: 500, padding: "4px 10px", borderRadius: 99, boxShadow: "0 0 0 1px var(--border) inset" }}>
+    <span className={`tag ${type === "success" ? "tag-green" : type === "danger" ? "tag-red" : "tag-blue"}`}>
       {children}
     </span>
   )
@@ -98,14 +135,11 @@ export default function Results() {
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [copied, setCopied] = useState(false)
-  const [jdOpen, setJdOpen] = useState(false)
   const [isAiLoading, setIsAiLoading] = useState(false)
   const [aiSuggestions, setAiSuggestions] = useState(null)
+  const [toast, setToast] = useState(null)
 
-  useEffect(() => {
-    document.body.style.overflow = jdOpen ? "hidden" : "unset"
-    return () => { document.body.style.overflow = "unset" }
-  }, [jdOpen])
+  const showToast = (text, type = "success") => setToast({ text, type })
 
   useEffect(() => {
     if (!resumeFile) return
@@ -115,12 +149,11 @@ export default function Results() {
     fd.append("job_description", jobDescription)
     fd.append("company_name", company.trim())
     fd.append("job_role", role.trim())
-    
     fetch(`${import.meta.env.VITE_BACKEND_URL}/analyze`, {
       method: "POST", headers: { Authorization: `Bearer ${token}` }, body: fd
     })
       .then(async r => { const d = await r.json(); if (!r.ok) throw new Error(d.detail || d.error || "Analysis failed."); return d })
-      .then(d => setData(d))
+      .then(d => { setData(d); showToast("Analysis saved to history.") })
       .catch(e => setError(e.message))
   }, [])
 
@@ -137,181 +170,250 @@ export default function Results() {
       })
       const result = await r.json()
       if (!r.ok) throw new Error(result.detail || result.error || "Failed to generate improvements.")
-      if (result.suggestions) setAiSuggestions(result.suggestions)
+      if (result.suggestions) { setAiSuggestions(result.suggestions); showToast("AI improvements ready.") }
     } catch (err) {
-      alert("Failed to connect to AI.")
-    } finally {
-      setIsAiLoading(false)
-    }
+      showToast("Failed to connect to AI.", "error")
+    } finally { setIsAiLoading(false) }
   }
 
   if (error) return (
     <div style={{ minHeight: "100vh" }}>
       <Navbar />
       <div className="container" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "80vh" }}>
-        <div style={{ textAlign: "center" }}>
-          <h2 style={{ fontSize: "var(--text-xl)", marginBottom: 8 }}>Analysis Failed</h2>
-          <p style={{ color: "var(--text-3)", fontSize: "var(--text-sm)", marginBottom: 24 }}>{error}</p>
-          <button onClick={() => navigate("/")} className="btn-ek btn-primary">Try Again</button>
+        <div style={{ textAlign: "center", maxWidth: 400 }}>
+          <div style={{ width: 52, height: 52, background: "var(--danger-bg)", borderRadius: "var(--r-lg)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: "var(--danger)" }}>
+            <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 8, letterSpacing: "-0.5px" }}>Analysis Failed</h2>
+          <p style={{ color: "var(--text-3)", fontSize: 14, marginBottom: 28, lineHeight: 1.6 }}>{error}</p>
+          <button onClick={() => navigate("/")} className="btn-accent" style={{ padding: "11px 28px" }}>Try Again</button>
         </div>
       </div>
     </div>
   )
 
   if (!data) return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ width: 32, height: 32, border: "2px solid var(--border-focus)", borderTopColor: "var(--text-1)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 16 }}>
+      <div style={{ width: 36, height: 36, border: "3px solid var(--border-2)", borderTopColor: "var(--accent)", borderRadius: "50%", animation: "spin 0.75s linear infinite" }} />
+      <p style={{ fontSize: 13, color: "var(--text-3)", fontWeight: 500 }}>Analyzing your resume…</p>
     </div>
   )
 
   const jobAnalysis = data.job_analysis || data.eligibility?.job_analysis
+  const atsBad = data.ats_score < 55
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
       <Navbar />
-      <div className="container" style={{ paddingTop: "clamp(40px, 8vw, 60px)", paddingBottom: 100 }}>
+      <AnimatePresence>{toast && <Toast message={toast.text} type={toast.type} onClose={() => setToast(null)} />}</AnimatePresence>
+
+      <div className="container" style={{ paddingTop: "clamp(32px,6vw,56px)", paddingBottom: 96 }}>
 
         {/* Page header */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={spring} style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 40 }} className="md:flex-row md:items-end md:justify-between">
-          <div>
-            <h1 style={{ fontSize: "var(--text-3xl)", marginBottom: 8 }}>
-              {company ? `Report: ${company}` : "ATS Report"}
-            </h1>
-            <p style={{ fontSize: "var(--text-base)", color: "var(--text-3)" }}>
-              {role ? `${role} · ` : ""}{resumeFile?.name}
-            </p>
-          </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button onClick={() => navigate("/history")} className="btn-ek btn-secondary">History</button>
-            <button onClick={handleAiImprove} className="btn-ek btn-primary">Improve Resume</button>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={spring}
+          style={{ marginBottom: 28 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+            <div>
+              <h1 style={{ fontSize: "clamp(22px,4vw,30px)", fontWeight: 800, letterSpacing: "-0.8px", marginBottom: 5 }}>
+                {company ? `${company} — ATS Report` : "ATS Report"}
+              </h1>
+              <p style={{ fontSize: 13.5, color: "var(--text-3)" }}>
+                {role && <>{role} · </>}{resumeFile?.name}
+              </p>
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button onClick={() => navigate("/history")} className="btn-secondary" style={{ padding: "10px 20px" }}>History</button>
+              <button onClick={() => { resetContext(); navigate("/") }} className="btn-secondary" style={{ padding: "10px 20px" }}>← New Analysis</button>
+            </div>
           </div>
         </motion.div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          
-          {/* Top Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            <Section style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 20 }}>
-              <p style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text-2)" }}>Match Score</p>
-              <ScoreRing score={data.ats_score || 0} />
-            </Section>
+        {/* Low score banner */}
+        {atsBad && (
+          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={spring}
+            style={{ background: "var(--danger-bg)", border: "1px solid var(--danger-bd)", borderRadius: "var(--r-xl)", padding: "16px 22px", marginBottom: 20, display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ width: 36, height: 36, background: "var(--danger)", borderRadius: "var(--r-sm)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <svg width="16" height="16" fill="none" stroke="#fff" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+            </div>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 700, color: "var(--danger)", marginBottom: 3 }}>Your resume is not ATS-ready for this role</p>
+              <p style={{ fontSize: 13, color: "var(--danger)", opacity: 0.8 }}>Score is below 55. Add the missing keywords and use "Improve Resume" to get AI rewrites.</p>
+            </div>
+          </motion.div>
+        )}
 
-            <Section title="Matched Keywords">
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                {data.matched_keywords?.map((kw, i) => <Tag key={i} type="success">{kw}</Tag>)}
-                {!data.matched_keywords?.length && <p style={{ color: "var(--text-3)", fontSize: "var(--text-sm)" }}>No matched keywords</p>}
-              </div>
-            </Section>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
-            <Section title="Missing Keywords">
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                {data.missing_keywords?.map((kw, i) => <Tag key={i} type="danger">{kw}</Tag>)}
-                {!data.missing_keywords?.length && <p style={{ color: "var(--text-3)", fontSize: "var(--text-sm)" }}>No missing keywords</p>}
+          {/* Score + breakdown */}
+          <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 16, alignItems: "stretch" }}>
+            <SectionCard style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 0, minWidth: 200 }}>
+              <div style={{ padding: "28px 32px", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>Match Score</p>
+                <ScoreRing score={data.ats_score || 0} />
               </div>
-            </Section>
+            </SectionCard>
+
+            <SectionCard title="Score Breakdown">
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                {data.keyword_score !== undefined && (
+                  <ScoreBar label="Keyword Match" value={data.keyword_score} color="var(--accent)" />
+                )}
+                {data.semantic_score !== undefined && (
+                  <ScoreBar label="Semantic Alignment" value={data.semantic_score} color="var(--success)" />
+                )}
+                <ScoreBar label="Overall ATS Score" value={data.ats_score || 0} color={data.ats_score >= 75 ? "var(--success)" : data.ats_score >= 55 ? "var(--warning)" : "var(--danger)"} />
+                {/* Improve CTA */}
+                <div style={{ borderTop: "1px solid var(--border)", paddingTop: 16, marginTop: 4 }}>
+                  <button
+                    onClick={handleAiImprove}
+                    disabled={isAiLoading}
+                    className="btn-accent"
+                    style={{ width: "100%", padding: "12px", fontSize: 14 }}
+                  >
+                    {isAiLoading ? (
+                      <><span style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.4)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.75s linear infinite" }} /> Analyzing…</>
+                    ) : "✦ Improve Resume with AI"}
+                  </button>
+                </div>
+              </div>
+            </SectionCard>
+          </div>
+
+          {/* Keywords */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <SectionCard title="Matched Keywords">
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+                {data.matched_keywords?.length
+                  ? data.matched_keywords.map((kw, i) => <Tag key={i} type="success">{kw}</Tag>)
+                  : <p style={{ color: "var(--text-3)", fontSize: 13 }}>No matched keywords</p>
+                }
+              </div>
+            </SectionCard>
+            <SectionCard title="Missing Keywords">
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+                {data.missing_keywords?.length
+                  ? data.missing_keywords.map((kw, i) => <Tag key={i} type="danger">{kw}</Tag>)
+                  : <p style={{ color: "var(--text-3)", fontSize: 13 }}>No missing keywords — great!</p>
+                }
+              </div>
+            </SectionCard>
           </div>
 
           {/* Warnings */}
           {data.warnings?.length > 0 && (
-            <div style={{ background: "var(--warning-bg)", border: "1px solid var(--warning-bd)", borderRadius: "var(--r-md)", padding: "20px 24px" }}>
-              <p style={{ fontSize: "var(--text-xs)", fontWeight: 700, color: "var(--warning)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>⚠️ Resume Formatting Warnings ({data.warnings.length})</p>
-              <ul style={{ paddingLeft: 16, display: "flex", flexDirection: "column", gap: 6 }}>
-                {data.warnings.map((w, i) => <li key={i} style={{ fontSize: "var(--text-sm)", color: "var(--text-2)", lineHeight: 1.5 }}>{w}</li>)}
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={spring}
+              style={{ background: "var(--warning-bg)", border: "1px solid var(--warning-bd)", borderRadius: "var(--r-xl)", padding: "18px 22px" }}>
+              <p style={{ fontSize: 11.5, fontWeight: 700, color: "var(--warning)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
+                ⚠ Formatting Warnings ({data.warnings.length})
+              </p>
+              <ul style={{ paddingLeft: 18, display: "flex", flexDirection: "column", gap: 7 }}>
+                {data.warnings.map((w, i) => <li key={i} style={{ fontSize: 13.5, color: "var(--warning)", lineHeight: 1.6 }}>{w}</li>)}
               </ul>
-            </div>
+            </motion.div>
           )}
 
           {/* JD Analysis */}
-          <Section title="Job Description Analysis">
+          <SectionCard title="Job Description Analysis">
             {jobAnalysis && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <div style={{ background: "var(--bg)", borderRadius: "var(--r-md)", padding: 20, boxShadow: "0 0 0 1px var(--border) inset" }}>
-                  <p style={{ fontSize: "var(--text-xs)", fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>Role Focus</p>
-                  <p style={{ fontSize: "var(--text-sm)", color: "var(--text-2)", lineHeight: 1.6 }}>{jobAnalysis.role_focus}</p>
-                </div>
-                <div style={{ background: "var(--bg)", borderRadius: "var(--r-md)", padding: 20, boxShadow: "0 0 0 1px var(--border) inset" }}>
-                  <p style={{ fontSize: "var(--text-xs)", fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>Recruiter Needs</p>
-                  <p style={{ fontSize: "var(--text-sm)", color: "var(--text-2)", lineHeight: 1.6 }}>{jobAnalysis.recruiter_needs}</p>
-                </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
+                {[
+                  { label: "Role Focus", value: jobAnalysis.role_focus },
+                  { label: "Recruiter Needs", value: jobAnalysis.recruiter_needs },
+                ].map(f => (
+                  <div key={f.label} style={{ background: "var(--bg)", borderRadius: "var(--r-md)", padding: "14px 16px", border: "1px solid var(--border)" }}>
+                    <p style={{ fontSize: 10.5, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 7 }}>{f.label}</p>
+                    <p style={{ fontSize: 13.5, color: "var(--text-2)", lineHeight: 1.65 }}>{f.value}</p>
+                  </div>
+                ))}
               </div>
             )}
-            
-            <div style={{ display: "flex", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
-              <span style={{ fontSize: "var(--text-xs)", fontWeight: 600, color: "var(--text-2)", display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ width: 12, height: 2, background: "var(--success)" }} /> Matched
-              </span>
-              <span style={{ fontSize: "var(--text-xs)", fontWeight: 600, color: "var(--text-2)", display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ width: 12, height: 2, background: "var(--danger)" }} /> Missing
-              </span>
-              <span style={{ fontSize: "var(--text-xs)", fontWeight: 600, color: "var(--text-2)", display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ width: 12, height: 2, background: "var(--warning)" }} /> Optional
-              </span>
+            <div style={{ display: "flex", gap: 18, marginBottom: 14, flexWrap: "wrap" }}>
+              {[
+                { label: "Matched", color: "var(--success)" },
+                { label: "Missing", color: "var(--danger)" },
+                { label: "Optional", color: "var(--warning)" },
+              ].map(l => (
+                <span key={l.label} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, fontWeight: 600, color: "var(--text-2)" }}>
+                  <span style={{ width: 14, height: 2.5, background: l.color, borderRadius: 99, display: "inline-block" }} />{l.label}
+                </span>
+              ))}
             </div>
-            
-            <HighlightedJobDescription text={jobDescription} matched={data.matched_keywords} missing={data.missing_keywords} optional={data.optional_keywords} />
-          </Section>
+            <HighlightedJD text={jobDescription} matched={data.matched_keywords} missing={data.missing_keywords} optional={data.optional_keywords} />
+          </SectionCard>
 
-          {/* AI loading */}
+          {/* AI Loading */}
           <AnimatePresence>
             {isAiLoading && (
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                style={{ background: "var(--surface)", boxShadow: "0 0 0 1px var(--border) inset", borderRadius: "var(--r-lg)", padding: 40, textAlign: "center" }}>
-                <div style={{ width: 24, height: 24, border: "2px solid var(--border-focus)", borderTopColor: "var(--text-1)", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 16px" }} />
-                <h2 style={{ fontSize: "var(--text-base)", marginBottom: 8 }}>Analyzing semantics...</h2>
-                <p style={{ fontSize: "var(--text-sm)", color: "var(--text-3)" }}>Generating summaries, bullet rewrites, and impact metrics.</p>
+                style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-xl)", padding: "44px 32px", textAlign: "center" }}>
+                <div style={{ width: 28, height: 28, border: "3px solid var(--border-2)", borderTopColor: "var(--accent)", borderRadius: "50%", animation: "spin 0.75s linear infinite", margin: "0 auto 20px" }} />
+                <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>Generating AI improvements…</h2>
+                <p style={{ fontSize: 13.5, color: "var(--text-3)" }}>Rewriting bullets, analyzing skills, generating summary.</p>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* AI Suggestions (History Layout Style) */}
+          {/* AI Suggestions */}
           {aiSuggestions && (
-            <Section title="AI Improvements" subtitle="Detailed feedback and rewrites">
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <SectionCard title="AI Improvements">
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
                 {aiSuggestions.summary && (
                   <div>
-                    <p style={{ fontSize: 13, fontWeight: 800, color: "var(--text-1)", letterSpacing: "-0.2px", marginBottom: 12 }}>Professional Summary</p>
-                    <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", padding: "14px 16px", fontSize: 13, color: "var(--text-1)", lineHeight: 1.7 }}>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Professional Summary</p>
+                    <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "16px 18px", fontSize: 14, color: "var(--text-1)", lineHeight: 1.75 }}>
                       {aiSuggestions.summary}
-                      <button onClick={() => { navigator.clipboard.writeText(aiSuggestions.summary); setCopied(true); setTimeout(() => setCopied(false), 2000) }} style={{ display: "block", marginTop: 12, fontSize: 11, color: "var(--accent)", background: "transparent", border: "none", cursor: "pointer", fontWeight: 600 }}>
-                        {copied ? "Copied!" : "Copy Summary"}
-                      </button>
                     </div>
+                    <button
+                      onClick={() => { navigator.clipboard.writeText(aiSuggestions.summary); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
+                      style={{ marginTop: 8, fontSize: 12, color: "var(--accent)", background: "transparent", border: "none", cursor: "pointer", fontWeight: 700, fontFamily: "inherit" }}
+                    >
+                      {copied ? "Copied!" : "Copy summary"}
+                    </button>
                   </div>
                 )}
 
                 {aiSuggestions.ai_snapshot && (
                   <div>
-                    <p style={{ fontSize: 13, fontWeight: 800, color: "var(--text-1)", letterSpacing: "-0.2px", marginBottom: 12 }}>AI Assessment Snapshot</p>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>AI Assessment</p>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-                      <InfoCard label="🌟 Keep" value={aiSuggestions.ai_snapshot.keep} accent="success" />
-                      <InfoCard label="⚠️ Missing" value={aiSuggestions.ai_snapshot.missing} accent="warning" />
-                      <InfoCard label="⏳ Gaps" value={aiSuggestions.ai_snapshot.experience_gap} accent="danger" />
+                      {[
+                        { label: "Keep", value: aiSuggestions.ai_snapshot.keep, accent: "success" },
+                        { label: "Missing", value: aiSuggestions.ai_snapshot.missing, accent: "warning" },
+                        { label: "Gaps", value: aiSuggestions.ai_snapshot.experience_gap, accent: "danger" },
+                      ].map(c => (
+                        <div key={c.label} style={{
+                          background: `var(--${c.accent}-bg)`, border: `1px solid var(--${c.accent}-bd)`,
+                          borderRadius: "var(--r-md)", padding: "13px 15px"
+                        }}>
+                          <p style={{ fontSize: 10.5, fontWeight: 700, color: `var(--${c.accent})`, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 }}>{c.label}</p>
+                          <p style={{ fontSize: 12.5, color: "var(--text-2)", lineHeight: 1.6 }}>{c.value}</p>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
 
                 {aiSuggestions.skills_recommendation && (
                   <div>
-                    <p style={{ fontSize: 13, fontWeight: 800, color: "var(--text-1)", letterSpacing: "-0.2px", marginBottom: 12 }}>Skills</p>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Skills</p>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                      <div style={{ background: "var(--success-bg)", border: "1px solid var(--success-bd)", borderRadius: "var(--r-sm)", padding: "12px 14px" }}>
-                        <p style={{ fontSize: 11, fontWeight: 700, color: "#166534", marginBottom: 8 }}>✓ Keep</p>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                          {aiSuggestions.skills_recommendation.keep_skills?.map((sk, i) => <span key={i} className="tag tag-green" style={{ fontSize: 10 }}>{sk}</span>)}
+                      <div style={{ background: "var(--success-bg)", border: "1px solid var(--success-bd)", borderRadius: "var(--r-md)", padding: "14px 16px" }}>
+                        <p style={{ fontSize: 11, fontWeight: 700, color: "var(--success)", marginBottom: 10 }}>✓ Keep</p>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                          {aiSuggestions.skills_recommendation.keep_skills?.map((sk, i) => <span key={i} className="tag tag-green" style={{ fontSize: 11 }}>{sk}</span>)}
                         </div>
                       </div>
-                      <div style={{ background: "var(--accent-soft)", border: "1px solid var(--accent-mid)", borderRadius: "var(--r-sm)", padding: "12px 14px" }}>
-                        <p style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", marginBottom: 8 }}>💡 Add</p>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                          {aiSuggestions.skills_recommendation.add_skills?.map((sk, i) => <span key={i} className="tag tag-blue" style={{ fontSize: 10 }}>{sk}</span>)}
+                      <div style={{ background: "var(--accent-soft)", border: "1px solid var(--accent-mid)", borderRadius: "var(--r-md)", padding: "14px 16px" }}>
+                        <p style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", marginBottom: 10 }}>+ Add</p>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                          {aiSuggestions.skills_recommendation.add_skills?.map((sk, i) => <span key={i} className="tag tag-blue" style={{ fontSize: 11 }}>{sk}</span>)}
                         </div>
                       </div>
                     </div>
                     {aiSuggestions.skills_recommendation.integration_advice && (
-                      <div style={{ marginTop: 10, background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", padding: "12px 14px", fontSize: 12, color: "var(--text-2)", lineHeight: 1.6 }}>
-                        <span style={{ fontWeight: 700, color: "var(--text-1)" }}>💡 Integration advice: </span>
+                      <div style={{ marginTop: 10, background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "13px 15px", fontSize: 13.5, color: "var(--text-2)", lineHeight: 1.65 }}>
+                        <span style={{ fontWeight: 700, color: "var(--text-1)" }}>Advice: </span>
                         {aiSuggestions.skills_recommendation.integration_advice}
                       </div>
                     )}
@@ -320,21 +422,21 @@ export default function Results() {
 
                 {aiSuggestions.sections?.length > 0 && (
                   <div>
-                    <p style={{ fontSize: 13, fontWeight: 800, color: "var(--text-1)", letterSpacing: "-0.2px", marginBottom: 12 }}>Bullet Rewrites</p>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}>Bullet Rewrites</p>
                     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                       {aiSuggestions.sections.map((sect, i) => (
                         <div key={i}>
-                          <p style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.06em", background: "var(--accent-soft)", border: "1px solid var(--accent-mid)", borderRadius: "var(--r-xs)", padding: "3px 10px", display: "inline-block", marginBottom: 10 }}>{sect.title}</p>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.06em", background: "var(--accent-soft)", border: "1px solid var(--accent-mid)", borderRadius: "var(--r-xs)", padding: "3px 10px", display: "inline-block", marginBottom: 10 }}>{sect.title}</span>
                           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                             {sect.bullets?.map((b, bi) => (
-                              <div key={bi} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", padding: "12px 14px" }}>
+                              <div key={bi} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "14px 16px" }}>
                                 <div>
-                                  <p style={{ fontSize: 10, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>Original</p>
-                                  <p style={{ fontSize: 12, color: "var(--text-3)", textDecoration: "line-through", lineHeight: 1.5 }}>{b.original}</p>
+                                  <p style={{ fontSize: 10, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>Original</p>
+                                  <p style={{ fontSize: 13, color: "var(--text-3)", textDecoration: "line-through", lineHeight: 1.6 }}>{b.original}</p>
                                 </div>
-                                <div style={{ borderLeft: "1px solid var(--border)", paddingLeft: 12 }}>
-                                  <p style={{ fontSize: 10, fontWeight: 700, color: "#16A34A", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>Rewrite</p>
-                                  <p style={{ fontSize: 12, color: "var(--text-1)", fontWeight: 500, lineHeight: 1.5 }}>{b.rewritten}</p>
+                                <div style={{ borderLeft: "1px solid var(--border)", paddingLeft: 14 }}>
+                                  <p style={{ fontSize: 10, fontWeight: 700, color: "var(--success)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>Rewrite</p>
+                                  <p style={{ fontSize: 13, color: "var(--text-1)", fontWeight: 500, lineHeight: 1.6 }}>{b.rewritten}</p>
                                 </div>
                               </div>
                             ))}
@@ -345,12 +447,8 @@ export default function Results() {
                   </div>
                 )}
               </div>
-            </Section>
+            </SectionCard>
           )}
-
-          <div style={{ display: "flex", justifyContent: "center", marginTop: 20 }}>
-            <button onClick={() => { resetContext(); navigate("/") }} className="btn-ek btn-secondary">← Analyze Another Job</button>
-          </div>
         </div>
       </div>
     </div>

@@ -6,7 +6,13 @@ import { useNavigate } from "react-router-dom"
 import Navbar from "../components/Navbar"
 
 const spring = { type: "spring", stiffness: 400, damping: 30 }
-const INDUSTRIES = ["Software Development","Product Management","Design & UX","Data Science & AI","Marketing & Growth","Business & Operations"]
+const INDUSTRIES = ["Software Development" , "Frontend Engineer", "Backend Engineer", "Full-Stack Engineer", "DevOps Engineer", "Google Cloud Engineer", 
+"Site Reliability Engineer (SRE)", "Forward Deployed Engineer (FDE)", "Mobile Engineer", "QA Automation Engineer", "Systems Engineer" , 
+"Product Manager", "Technical Product Manager (TPM)", "Growth Product Manager", "Data Product Manager", "Product Designer", "UX Researcher", 
+"UI/Visual Designer", "Interaction Designer", "UX Writer" , "Data Analyst", "Data Scientist", "Data Engineer", "AI Engineer", 
+"Machine Learning Engineer", "MLOps Engineer", "Research Scientist", "BI Developer" , "Product Marketing Manager", "Growth Marketer",
+"Developer Advocate", "SEO/SEM Specialist", "Content Strategist" , "SaaS Account Executive", "Sales Engineer", "Customer Success Manager", 
+"BizOps Manager", "IT Systems Administrator", "Chief of Staff"]
 const APP_STATUSES = ["Applied","Interview","Offer","Rejected"]
 
 const statusMeta = {

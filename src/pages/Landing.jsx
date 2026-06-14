@@ -249,7 +249,7 @@ export default function Landing() {
             </div>
           )}
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16, marginBottom: 24 }}>
             {/* Upload */}
             <div
               onDragOver={e => { e.preventDefault(); setDragOver(true) }}
