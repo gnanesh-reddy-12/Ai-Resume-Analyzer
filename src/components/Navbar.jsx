@@ -147,6 +147,26 @@ export default function Navbar() {
                   </AnimatePresence>
                 </div>
 
+              </>
+            ) : !isAuth ? (
+              <div className="hidden-mobile" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <button
+                  onClick={() => navigate("/login")}
+                  style={{
+                    background: "transparent", color: "var(--text-2)", fontSize: 13,
+                    border: "none", cursor: "pointer", padding: "8px 14px",
+                    borderRadius: 99, fontWeight: 500, fontFamily: "inherit"
+                  }}
+                >
+                  Sign in
+                </button>
+                <button className="btn-accent" onClick={() => navigate("/signup")} style={{ padding: "8px 18px", fontSize: 13 }}>
+                  Get Started
+                </button>
+              </div>
+            ) : null}
+
+            {!isAuth && (
                 <button
                   className="show-mobile"
                   onClick={() => setShowMobileMenu(v => !v)}
@@ -161,31 +181,14 @@ export default function Navbar() {
                     : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
                   }
                 </button>
-              </>
-            ) : !isAuth ? (
-              <>
-                <button
-                  onClick={() => navigate("/login")}
-                  style={{
-                    background: "transparent", color: "var(--text-2)", fontSize: 13,
-                    border: "none", cursor: "pointer", padding: "8px 14px",
-                    borderRadius: 99, fontWeight: 500, fontFamily: "inherit"
-                  }}
-                >
-                  Sign in
-                </button>
-                <button className="btn-accent" onClick={() => navigate("/signup")} style={{ padding: "8px 18px", fontSize: 13 }}>
-                  Get Started
-                </button>
-              </>
-            ) : null}
+            )}
           </div>
         </div>
       </motion.div>
 
       {/* Mobile Menu */}
       <AnimatePresence>
-        {showMobileMenu && user && (
+        {showMobileMenu && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -197,62 +200,79 @@ export default function Navbar() {
               border: "1px solid var(--border)", boxShadow: "var(--shadow-lg)", overflow: "hidden"
             }}
           >
-            <div style={{
-              padding: "16px 16px 12px", borderBottom: "1px solid var(--border)",
-              display: "flex", alignItems: "center", gap: 12
-            }}>
-              <div style={{
-                width: 38, height: 38, background: "var(--accent)", borderRadius: "50%",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                color: "#fff", fontWeight: 700, fontSize: 14, flexShrink: 0
-              }}>
-                {name.charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text-1)" }}>{name}</p>
-                <p style={{ fontSize: 12, color: "var(--text-3)" }}>{user.email}</p>
-              </div>
-            </div>
-            <div style={{ padding: 8, display: "flex", flexDirection: "column", gap: 2 }}>
-              {[
-                { label: "Analyze Resume", path: "/" },
-                { label: "History", path: "/history" },
-                { label: "Profile Settings", path: "/profile" },
-              ].map(item => (
-                <button
-                  key={item.path}
-                  onClick={() => navigate(item.path)}
-                  style={{
-                    width: "100%", padding: "12px 14px", borderRadius: "var(--r-md)",
-                    border: "none",
-                    background: path === item.path ? "var(--accent-soft)" : "transparent",
-                    cursor: "pointer", fontSize: 14,
-                    fontWeight: path === item.path ? 600 : 500,
-                    color: path === item.path ? "var(--accent)" : "var(--text-2)",
-                    textAlign: "left", display: "flex", alignItems: "center", gap: 10,
-                    fontFamily: "inherit"
+            {user ? (
+              <>
+                <div style={{
+                  padding: "16px 16px 12px", borderBottom: "1px solid var(--border)",
+                  display: "flex", alignItems: "center", gap: 12
+                }}>
+                  <div style={{
+                    width: 38, height: 38, background: "var(--accent)", borderRadius: "50%",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    color: "#fff", fontWeight: 700, fontSize: 14, flexShrink: 0
+                  }}>
+                    {name.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text-1)" }}>{name}</p>
+                    <p style={{ fontSize: 12, color: "var(--text-3)" }}>{user.email}</p>
+                  </div>
+                </div>
+                <div style={{ padding: 8, display: "flex", flexDirection: "column", gap: 2 }}>
+                  {[
+                    { label: "Analyze Resume", path: "/" },
+                    { label: "History", path: "/history" },
+                    { label: "Profile Settings", path: "/profile" },
+                  ].map(l => (
+                    <button
+                      key={l.path}
+                      onClick={() => { navigate(l.path); setShowMobileMenu(false) }}
+                      style={{
+                        padding: "12px 16px", background: path === l.path ? "var(--bg)" : "transparent",
+                        border: "none", borderRadius: "var(--r-lg)", textAlign: "left",
+                        fontSize: 14, fontWeight: path === l.path ? 700 : 500,
+                        color: path === l.path ? "var(--accent)" : "var(--text-1)",
+                        cursor: "pointer", fontFamily: "inherit"
+                      }}
+                    >
+                      {l.label}
+                    </button>
+                  ))}
+                  <div style={{ height: 1, background: "var(--border)", margin: "4px 8px" }} />
+                  <button
+                    onClick={() => { logout(); navigate("/landing") }}
+                    style={{
+                      padding: "12px 16px", background: "transparent",
+                      border: "none", borderRadius: "var(--r-lg)", textAlign: "left",
+                      fontSize: 14, fontWeight: 600, color: "var(--danger)",
+                      cursor: "pointer", fontFamily: "inherit"
+                    }}
+                  >
+                    Log out
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div style={{ padding: "20px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+                <button 
+                  onClick={() => { navigate("/login"); setShowMobileMenu(false) }} 
+                  style={{ 
+                    padding: "12px 16px", background: "var(--surface)", border: "1px solid var(--border-2)", 
+                    borderRadius: "var(--r-lg)", color: "var(--text-1)", fontWeight: 600, fontSize: 14, 
+                    cursor: "pointer", width: "100%", fontFamily: "inherit" 
                   }}
                 >
-                  {item.label}
-                  {path === item.path && (
-                    <span style={{ marginLeft: "auto", width: 6, height: 6, borderRadius: "50%", background: "var(--accent)" }} />
-                  )}
+                  Sign In
                 </button>
-              ))}
-            </div>
-            <div style={{ padding: 8, borderTop: "1px solid var(--border)" }}>
-              <button
-                onClick={() => { logout(); navigate("/landing") }}
-                style={{
-                  width: "100%", padding: "12px 14px", borderRadius: "var(--r-md)",
-                  border: "none", background: "var(--danger-bg)", cursor: "pointer",
-                  fontSize: 14, fontWeight: 600, color: "var(--danger)", textAlign: "left",
-                  fontFamily: "inherit"
-                }}
-              >
-                Log out
-              </button>
-            </div>
+                <button 
+                  className="btn-accent" 
+                  onClick={() => { navigate("/signup"); setShowMobileMenu(false) }} 
+                  style={{ padding: "12px 16px", fontSize: 14, width: "100%" }}
+                >
+                  Get Started
+                </button>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
