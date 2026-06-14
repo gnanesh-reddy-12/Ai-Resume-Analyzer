@@ -75,7 +75,7 @@ function ScoreSparkline({ scores }) {
           {trend > 0 ? "↑" : "↓"} {Math.abs(trend)}%
         </span>
       )}
-    </div>
+    </div>  
   )
 }
 
@@ -104,7 +104,7 @@ export default function Profile() {
   const [stats, setStats] = useState(null)
   const [scoreHistory, setScoreHistory] = useState([])
   const [applications, setApplications] = useState([])
-  const [newApp, setNewApp] = useState({ company: "", role: "", status: "Applied" })
+  const [newApp, setNewApp] = useState({ company: "", role: "", status: "Applied", job_id: "" })
   const [addingApp, setAddingApp] = useState(false)
 
   const [toast, setToast] = useState(null)
@@ -228,9 +228,11 @@ export default function Profile() {
   const addApplication = async () => {
     if (!newApp.company.trim() || !newApp.role.trim()) return
     setAddingApp(true)
-    const { data, error } = await supabase.from("applications").insert({ ...newApp, user_id: user.id }).select().single()
+    const payload = { company: newApp.company, role: newApp.role, status: newApp.status, user_id: user.id }
+    if (newApp.job_id.trim()) payload.job_id = newApp.job_id.trim()
+    const { data, error } = await supabase.from("applications").insert(payload).select().single()
     if (!error && data) setApplications(p => [data, ...p])
-    setNewApp({ company: "", role: "", status: "Applied" })
+    setNewApp({ company: "", role: "", status: "Applied", job_id: "" })
     setAddingApp(false)
     showToast("Application added.")
   }
@@ -615,7 +617,7 @@ export default function Profile() {
           </div>
           <div style={{ padding: "18px 22px" }}>
             {/* Add form */}
-            <div className="app-tracker-form" style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto auto", gap: 10, marginBottom: 20, alignItems: "end" }}>
+            <div className="app-tracker-form" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto auto", gap: 10, marginBottom: 20, alignItems: "end" }}>
               <div>
                 <label style={{ display: "block", fontSize: 10.5, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Company</label>
                 <input className="input-ek" value={newApp.company} onChange={e => setNewApp(p => ({ ...p, company: e.target.value }))} placeholder="Google" />
@@ -623,6 +625,10 @@ export default function Profile() {
               <div>
                 <label style={{ display: "block", fontSize: 10.5, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Role</label>
                 <input className="input-ek" value={newApp.role} onChange={e => setNewApp(p => ({ ...p, role: e.target.value }))} placeholder="Software Engineer" />
+              </div>
+              <div>
+                <label style={{ display: "block", fontSize: 10.5, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Job ID</label>
+                <input className="input-ek" value={newApp.job_id} onChange={e => setNewApp(p => ({ ...p, job_id: e.target.value }))} placeholder="REQ-123 (Opt)" />
               </div>
               <div>
                 <label style={{ display: "block", fontSize: 10.5, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Status</label>
@@ -645,7 +651,7 @@ export default function Profile() {
               </div>
             ) : (
               <div className="custom-scrollbar" style={{ maxHeight: 440, overflowY: "auto", paddingRight: 8 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))", gap: 16 }}>
                 {applications.map((app, idx) => (
                   <motion.div
                     key={app.id}
@@ -683,9 +689,11 @@ export default function Profile() {
                       Applied on {new Date(app.applied_date || app.created_at).toLocaleDateString("en-US", { year: 'numeric', month: 'short', day: 'numeric' })}
                     </div>
                     
-                    <div style={{ borderTop: "1px solid var(--border-2)", paddingTop: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>Job ID: #{app.id.split('-')[0].toUpperCase()}</span>
-                    </div>
+                    {app.job_id && (
+                      <div style={{ borderTop: "1px solid var(--border-2)", paddingTop: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>Job ID: {app.job_id}</span>
+                      </div>
+                    )}
 
                     <button
                       onClick={() => deleteApp(app.id)}
@@ -708,7 +716,7 @@ export default function Profile() {
             <h2 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-1)" }}>Account</h2>
           </div>
           <div style={{ padding: "18px 22px" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: 14 }}>
               {/* Block 1: Security */}
               <div style={{ padding: "20px", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", background: "var(--bg)", transition: "transform 0.2s, box-shadow 0.2s" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
