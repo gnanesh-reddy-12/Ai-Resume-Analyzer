@@ -58,11 +58,6 @@ export default function Privacy() {
               <p>We will only retain your personal data for as long as reasonably necessary to fulfill the purposes we collected it for, including for the purposes of satisfying any legal, regulatory, tax, accounting or reporting requirements. You have full control over your data. You can permanently delete your account, including all associated analysis history and document data, directly from the Account Settings section of your Profile page at any time.</p>
             </section>
 
-            <section>
-              <h2 style={{ fontSize: "var(--text-lg)", fontWeight: 700, color: "var(--text-1)", marginBottom: 12 }}>6. Contact Us</h2>
-              <p>If you have any questions about this Privacy Policy or our privacy practices, please contact us at:</p>
-              <p style={{ marginTop: 8, fontWeight: 600, color: "var(--text-1)" }}>reddygnanesh1205@gmail.com</p>
-            </section>
           </div>
         </motion.div>
       </div>

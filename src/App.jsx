@@ -16,7 +16,6 @@ import History from "./pages/History"
 import Profile from "./pages/Profile"
 import Privacy from "./pages/Privacy"
 import Terms from "./pages/Terms"
-import Support from "./pages/Support"
 import About from "./pages/About"
 
 function ProtectedRoute({ children }) {
@@ -45,7 +44,6 @@ function App() {
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
-            <Route path="/support" element={<Support />} />
             <Route path="/about" element={<About />} />
             <Route path="*" element={<Navigate to="/landing" />} />
           </Routes>

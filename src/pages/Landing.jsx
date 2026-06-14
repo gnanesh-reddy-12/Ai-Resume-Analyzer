@@ -469,7 +469,6 @@ export default function Landing() {
             <Link to="/about" style={{ cursor: "pointer", textDecoration: "none", color: "var(--text-3)", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-1)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}>About Us</Link>
             <Link to="/privacy" style={{ cursor: "pointer", textDecoration: "none", color: "var(--text-3)", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-1)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}>Privacy Policy</Link>
             <Link to="/terms" style={{ cursor: "pointer", textDecoration: "none", color: "var(--text-3)", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-1)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}>Terms of Service</Link>
-            <Link to="/support" style={{ cursor: "pointer", textDecoration: "none", color: "var(--text-3)", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-1)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}>Contact Support</Link>
           </div>
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, borderTop: "1px solid var(--border)", paddingTop: 24 }}>

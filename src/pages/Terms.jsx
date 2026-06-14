@@ -52,11 +52,6 @@ export default function Terms() {
               <p>In no event will we or our directors, employees, or agents be liable to you or any third party for any direct, indirect, consequential, exemplary, incidental, special, or punitive damages, including lost profit, lost revenue, loss of data, or other damages arising from your use of the site, even if we have been advised of the possibility of such damages.</p>
             </section>
 
-            <section>
-              <h2 style={{ fontSize: "var(--text-lg)", fontWeight: 700, color: "var(--text-1)", marginBottom: 12 }}>6. Contact Us</h2>
-              <p>In order to resolve a complaint regarding the Site or to receive further information regarding use of the Site, please contact us at:</p>
-              <p style={{ marginTop: 8, fontWeight: 600, color: "var(--text-1)" }}>reddygnanesh1205@gmail.com</p>
-            </section>
           </div>
         </motion.div>
       </div>
