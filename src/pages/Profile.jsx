@@ -636,7 +636,7 @@ export default function Profile() {
               </div>
             ) : (
               <div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div className="custom-scrollbar" style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 420, overflowY: "auto", paddingRight: 4 }}>
                 {applications.map((app, idx) => (
                   <motion.div
                     key={app.id}
@@ -751,7 +751,7 @@ export default function Profile() {
             <div style={{ display: "flex", flexDirection: "column" }}>
               
               {/* Row 1: Security */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "16px 0", borderBottom: "1px solid var(--border-2)" }}>
+              <div className="account-setting-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "16px 0", borderBottom: "1px solid var(--border-2)" }}>
                 <div>
                   <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-1)", marginBottom: 4 }}>Password & Security</h3>
                   <p style={{ fontSize: 12.5, color: "var(--text-3)", lineHeight: 1.4 }}>Update your password to keep your account secure.</p>
@@ -760,7 +760,7 @@ export default function Profile() {
               </div>
 
               {/* Row 2: Session */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "16px 0", borderBottom: "1px solid var(--border-2)" }}>
+              <div className="account-setting-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "16px 0", borderBottom: "1px solid var(--border-2)" }}>
                 <div>
                   <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-1)", marginBottom: 4 }}>Active Session</h3>
                   <p style={{ fontSize: 12.5, color: "var(--text-3)", lineHeight: 1.4 }}>Log out of this device. You will need to sign in again.</p>
@@ -770,7 +770,7 @@ export default function Profile() {
 
               {/* Row 3: Danger Zone */}
               <div style={{ padding: "16px 0" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+                <div className="account-setting-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
                   <div>
                     <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--danger)", marginBottom: 4 }}>Danger Zone</h3>
                     <p style={{ fontSize: 12.5, color: "var(--danger)", opacity: 0.8, lineHeight: 1.4 }}>Permanently delete your account and all data.</p>

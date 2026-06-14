@@ -373,6 +373,11 @@ button { font-family: inherit; }
     color: var(--text-2) !important;
     white-space: normal !important;
   }
+  .account-setting-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
   .app-company-col {
     order: 2;
     width: 100%;
