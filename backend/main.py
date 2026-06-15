@@ -42,6 +42,11 @@ app.add_middleware(
 )
 
 
+@app.get("/")
+async def root():
+    return {"status": "ok", "message": "ResumeAI API is running"}
+
+
 # Ensure CORS headers are present even on unhandled 500 errors
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
