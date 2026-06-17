@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { ResumeContext } from "../context/ResumeContext"
+import KofiButton from "../components/KofiButton"
 
 const ease = [0.16, 1, 0.3, 1]
 
@@ -177,6 +178,25 @@ export default function GuestResults() {
             <button className="btn-primary" style={{ padding: "12px 28px" }} onClick={() => navigate("/signup")}>Sign Up Free →</button>
             <button className="btn-ghost" style={{ padding: "12px 22px" }} onClick={() => navigate("/login")}>Sign In</button>
           </div>
+        </motion.div>
+
+        {/* Support Developer Card */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+          style={{ 
+            background: "linear-gradient(135deg, rgba(255, 94, 91, 0.08) 0%, rgba(255, 94, 91, 0.02) 100%)", 
+            border: "1px solid rgba(255, 94, 91, 0.2)", 
+            borderRadius: "var(--r-xl)", 
+            padding: "clamp(24px, 5vw, 36px)", 
+            textAlign: "center",
+            marginTop: 20
+          }}>
+          <h2 style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.5px", marginBottom: 8, color: "var(--text-1)" }}>
+            Did this help you? ☕
+          </h2>
+          <p style={{ color: "var(--text-2)", fontSize: 14, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 24px" }}>
+            I built this tool entirely for free to help job seekers beat the ATS. If it helped you out, consider dropping a tip to help keep the servers running!
+          </p>
+          <KofiButton style={{ padding: "12px 28px", fontSize: 15 }} />
         </motion.div>
       </div>
 
