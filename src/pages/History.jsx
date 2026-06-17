@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import CompanyLogo from "../components/CompanyLogo"
 import { useAuth } from "../context/useAuth"
 import Navbar from "../components/Navbar"
+import { supabase } from "../supabase"
 
 const ease = [0.22, 1, 0.36, 1]
 
@@ -52,14 +53,18 @@ export default function History() {
   const [activeMenuId, setActiveMenuId] = useState(null)
 
   useEffect(() => {
-    if (!token) { navigate("/login"); return }
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/history`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(r => r.json())
-      .then(d => setAnalyses(d.analyses || []))
-      .finally(() => setLoading(false))
-  }, [token, navigate])
+    if (!user) { navigate("/login"); return }
+    supabase
+      .from("analyses")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(50)
+      .then(({ data, error }) => {
+        if (!error && data) setAnalyses(data)
+        setLoading(false)
+      })
+  }, [user, navigate])
 
   useEffect(() => {
     const handleClick = (e) => {
