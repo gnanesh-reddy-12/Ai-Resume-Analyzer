@@ -43,7 +43,7 @@ function InfoCard({ label, value, accent }) {
 }
 
 export default function History() {
-  const { token } = useAuth()
+  const { token, user } = useAuth()
   const navigate = useNavigate()
   const [analyses, setAnalyses] = useState([])
   const [loading, setLoading] = useState(true)
