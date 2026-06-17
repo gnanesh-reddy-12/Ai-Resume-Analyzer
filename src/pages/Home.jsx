@@ -7,6 +7,7 @@ import { motion } from "framer-motion"
 import CompanyLogo from "../components/CompanyLogo"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "../supabase"
+import { KofiFloating } from "../components/KofiButton"
 
 const spring = { type: "spring", stiffness: 400, damping: 30 }
 
@@ -216,6 +217,7 @@ export default function Home() {
           </div>
         </motion.div>
       </div>
+      <KofiFloating />
     </>
   )
 }

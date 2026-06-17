@@ -4,6 +4,7 @@ import { useContext, useState } from "react"
 import { ResumeContext } from "../context/ResumeContext"
 import Navbar from "../components/Navbar"
 import Footer from "../components/Footer"
+import { KofiFloating } from "../components/KofiButton"
 
 const ease = [0.22, 1, 0.36, 1]
 
@@ -454,6 +455,7 @@ export default function Landing() {
       </section>
 
       <Footer />
+      <KofiFloating />
 
       {/* JD Modal */}
       <AnimatePresence>
