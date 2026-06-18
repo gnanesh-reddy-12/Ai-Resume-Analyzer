@@ -136,6 +136,7 @@ export default function Results() {
   const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
+  const [retryKey, setRetryKey] = useState(0)
   const [copied, setCopied] = useState(false)
   const [isAiLoading, setIsAiLoading] = useState(false)
   const [aiSuggestions, setAiSuggestions] = useState(null)
@@ -144,7 +145,7 @@ export default function Results() {
   const showToast = (text, type = "success") => setToast({ text, type })
 
   useEffect(() => {
-    if (!resumeFile) return
+    if (!resumeFile) { navigate("/"); return }
     if (!token) { navigate("/login"); return }
     const fd = new FormData()
     fd.append("resume", resumeFile)
@@ -156,8 +157,14 @@ export default function Results() {
     })
       .then(async r => { const d = await r.json(); if (!r.ok) throw new Error(d.detail || d.error || "Analysis failed."); return d })
       .then(d => { setData(d); showToast("Analysis saved to history.") })
-      .catch(e => setError(e.message))
-  }, [])
+      .catch(e => {
+        const isNetworkError = e.message === "Failed to fetch"
+        setError(isNetworkError
+          ? "The AI backend is starting up (Render free tier cold start). Please wait 30–60 seconds and try again."
+          : e.message
+        )
+      })
+  }, [retryKey])
 
   const handleAiImprove = async () => {
     if (!resumeFile || !jobDescription) return
@@ -182,13 +189,16 @@ export default function Results() {
     <div style={{ minHeight: "100vh" }}>
       <Navbar />
       <div className="container" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "80vh" }}>
-        <div style={{ textAlign: "center", maxWidth: 400 }}>
+        <div style={{ textAlign: "center", maxWidth: 440 }}>
           <div style={{ width: 52, height: 52, background: "var(--danger-bg)", borderRadius: "var(--r-lg)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: "var(--danger)" }}>
             <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           </div>
           <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 8, letterSpacing: "-0.5px" }}>Analysis Failed</h2>
           <p style={{ color: "var(--text-3)", fontSize: 14, marginBottom: 28, lineHeight: 1.6 }}>{error}</p>
-          <button onClick={() => navigate("/")} className="btn-accent" style={{ padding: "11px 28px" }}>Try Again</button>
+          <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+            <button onClick={() => { setError(null); setRetryKey(k => k + 1) }} className="btn-accent" style={{ padding: "11px 28px" }}>↺ Retry</button>
+            <button onClick={() => { resetContext(); navigate("/") }} className="btn-secondary" style={{ padding: "11px 24px" }}>← New Analysis</button>
+          </div>
         </div>
       </div>
     </div>
