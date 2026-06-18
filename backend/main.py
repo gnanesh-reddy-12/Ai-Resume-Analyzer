@@ -433,7 +433,7 @@ async def improve_resume(
     cleaned_resume = clean_text(resume_text)
     cleaned_jd = clean_text(job_description)
 
-    prompt = f"""You are a senior resume coach. A recruiter spends 5 seconds on a resume.
+    prompt = f"""You are a brutally honest senior resume coach. Recruiters spend 6 seconds on a resume. Every word must earn its place.
 
 RESUME:
 {cleaned_resume}
@@ -442,58 +442,59 @@ JOB DESCRIPTION:
 {cleaned_jd}
 
 TASK 1 — PROFESSIONAL SUMMARY
-Write a 2-3 sentence professional summary.
+Write exactly 3 sentences. No more, no less.
 Rules:
-- Must be written in IMPLICIT FIRST PERSON or standard resume summary style (e.g., "Software Engineer with 5+ years of experience..." or "Experienced developer specialized in...").
-- DO NOT use second person pronouns ("you", "your").
-- DO NOT use third person pronouns referring to the candidate ("he", "she", "they", "the candidate").
-- NO BUZZWORDS: do not use words like "passionate", "results-driven", "dynamic", "detail-oriented", "seeking".
-- Focus purely on hard skills, years of experience, a major achievement, and value added.
+- Start with who they are: title + years of experience + domain.
+- Second sentence: their strongest 2-3 technical skills that directly match this JD.
+- Third sentence: one specific achievement or the value they bring to this exact role.
+- Write in implicit first person resume style: "Software Engineer with 4 years..." not "I am..." not "He is..."
+- ZERO buzzwords. Banned words: passionate, results-driven, dynamic, detail-oriented, seeking, synergize, leverage, motivated, hardworking, team player, self-starter.
+- Every word must be factual and specific to this person's resume and this JD.
 
-TASK 2 — AI SNAPSHOT & GRADUATION ASSESSMENT
-Identify the Bachelor's degree passing-out (graduation) year from the resume. Provide a clear, brief assessment covering:
-- What to keep: What parts of the current resume are strong and align well.
-- What is missing: What critical skills/keywords or details are absent.
-- Experience & Graduation Gaps: Analyze the Bachelor's graduation year. If they are a student or recent grad, calculate their student experience (internships, college projects, coding activities before graduation) and show how it counts toward their experience. Note any employment gaps.
+TASK 2 — AI SNAPSHOT
+Analyze the resume against the JD. Be specific and direct — no generic advice.
+- keep: What is already strong and directly matches the JD. List specific skills, experiences, or achievements worth keeping.
+- missing: What critical JD requirements are completely absent from this resume. Be specific — name the exact skills, tools, or experience types missing.
+- experience_gap: Find the Bachelor's graduation year. Calculate total experience. If student or recent grad, count internships and projects as experience. Flag any employment gaps longer than 6 months. State clearly if this person is qualified, underqualified, or overqualified for this role.
 
-TASK 3 — SKILLS RECOMMENDER & INTEGRATION
-Recommend:
-- Skills to keep: Key skills already in their resume matching the JD.
-- Skills to add: Crucial skills required by the JD that are missing.
-- Contextual integration advice: Explicit guidance on how to integrate the missing/added skills inside their project descriptions or experience bullets so that they demonstrate hands-on usage rather than just listing them.
+TASK 3 — SKILLS ADVICE
+- keep_skills: Skills already in resume that match JD keywords. List only relevant ones.
+- add_skills: Skills required by JD that are missing from resume. List only what actually matters for this role.
+- integration_advice: Tell them exactly WHERE and HOW to add missing skills — which project or job description to update, what sentence to write, how to show hands-on usage not just listing. Be specific and direct. No filler.
 
-TASK 4 — BULLET POINT SUGGESTIONS BY SECTION
-Identify all major work experiences and projects in the resume. Group them by section/job title/project name.
-Rules for both work experiences and projects:
-- You MUST create a section block in the JSON list for EVERY SINGLE work experience (job title/company) and EVERY SINGLE project section listed in the resume. Do not omit, skip, or consolidate any work experience or project.
-- Correct all spelling, formatting, and grammar mistakes.
-- DO NOT use corporate buzzwords (e.g., "synergize", "leverage", "utilize", "spearhead", "orchestrate") or overly complex, verbose language. Keep the words simple, clear, and direct.
-- If a bullet point is already strong, clear, and contains precise metrics (e.g., 'Optimized response time by 30%'), do not change it or suggest only a minor grammar polish.
-- If it is weak, vague, or lacks metrics, rewrite it using the action-impact-metric format (Action Verb + Accomplishment + Precise Metric + Tech Used).
-- Ensure the metrics are precise and realistic, and the rewritten bullets are copy-paste ready and extremely clear for a recruiter's 5-second scan.
-- DO NOT mention the words 'Google XYZ formula', 'XYZ formula', or 'XYZ' anywhere in your rewritten bullet points or text.
-- Bullet Limits:
-  - For work experience sections: limit to max 2 rewritten bullets.
-  - For project sections: limit to max 3 suggested/rewritten bullets.
+TASK 4 — BULLET POINT REWRITE
+Rewrite every bullet point from every job and project using the Accomplished [X] as measured by [Y] by doing [Z] formula — known as XYZ formula by Google recruiters. This means: strong action verb + specific accomplishment + measurable metric + method or technology used.
 
-Return ONLY valid JSON (no markdown, no backticks):
+Rules:
+- Cover EVERY job title and EVERY project. Do not skip or merge any.
+- If a bullet already has a strong action verb + specific metric + technology, keep it as-is or fix grammar only.
+- If weak, vague, or missing metrics — rewrite it fully using XYZ formula.
+- Use realistic metrics based on context clues in the resume. Never fabricate absurd numbers.
+- Include JD keywords naturally inside rewritten bullets where they fit.
+- ZERO buzzwords. Banned: spearhead, leverage, utilize, synergize, orchestrate, dynamic, passionate.
+- Keep language simple and direct. A recruiter must understand it in 3 seconds.
+- Work experience: max 2 rewritten bullets per role.
+- Projects: max 3 rewritten bullets per project.
+- Do NOT mention "XYZ formula", "Google formula", or "XYZ" anywhere in output.
+
+Return ONLY valid JSON. No markdown, no backticks, no explanation:
 {{
-  "summary": "<the professional summary>",
+  "summary": "<3 sentence summary>",
   "ai_snapshot": {{
-    "keep": "<brief bullet points or paragraph of what is strong>",
-    "missing": "<brief bullet points or paragraph of what is missing>",
-    "experience_gap": "<brief assessment of graduation year, student experience vs post-grad experience, and employment history gaps>"
+    "keep": "<specific strengths that match this JD>",
+    "missing": "<specific gaps against this JD>",
+    "experience_gap": "<graduation year, experience calculation, gap analysis, qualification verdict>"
   }},
   "skills_recommendation": {{
-    "keep_skills": ["<skill 1>", "<skill 2>"],
-    "add_skills": ["<skill 1>", "<skill 2>"],
-    "integration_advice": "<detailed advice on how they should write about and demonstrate these skills contextually in their projects and experiences>"
+    "keep_skills": ["<skill>"],
+    "add_skills": ["<skill>"],
+    "integration_advice": "<specific actionable advice on where and how to add missing skills>"
   }},
   "sections": [
     {{
       "title": "<Job Title at Company or Project Name>",
       "bullets": [
-        {{"original": "<original bullet or 'N/A for new suggestions'>", "rewritten": "<suggested improved bullet point>"}}
+        {{"original": "<original bullet>", "rewritten": "<XYZ formula rewritten bullet>"}}
       ]
     }}
   ]
