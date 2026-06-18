@@ -11,14 +11,10 @@ import io
 import re
 import json
 from difflib import SequenceMatcher
-from datetime import datetime
-from pydantic import BaseModel
 
 load_dotenv()
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-# Use service_role key on production (bypasses RLS safely — backend is trusted).
-# Falls back to anon key for local development.
 supabase_key = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_ANON_KEY")
 supabase: Client = create_client(os.getenv("SUPABASE_URL"), supabase_key)
 security = HTTPBearer()
@@ -51,7 +47,6 @@ async def root_head():
     return JSONResponse(content={}, status_code=200)
 
 
-# Ensure CORS headers are present even on unhandled 500 errors
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     origin = request.headers.get("origin", "")
@@ -61,7 +56,7 @@ async def global_exception_handler(request: Request, exc: Exception):
         headers["Access-Control-Allow-Credentials"] = "true"
     return JSONResponse(
         status_code=500,
-        content={"detail": f"Internal server error: {str(exc)}"},
+        content={"detail": "Internal server error"},
         headers=headers,
     )
 
@@ -72,8 +67,10 @@ async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(secur
         if not response or not response.user:
             raise HTTPException(status_code=401, detail="Invalid token")
         return {"user_id": response.user.id, "email": response.user.email}
-    except Exception as e:
-        raise HTTPException(status_code=401, detail=f"Authentication failed: {str(e)}")
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=401, detail="Authentication failed")
 
 
 @app.get("/history")
@@ -97,16 +94,16 @@ async def delete_analysis(analysis_id: str, user=Depends(verify_token)):
     return {"message": "Deleted"}
 
 
-def extract_text_from_pdf(contents: bytes) -> str:
-    text = ""
-    with pdfplumber.open(io.BytesIO(contents)) as pdf:
-        for page in pdf.pages:
-            text += page.extract_text() or ""
-            text += "\n"
-    text = re.sub(r'([a-z])([A-Z])', r'\1 \2', text)
+def clean_text(text: str) -> str:
     text = re.sub(r'[ \t]+', ' ', text)
-    text = re.sub(r'\n+', '\n', text)
-    return text.strip()
+    return re.sub(r'\n+', '\n', text).strip()
+
+
+def extract_text_from_pdf(contents: bytes) -> str:
+    with pdfplumber.open(io.BytesIO(contents)) as pdf:
+        text = "\n".join(page.extract_text() or "" for page in pdf.pages)
+    text = re.sub(r'([a-z])([A-Z])', r'\1 \2', text)
+    return clean_text(text)
 
 
 def detect_pdf_warnings(contents: bytes) -> list:
@@ -120,13 +117,12 @@ def detect_pdf_warnings(contents: bytes) -> list:
             words = page.extract_words()
             if words:
                 x_positions = [w["x0"] for w in words]
-                if x_positions:
-                    mid = (min(x_positions) + max(x_positions)) / 2
-                    left = [x for x in x_positions if x < mid - 50]
-                    right = [x for x in x_positions if x > mid + 50]
-                    if len(left) > 5 and len(right) > 5:
-                        warnings.append("Resume appears to use a multi-column layout — ATS may read columns in wrong order.")
-                        break
+                mid = (min(x_positions) + max(x_positions)) / 2
+                left = [x for x in x_positions if x < mid - 50]
+                right = [x for x in x_positions if x > mid + 50]
+                if len(left) > 5 and len(right) > 5:
+                    warnings.append("Resume appears to use a multi-column layout — ATS may read columns in wrong order.")
+                    break
     return warnings
 
 
@@ -149,8 +145,7 @@ def detect_heading_warnings(resume_text: str) -> list:
                 any(c in line for c in ["'", "!", "?", "🔥", "💼", "⚡"]) or
                 re.search(r'\b(what i|i have|i am|my |things i)\b', clean)
             )
-            is_standard = any(s in clean for s in STANDARD_HEADINGS)
-            if is_unusual and not is_standard:
+            if is_unusual and not any(s in clean for s in STANDARD_HEADINGS):
                 warnings.append(f'Non-standard heading: "{line.strip()}" — use standard headings like Experience, Skills, Education.')
     return warnings[:3]
 
@@ -168,11 +163,9 @@ def compress_text(text: str, max_words: int = 300) -> str:
         "same","just","because","well","good","great","strong","new","high"
     }
     words = re.findall(r'\b[a-zA-Z][a-zA-Z0-9+#.\-]{1,}\b', text)
-    filtered = [w for w in words if w.lower() not in stopwords]
-    seen = []
-    seen_lower = set()
-    for w in filtered:
-        if w.lower() not in seen_lower:
+    seen, seen_lower = [], set()
+    for w in words:
+        if w.lower() not in stopwords and w.lower() not in seen_lower:
             seen.append(w)
             seen_lower.add(w.lower())
     return " ".join(seen[:max_words])
@@ -234,40 +227,28 @@ def expand_synonyms(word: str) -> list:
 def fuzzy_match(word: str, text: str, threshold: float = 0.78) -> bool:
     word_lower = word.lower().strip()
     text_lower = text.lower()
-    
-    # Direct match
+
     if word_lower in text_lower:
         return True
-        
-    # Synonym match
-    for synonym in expand_synonyms(word_lower):
-        if synonym in text_lower:
-            return True
-            
-    # Stopwords for parsing multi-word phrases
+    if any(syn in text_lower for syn in expand_synonyms(word_lower)):
+        return True
+
     kw_stopwords = {"and", "or", "of", "in", "to", "for", "with", "on", "at", "by", "from", "the", "a", "an", "skills", "experience", "knowledge", "expertise"}
-    
-    # Split keyword into constituent words
     kw_words = [w for w in re.findall(r'\b\w[\w+#.\-]*\b', word_lower) if w not in kw_stopwords]
-    
+
     if len(kw_words) >= 2:
-        # Check if all constituent words (or their synonyms) are in the text
         match_count = sum(1 for w in kw_words if w in text_lower or any(syn in text_lower for syn in expand_synonyms(w)))
         if match_count == len(kw_words):
             return True
-            
-        # Core technology suffix check (e.g., "Python developer" -> matches if "Python" is present)
         core_suffixes = {"developer", "engineer", "framework", "library", "platform", "tool", "tools", "service", "services", "system", "systems", "architecture", "methodology", "methodologies", "principles", "concepts", "practices", "experience", "degree"}
         if len(kw_words) == 2 and kw_words[1] in core_suffixes:
             if kw_words[0] in text_lower or any(syn in text_lower for syn in expand_synonyms(kw_words[0])):
                 return True
-                
-    # Levenshtein distance fallback
-    for tw in re.findall(r'\b\w[\w+#.\-]*\b', text_lower):
-        if SequenceMatcher(None, word_lower, tw).ratio() >= threshold:
-            return True
-            
-    return False
+
+    return any(
+        SequenceMatcher(None, word_lower, tw).ratio() >= threshold
+        for tw in re.findall(r'\b\w[\w+#.\-]*\b', text_lower)
+    )
 
 
 def calculate_scores(resume_text: str, jd_keywords: list):
@@ -283,10 +264,10 @@ def calculate_scores(resume_text: str, jd_keywords: list):
         "then","so","if","when","where","while","all","both","each","more",
         "most","other","some","any","only","just","well","good","great","new"
     }
-    jd_words = set(
+    jd_words = {
         w for w in re.findall(r'\b[a-zA-Z][a-zA-Z0-9+#.\-]{2,}\b', " ".join(jd_keywords).lower())
         if w not in stopwords
-    )
+    }
     matched_semantic = sum(1 for w in jd_words if fuzzy_match(w, resume_text.lower()))
     semantic_score = min(int((matched_semantic / max(len(jd_words), 1)) * 100), 100)
     ats_score = max(0, min(int(keyword_score * 0.5 + semantic_score * 0.5), 100))
@@ -294,8 +275,7 @@ def calculate_scores(resume_text: str, jd_keywords: list):
 
 
 def extract_jd_keywords(job_description: str) -> dict:
-    cleaned_jd = re.sub(r'[ \t]+', ' ', job_description)
-    cleaned_jd = re.sub(r'\n+', '\n', cleaned_jd).strip()
+    cleaned_jd = clean_text(job_description)
     prompt = f"""Analyze this job description and identify what the job actually is and what the recruiter is looking for.
 Extract:
 1. Every important ATS keyword (technical skills, tools, frameworks, degree requirements).
@@ -323,20 +303,16 @@ Job Description:
         seed=42,
         max_tokens=600,
     )
-    raw = response.choices[0].message.content.strip()
-    raw = re.sub(r'^```[a-z]*\n?', '', raw)
+    raw = re.sub(r'^```[a-z]*\n?', '', response.choices[0].message.content.strip())
     raw = re.sub(r'\n?```$', '', raw)
     try:
         data = json.loads(raw)
         if isinstance(data, dict):
-            if "keywords" not in data:
-                data["keywords"] = []
+            data.setdefault("keywords", [])
             return data
     except Exception:
         pass
-        
-    kws = re.findall(r'"([^"]+)"', raw)
-    kws = [k for k in kws if k not in ("keywords", "role_focus", "recruiter_needs")]
+    kws = [k for k in re.findall(r'"([^"]+)"', raw) if k not in ("keywords", "role_focus", "recruiter_needs")]
     return {
         "keywords": sorted(kws),
         "role_focus": "Core software developer role focused on technical requirements.",
@@ -346,30 +322,21 @@ Job Description:
 
 def analyze_eligibility(resume_text: str, job_description: str) -> dict:
     return {
-        "education": {
-            "resume_level": "Not evaluated",
-            "status": "meets",
-            "note": ""
-        },
+        "education": {"resume_level": "Not evaluated", "status": "meets", "note": ""},
         "experience": {
-            "estimated_years": 0.0,
-            "estimated_years_str": "Not evaluated",
-            "bachelor_graduation_year": None,
-            "student_experience_str": "None",
-            "post_graduation_experience_str": "None",
-            "required_years": None,
-            "status": "meets",
-            "note": ""
+            "estimated_years": 0.0, "estimated_years_str": "Not evaluated",
+            "bachelor_graduation_year": None, "student_experience_str": "None",
+            "post_graduation_experience_str": "None", "required_years": None,
+            "status": "meets", "note": ""
         },
-        "languages": {
-            "jd_requires": [],
-            "resume_has": [],
-            "any_sufficient": True,
-            "status": "meets",
-            "note": ""
-        }
+        "languages": {"jd_requires": [], "resume_has": [], "any_sufficient": True, "status": "meets", "note": ""}
     }
 
+
+def _parse_pdf(resume: UploadFile):
+    if not resume.filename.endswith(".pdf"):
+        return None, None, {"error": "Only PDF files are supported"}
+    return None, None, None
 
 
 @app.post("/analyze")
@@ -391,16 +358,12 @@ async def analyze_resume(
     if not resume_text.strip():
         return {"error": "Could not extract text. Make sure the resume is not a scanned image."}
 
-    pdf_warnings = detect_pdf_warnings(contents)
-    heading_warnings = detect_heading_warnings(resume_text)
-    all_warnings = pdf_warnings + heading_warnings
+    all_warnings = detect_pdf_warnings(contents) + detect_heading_warnings(resume_text)
 
     try:
         jd_data = extract_jd_keywords(job_description)
-        jd_keywords = jd_data["keywords"]
-        matched_keywords, missing_keywords, keyword_score, semantic_score, ats_score = calculate_scores(resume_text, jd_keywords)
+        matched_keywords, missing_keywords, keyword_score, semantic_score, ats_score = calculate_scores(resume_text, jd_data["keywords"])
         eligibility = analyze_eligibility(resume_text, job_description)
-        # Store job analysis inside eligibility to preserve it in Supabase history
         eligibility["job_analysis"] = {
             "role_focus": jd_data.get("role_focus", "Core software developer role focused on technical requirements."),
             "recruiter_needs": jd_data.get("recruiter_needs", "A candidate possessing the listed technical skills and qualifications.")
@@ -408,9 +371,7 @@ async def analyze_resume(
     except Exception as e:
         return {"error": f"Analysis error: {str(e)}"}
 
-    can_apply = ats_score >= 60
-    if eligibility["education"]["status"] == "gap":
-        can_apply = False
+    can_apply = ats_score >= 60 and eligibility["education"]["status"] != "gap"
 
     result = {
         "filename": resume.filename,
@@ -439,10 +400,7 @@ async def analyze_resume(
             "semantic_score": semantic_score,
             "matched_keywords": matched_keywords,
             "missing_keywords": missing_keywords,
-            "improvement_suggestions": {
-                "eligibility": eligibility,
-                "warnings": all_warnings
-            },
+            "improvement_suggestions": {"eligibility": eligibility, "warnings": all_warnings},
             "job_description_preview": job_description[:5000]
         }).execute()
         if insert_res.data:
@@ -471,10 +429,8 @@ async def improve_resume(
     if not resume_text.strip():
         return {"error": "Could not extract text. Make sure the resume is not a scanned image."}
 
-    cleaned_resume = re.sub(r'[ \t]+', ' ', resume_text)
-    cleaned_resume = re.sub(r'\n+', '\n', cleaned_resume).strip()
-    cleaned_jd = re.sub(r'[ \t]+', ' ', job_description)
-    cleaned_jd = re.sub(r'\n+', '\n', cleaned_jd).strip()
+    cleaned_resume = clean_text(resume_text)
+    cleaned_jd = clean_text(job_description)
 
     prompt = f"""You are a senior resume coach. A recruiter spends 5 seconds on a resume.
 
@@ -553,23 +509,16 @@ Return ONLY valid JSON (no markdown, no backticks):
             seed=42,
             max_tokens=3000,
         )
-        raw = response.choices[0].message.content.strip()
-        raw = re.sub(r'^```[a-z]*\n?', '', raw)
+        raw = re.sub(r'^```[a-z]*\n?', '', response.choices[0].message.content.strip())
         raw = re.sub(r'\n?```$', '', raw)
         result = json.loads(raw)
 
         if analysis_id:
             try:
                 select_res = supabase.table("analyses").select("improvement_suggestions").eq("id", analysis_id).execute()
-                existing = {}
-                if select_res.data:
-                    existing = select_res.data[0].get("improvement_suggestions") or {}
-                
+                existing = (select_res.data[0].get("improvement_suggestions") or {}) if select_res.data else {}
                 existing["suggestions"] = result
-                
-                supabase.table("analyses").update({
-                    "improvement_suggestions": existing
-                }).eq("id", analysis_id).execute()
+                supabase.table("analyses").update({"improvement_suggestions": existing}).eq("id", analysis_id).execute()
             except Exception as db_err:
                 print("Failed to save suggestions to history:", str(db_err))
 
@@ -594,8 +543,7 @@ async def analyze_guest(
 
     try:
         jd_data = extract_jd_keywords(job_description)
-        jd_keywords = jd_data.get("keywords", [])
-        matched_keywords, missing_keywords, keyword_score, semantic_score, ats_score = calculate_scores(resume_text, jd_keywords)
+        matched_keywords, missing_keywords, keyword_score, semantic_score, ats_score = calculate_scores(resume_text, jd_data.get("keywords", []))
     except Exception as e:
         return {"error": f"Analysis error: {str(e)}"}
 

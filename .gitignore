@@ -32,3 +32,4 @@ node_modules/
 backend/.env
 .env.production
 __pycache__/
+*.pyc
