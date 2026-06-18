@@ -1,11 +1,11 @@
-import { useContext, useState, useEffect, useRef } from "react"
+import { useContext, useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { ResumeContext } from "../context/ResumeContext"
 import { useAuth } from "../context/useAuth"
 
 const spring = { type: "spring", stiffness: 400, damping: 30 }
-const layoutSpring = { type: "spring", stiffness: 350, damping: 30 }
+const labelStyle = { display: "block", fontSize: "var(--text-xs)", fontWeight: 600, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }
 
 export default function AnalyzeSection() {
   const navigate = useNavigate()
@@ -54,7 +54,7 @@ export default function AnalyzeSection() {
       setFetchingSaved(false)
     }
 
-    navigate("/loading")
+    navigate("/results")
   }
 
   return (
@@ -64,11 +64,11 @@ export default function AnalyzeSection() {
         {/* Top Inputs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           <div>
-            <label style={{ display: "block", fontSize: "var(--text-xs)", fontWeight: 600, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>Company Name</label>
+            <label style={labelStyle}>Company Name</label>
             <input value={company} onChange={e => setCompany(e.target.value)} placeholder="e.g. Google, Amazon, Apple" className="input-ek" />
           </div>
           <div>
-            <label style={{ display: "block", fontSize: "var(--text-xs)", fontWeight: 600, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>Job Title</label>
+            <label style={labelStyle}>Job Title</label>
             <input value={role} onChange={e => setRole(e.target.value)} placeholder="e.g. Product Designer" className="input-ek" />
           </div>
         </div>
@@ -96,7 +96,7 @@ export default function AnalyzeSection() {
                 })}
                 <motion.div
                   layoutId="analyze-toggle"
-                  transition={layoutSpring}
+                  transition={spring}
                   style={{ position: "absolute", top: 4, bottom: 4, left: uploadMode === "saved" ? 4 : "50%", width: "calc(50% - 4px)", background: "var(--surface)", borderRadius: 99, boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px var(--border) inset", zIndex: 1 }}
                 />
               </div>

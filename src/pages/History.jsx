@@ -31,7 +31,6 @@ function ScoreRing({ score, size = 52, stroke = 4.5 }) {
 }
 
 function InfoCard({ label, value, accent }) {
-  const bg = `var(--${accent || "surface"}-bg)` // fallback
   const bd = accent ? `var(--${accent}-bd)` : "var(--border)"
   const col = accent ? `var(--${accent})` : "var(--text-3)"
   return (

@@ -5,7 +5,6 @@ import ResumeProvider from "./context/ResumeProvider"
 import { useAuth } from "./context/useAuth"
 import Landing from "./pages/Landing"
 import Home from "./pages/Home"
-import Loading from "./pages/Loading"
 import GuestLoading from "./pages/GuestLoading"
 import GuestResults from "./pages/GuestResults"
 import Results from "./pages/Results"
@@ -48,7 +47,6 @@ function App() {
             <Route path="/guest-loading" element={<GuestLoading />} />
             <Route path="/guest-results" element={<GuestResults />} />
             <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-            <Route path="/loading" element={<ProtectedRoute><Loading /></ProtectedRoute>} />
             <Route path="/results" element={<ProtectedRoute><Results /></ProtectedRoute>} />
             <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

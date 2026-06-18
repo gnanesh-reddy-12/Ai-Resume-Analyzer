@@ -69,17 +69,12 @@ export default function Home() {
       })
   }, [user])
 
-  const scoreColor = (s) =>
-    s >= 75 ? "var(--success)" : s >= 55 ? "var(--warning)" : "var(--danger)"
-
-  const scoreBg = (s) =>
-    s >= 75 ? "var(--success-bg)" : s >= 55 ? "var(--warning-bg)" : "var(--danger-bg)"
-
-  const scoreBd = (s) =>
-    s >= 75 ? "var(--success-bd)" : s >= 55 ? "var(--warning-bd)" : "var(--danger-bd)"
-
-  const scoreLabel = (s) =>
-    s >= 75 ? "Strong" : s >= 55 ? "Fair" : "Needs Work"
+  const getScoreTheme = (s) => ({
+    color: s >= 75 ? "var(--success)" : s >= 55 ? "var(--warning)" : "var(--danger)",
+    bg:    s >= 75 ? "var(--success-bg)" : s >= 55 ? "var(--warning-bg)" : "var(--danger-bg)",
+    bd:    s >= 75 ? "var(--success-bd)" : s >= 55 ? "var(--warning-bd)" : "var(--danger-bd)",
+    label: s >= 75 ? "Strong" : s >= 55 ? "Fair" : "Needs Work",
+  })
 
   return (
     <>
@@ -141,12 +136,12 @@ export default function Home() {
           >
             <div style={{
               minWidth: 56, height: 48, padding: "0 10px", flexShrink: 0, borderRadius: "var(--r-md)",
-              background: scoreBg(lastAnalysis.ats_score),
-              border: `1px solid ${scoreBd(lastAnalysis.ats_score)}`,
+              background: getScoreTheme(lastAnalysis.ats_score).bg,
+              border: `1px solid ${getScoreTheme(lastAnalysis.ats_score).bd}`,
               display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center"
             }}>
-              <span style={{ fontSize: 14, fontWeight: 800, color: scoreColor(lastAnalysis.ats_score), lineHeight: 1 }}>{lastAnalysis.ats_score}%</span>
-              <span style={{ fontSize: 9, fontWeight: 700, color: scoreColor(lastAnalysis.ats_score), marginTop: 3, whiteSpace: "nowrap" }}>{scoreLabel(lastAnalysis.ats_score)}</span>
+              <span style={{ fontSize: 14, fontWeight: 800, color: getScoreTheme(lastAnalysis.ats_score).color, lineHeight: 1 }}>{lastAnalysis.ats_score}%</span>
+              <span style={{ fontSize: 9, fontWeight: 700, color: getScoreTheme(lastAnalysis.ats_score).color, marginTop: 3, whiteSpace: "nowrap" }}>{getScoreTheme(lastAnalysis.ats_score).label}</span>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 3 }}>Last Analysis</p>
