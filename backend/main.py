@@ -276,18 +276,19 @@ def calculate_scores(resume_text: str, jd_keywords: list):
 
 def extract_jd_keywords(job_description: str) -> dict:
     cleaned_jd = clean_text(job_description)
-    prompt = f"""Analyze this job description and identify what the job actually is and what the recruiter is looking for.
-Extract:
-1. Every important ATS keyword (technical skills, tools, frameworks, degree requirements).
-2. A brief 1-2 sentence description of what the core focus of the role is.
-3. A brief 1-2 sentence description of what the recruiter needs in the right candidate.
+    prompt = f"""Analyze this job description precisely.
 
-Return ONLY a valid JSON object. No explanation, no markdown, no backticks.
-Example format:
+Extract:
+1. Every ATS keyword: technical skills, tools, frameworks, programming languages, degree requirements, certifications. Be exhaustive.
+2. role_focus: In 2 sentences, state exactly what this role does day-to-day. Be specific to this JD — no generic statements.
+3. recruiter_needs: In 2 sentences, state exactly what kind of candidate the recruiter wants — their background, skill level, experience type, and what they must demonstrate to get hired.
+
+Return ONLY valid JSON. No explanation, no markdown, no backticks.
+Format:
 {{
   "keywords": ["Python", "React", "AWS", "Bachelor's degree"],
-  "role_focus": "Developing and maintaining scalable frontend interfaces and web applications.",
-  "recruiter_needs": "A developer skilled in modern JavaScript frameworks who can take ownership of UI features and optimize application performance."
+  "role_focus": "Builds and maintains scalable REST APIs using Python and FastAPI, owning backend services end-to-end.",
+  "recruiter_needs": "A backend engineer with 2+ years of hands-on Python experience who has shipped production APIs and can work independently without hand-holding."
 }}
 
 Job Description:
