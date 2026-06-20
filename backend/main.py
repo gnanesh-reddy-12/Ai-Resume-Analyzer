@@ -228,7 +228,7 @@ def fuzzy_match(word: str, text: str, threshold: float = 0.78) -> bool:
     word_lower = word.lower().strip()
     text_lower = text.lower()
 
-    if word_lower in text_lower:
+    if re.search(rf'\b{re.escape(word_lower)}\b', text_lower):
         return True
     if any(syn in text_lower for syn in expand_synonyms(word_lower)):
         return True
@@ -306,9 +306,10 @@ def extract_jd_keywords(job_description: str) -> dict:
 
 CRITICAL RULES:
 1. Be EXHAUSTIVE with technical skills. Extract every single programming language, tool, framework, and methodology mentioned.
-2. For OR-lists and alternative requirements (e.g., "Java, Python, C/C++ or SQL" or "CS, CE, ECE, IT"), group them into a single sub-array of alternatives. If you have any ONE of the items in the sub-array, the requirement is fulfilled.
-3. If a skill is a standalone requirement (e.g., "Agile"), it should be in its own single-element sub-array.
-4. Extract ONLY what is explicitly stated. Do not invent synonyms.
+2. For OR-lists of technical skills (e.g., "Java, Python, C/C++ or SQL"), group them into a single sub-array.
+3. For DEGREE requirements that list alternative majors (e.g., "CS, CE, ECE, IT, IS, EECS"), do NOT extract the specific acronyms. Instead, extract ONLY a single string like "Bachelor's degree in Computer Science or related". This prevents false matches on acronyms like "IS" and "IT".
+4. If a skill is a standalone requirement (e.g., "Agile"), it should be in its own single-element sub-array.
+5. Extract ONLY what is explicitly stated. Do not invent synonyms.
 
 Extract:
 1. Every ATS keyword (skills, tools, frameworks, degrees) grouped into arrays of alternatives.
