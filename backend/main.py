@@ -251,12 +251,32 @@ def fuzzy_match(word: str, text: str, threshold: float = 0.78) -> bool:
     )
 
 
-def calculate_scores(resume_text: str, jd_keywords: list):
-    matched, missing = [], []
-    for kw in jd_keywords:
-        (matched if fuzzy_match(kw, resume_text) else missing).append(kw)
-    total = len(jd_keywords)
-    keyword_score = int((len(matched) / total) * 100) if total > 0 else 50
+def calculate_scores(resume_text: str, jd_keyword_groups: list):
+    matched, missing, optional = [], [], []
+    fulfilled_groups = 0
+
+    for group in jd_keyword_groups:
+        if not isinstance(group, list):
+            group = [str(group)]
+        
+        group_matched = []
+        group_unmatched = []
+        for kw in group:
+            if fuzzy_match(kw, resume_text):
+                group_matched.append(kw)
+            else:
+                group_unmatched.append(kw)
+        
+        if len(group_matched) > 0:
+            fulfilled_groups += 1
+            matched.extend(group_matched)
+            optional.extend(group_unmatched)
+        else:
+            missing.extend(group_unmatched)
+
+    total_groups = len(jd_keyword_groups)
+    keyword_score = int((fulfilled_groups / total_groups) * 100) if total_groups > 0 else 50
+    
     stopwords = {
         "a","an","the","and","or","but","in","on","at","to","for","of","with",
         "is","are","was","were","be","been","have","has","had","will","would",
@@ -264,14 +284,20 @@ def calculate_scores(resume_text: str, jd_keywords: list):
         "then","so","if","when","where","while","all","both","each","more",
         "most","other","some","any","only","just","well","good","great","new"
     }
+    
+    flat_keywords = [kw for group in jd_keyword_groups for kw in group if isinstance(group, list)]
+    if not flat_keywords and jd_keyword_groups:
+        flat_keywords = jd_keyword_groups # fallback if flat list was passed
+
     jd_words = {
-        w for w in re.findall(r'\b[a-zA-Z][a-zA-Z0-9+#.\-]{2,}\b', " ".join(jd_keywords).lower())
+        w for w in re.findall(r'\b[a-zA-Z][a-zA-Z0-9+#.\-]{2,}\b', " ".join(flat_keywords).lower())
         if w not in stopwords
     }
     matched_semantic = sum(1 for w in jd_words if fuzzy_match(w, resume_text.lower()))
     semantic_score = min(int((matched_semantic / max(len(jd_words), 1)) * 100), 100)
     ats_score = max(0, min(int(keyword_score * 0.5 + semantic_score * 0.5), 100))
-    return matched[:15], missing[:15], keyword_score, semantic_score, ats_score
+    
+    return matched[:20], missing[:20], optional[:20], keyword_score, semantic_score, ats_score
 
 
 def extract_jd_keywords(job_description: str) -> dict:
@@ -279,20 +305,25 @@ def extract_jd_keywords(job_description: str) -> dict:
     prompt = f"""Analyze this job description precisely.
 
 CRITICAL RULES:
-1. Be EXHAUSTIVE with technical skills. Extract every single programming language, tool, framework, and methodology (e.g., Java, Python, SQL, Agile, Unit Testing, Debugging) mentioned in the JD. Even if they are listed with "or", extract all of them as separate keywords so they highlight correctly in the UI.
-2. For DEGREE requirements that list multiple acceptable majors (e.g., "CS, CE, ECE, IT, EECS"), extract ONLY "Bachelor's degree" or "Computer Science Degree". Do NOT list the alternative majors, as this unfairly penalizes candidates.
-3. Extract ONLY what is explicitly stated. Do not invent synonyms.
+1. Be EXHAUSTIVE with technical skills. Extract every single programming language, tool, framework, and methodology mentioned.
+2. For OR-lists and alternative requirements (e.g., "Java, Python, C/C++ or SQL" or "CS, CE, ECE, IT"), group them into a single sub-array of alternatives. If you have any ONE of the items in the sub-array, the requirement is fulfilled.
+3. If a skill is a standalone requirement (e.g., "Agile"), it should be in its own single-element sub-array.
+4. Extract ONLY what is explicitly stated. Do not invent synonyms.
 
 Extract:
-1. Every ATS keyword (skills, tools, frameworks). Be exhaustive.
-2. Degree requirements (condensed to a single keyword as per Rule 2).
-3. role_focus: In 2 sentences, state exactly what this role does day-to-day. Be specific to this JD.
-4. recruiter_needs: In 2 sentences, state exactly what kind of candidate the recruiter wants.
+1. Every ATS keyword (skills, tools, frameworks, degrees) grouped into arrays of alternatives.
+2. role_focus: In 2 sentences, state exactly what this role does day-to-day. Be specific to this JD.
+3. recruiter_needs: In 2 sentences, state exactly what kind of candidate the recruiter wants.
 
 Return ONLY valid JSON. No explanation, no markdown, no backticks.
 Format:
 {{
-  "keywords": ["Python", "React", "AWS", "Bachelor's degree"],
+  "keyword_groups": [
+    ["Python", "Java", "C++", "SQL"],
+    ["React"],
+    ["AWS", "GCP", "Azure"],
+    ["Bachelor's degree", "Computer Science Degree"]
+  ],
   "role_focus": "Builds and maintains scalable REST APIs using Python and FastAPI, owning backend services end-to-end.",
   "recruiter_needs": "A backend engineer with 2+ years of hands-on Python experience who has shipped production APIs and can work independently without hand-holding."
 }}
@@ -315,13 +346,17 @@ Job Description:
     try:
         data = json.loads(raw)
         if isinstance(data, dict):
-            data.setdefault("keywords", [])
+            if "keyword_groups" not in data and "keywords" in data:
+                # Fallback if model returns flat list
+                data["keyword_groups"] = [[k] for k in data["keywords"]]
+            elif "keyword_groups" not in data:
+                data["keyword_groups"] = []
             return data
     except Exception:
         pass
-    kws = [k for k in re.findall(r'"([^"]+)"', raw) if k not in ("keywords", "role_focus", "recruiter_needs")]
+    kws = [k for k in re.findall(r'"([^"]+)"', raw) if k not in ("keyword_groups", "keywords", "role_focus", "recruiter_needs")]
     return {
-        "keywords": sorted(kws),
+        "keyword_groups": [[k] for k in sorted(kws)],
         "role_focus": "Core software developer role focused on technical requirements.",
         "recruiter_needs": "A candidate possessing the listed technical skills and qualifications."
     }
@@ -369,7 +404,7 @@ async def analyze_resume(
 
     try:
         jd_data = extract_jd_keywords(job_description)
-        matched_keywords, missing_keywords, keyword_score, semantic_score, ats_score = calculate_scores(resume_text, jd_data["keywords"])
+        matched_keywords, missing_keywords, optional_keywords, keyword_score, semantic_score, ats_score = calculate_scores(resume_text, jd_data.get("keyword_groups", []))
         eligibility = analyze_eligibility(resume_text, job_description)
         eligibility["job_analysis"] = {
             "role_focus": jd_data.get("role_focus", "Core software developer role focused on technical requirements."),
@@ -389,6 +424,7 @@ async def analyze_resume(
         "semantic_score": semantic_score,
         "matched_keywords": matched_keywords,
         "missing_keywords": missing_keywords,
+        "optional_keywords": optional_keywords,
         "can_apply": can_apply,
         "eligibility": eligibility,
         "job_analysis": eligibility["job_analysis"],
@@ -397,7 +433,7 @@ async def analyze_resume(
     }
 
     try:
-        insert_res = supabase.table("analyses").insert({
+        insert_data = {
             "user_id": user["user_id"],
             "filename": resume.filename,
             "company_name": company_name or None,
@@ -407,9 +443,14 @@ async def analyze_resume(
             "semantic_score": semantic_score,
             "matched_keywords": matched_keywords,
             "missing_keywords": missing_keywords,
-            "improvement_suggestions": {"eligibility": eligibility, "warnings": all_warnings},
+            "improvement_suggestions": {"eligibility": eligibility, "warnings": all_warnings, "optional_keywords": optional_keywords},
             "job_description_preview": job_description[:5000]
-        }).execute()
+        }
+        
+        # Safely try inserting optional_keywords directly in case the DB column exists
+        insert_data["optional_keywords"] = optional_keywords
+        
+        insert_res = supabase.table("analyses").insert(insert_data).execute()
         if insert_res.data:
             result["id"] = insert_res.data[0]["id"]
     except Exception as e:
