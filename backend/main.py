@@ -234,7 +234,7 @@ def fuzzy_match(word: str, text: str, threshold: float = 0.78) -> bool:
         return True
 
     kw_stopwords = {"and", "or", "of", "in", "to", "for", "with", "on", "at", "by", "from", "the", "a", "an", "skills", "experience", "knowledge", "expertise"}
-    kw_words = [w for w in re.findall(r'\b\w[\w+#.\-+]*\b', word_lower) if w not in kw_stopwords]
+    kw_words = [w for w in re.findall(r'\b[a-zA-Z0-9][a-zA-Z0-9+#.\-]*', word_lower) if w not in kw_stopwords]
 
     if len(kw_words) >= 2:
         match_count = sum(1 for w in kw_words if w in text_lower or any(syn in text_lower for syn in expand_synonyms(w)))
@@ -247,7 +247,7 @@ def fuzzy_match(word: str, text: str, threshold: float = 0.78) -> bool:
 
     return any(
         SequenceMatcher(None, word_lower, tw).ratio() >= threshold
-        for tw in re.findall(r'\b\w[\w+#.\-+]*\b', text_lower)
+        for tw in re.findall(r'\b[a-zA-Z0-9][a-zA-Z0-9+#.\-]*', text_lower)
     )
 
 
@@ -290,7 +290,7 @@ def calculate_scores(resume_text: str, jd_keyword_groups: list):
         flat_keywords = jd_keyword_groups # fallback if flat list was passed
 
     jd_words = {
-        w for w in re.findall(r'\b[a-zA-Z][a-zA-Z0-9+#.\-+]{2,}\b', " ".join(flat_keywords).lower())
+        w for w in re.findall(r'\b[a-zA-Z0-9][a-zA-Z0-9+#.\-]{1,}', " ".join(flat_keywords).lower())
         if w not in stopwords
     }
     matched_semantic = sum(1 for w in jd_words if fuzzy_match(w, resume_text.lower()))
@@ -306,7 +306,7 @@ def extract_jd_keywords(job_description: str) -> dict:
 
 CRITICAL RULES:
 1. Be EXHAUSTIVE with technical skills. Extract every single programming language, tool, framework, and methodology mentioned.
-2. For OR-lists of technical skills (e.g., "Java, Python, C/C++ or SQL"), group them into a single sub-array.
+2. For OR-lists of technical skills (e.g., "Java, Python, C/C++ or SQL"), group them into a single sub-array. Do NOT group skills listed with "AND". "A, B, and C" must be separate single-element sub-arrays. ONLY group explicit alternatives.
 3. For DEGREE requirements that list multiple alternative majors or fields of study, do NOT extract the specific acronyms or majors. Condense them into a single general requirement (e.g., "Bachelor's degree", "Master's degree", or "PhD"). This prevents false matches on short acronyms and keeps the system generic for all professions.
 4. If a skill is a standalone requirement (e.g., "Agile"), it should be in its own single-element sub-array.
 5. Extract ONLY what is explicitly stated. Do not invent synonyms.
