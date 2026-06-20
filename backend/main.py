@@ -448,9 +448,6 @@ async def analyze_resume(
             "job_description_preview": job_description[:5000]
         }
         
-        # Safely try inserting optional_keywords directly in case the DB column exists
-        insert_data["optional_keywords"] = optional_keywords
-        
         insert_res = supabase.table("analyses").insert(insert_data).execute()
         if insert_res.data:
             result["id"] = insert_res.data[0]["id"]
