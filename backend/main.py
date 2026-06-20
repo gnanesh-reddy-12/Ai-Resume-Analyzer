@@ -307,7 +307,7 @@ def extract_jd_keywords(job_description: str) -> dict:
 CRITICAL RULES:
 1. Be EXHAUSTIVE with technical skills. Extract every single programming language, tool, framework, and methodology mentioned.
 2. For OR-lists of technical skills (e.g., "Java, Python, C/C++ or SQL"), group them into a single sub-array.
-3. For DEGREE requirements that list alternative majors (e.g., "CS, CE, ECE, IT, IS, EECS"), do NOT extract the specific acronyms. Instead, extract ONLY a single string like "Bachelor's degree in Computer Science or related". This prevents false matches on acronyms like "IS" and "IT".
+3. For DEGREE requirements that list multiple alternative majors or fields of study, do NOT extract the specific acronyms or majors. Condense them into a single general requirement (e.g., "Bachelor's degree", "Master's degree", or "PhD"). This prevents false matches on short acronyms and keeps the system generic for all professions.
 4. If a skill is a standalone requirement (e.g., "Agile"), it should be in its own single-element sub-array.
 5. Extract ONLY what is explicitly stated. Do not invent synonyms.
 
