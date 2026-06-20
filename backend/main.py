@@ -278,10 +278,17 @@ def extract_jd_keywords(job_description: str) -> dict:
     cleaned_jd = clean_text(job_description)
     prompt = f"""Analyze this job description precisely.
 
+CRITICAL RULES — READ THESE FIRST:
+1. When skills or qualifications are listed as alternatives using "or", "and/or", or a comma-separated list of options (e.g., "Java, Python, C/C++ or SQL" or "CS, CE, ECE, EECS, IS, IT"), treat the ENTIRE group as ONE requirement. Extract ONLY the most common or first option as a single keyword. Do NOT list all alternatives as separate keywords. Having any ONE of them is sufficient.
+2. When a list says "include" or "such as" or "related fields", extract ONLY the most representative one — not all of them.
+3. Extract ONLY what the JD explicitly states. Do NOT infer, invent, or add related fields, synonyms, or alternatives that are not written in the JD.
+4. Preferred/desired qualifications are OPTIONAL — mark these differently or keep them minimal. Do not penalize a candidate for not having preferred/optional items.
+
 Extract:
-1. Every ATS keyword: technical skills, tools, frameworks, programming languages, degree requirements, certifications. Be exhaustive.
-2. role_focus: In 2 sentences, state exactly what this role does day-to-day. Be specific to this JD — no generic statements.
-3. recruiter_needs: In 2 sentences, state exactly what kind of candidate the recruiter wants — their background, skill level, experience type, and what they must demonstrate to get hired.
+1. Every hard-required ATS keyword: technical skills, tools, frameworks, programming languages. For OR-listed groups, pick ONLY the most common one.
+2. Degree requirement: if the JD lists multiple acceptable majors (CS, ECE, IT etc.), extract ONLY "Bachelor's degree" or "Bachelor's degree in Computer Science" — do NOT list all majors separately.
+3. role_focus: In 2 sentences, state exactly what this role does day-to-day. Be specific to this JD — no generic statements.
+4. recruiter_needs: In 2 sentences, state exactly what kind of candidate the recruiter wants — their background, skill level, experience type, and what they must demonstrate to get hired.
 
 Return ONLY valid JSON. No explanation, no markdown, no backticks.
 Format:
