@@ -274,8 +274,10 @@ def calculate_scores(resume_text: str, jd_keyword_groups: list):
         else:
             missing.extend(group_unmatched)
 
+    import math
     total_groups = len(jd_keyword_groups)
-    keyword_score = int((fulfilled_groups / total_groups) * 100) if total_groups > 0 else 50
+    kw_ratio = fulfilled_groups / total_groups if total_groups > 0 else 0
+    keyword_score = int(math.pow(kw_ratio, 0.35) * 100) if total_groups > 0 else 50
     
     stopwords = {
         "a","an","the","and","or","but","in","on","at","to","for","of","with",
@@ -294,7 +296,8 @@ def calculate_scores(resume_text: str, jd_keyword_groups: list):
         if w not in stopwords
     }
     matched_semantic = sum(1 for w in jd_words if fuzzy_match(w, resume_text.lower()))
-    semantic_score = min(int((matched_semantic / max(len(jd_words), 1)) * 100), 100)
+    sem_ratio = matched_semantic / max(len(jd_words), 1)
+    semantic_score = min(int(math.pow(sem_ratio, 0.35) * 100), 100)
     ats_score = max(0, min(int(keyword_score * 0.5 + semantic_score * 0.5), 100))
     
     return matched[:20], missing[:20], optional[:20], keyword_score, semantic_score, ats_score
