@@ -306,7 +306,8 @@ def extract_jd_keywords(job_description: str) -> dict:
 
 CRITICAL RULES:
 1. Be EXHAUSTIVE with technical skills. Extract every single programming language, tool, framework, and methodology mentioned.
-2. For OR-lists of technical skills (e.g., "Java, Python, C/C++ or SQL"), group them into a single sub-array. Do NOT group skills listed with "AND". "A, B, and C" must be separate single-element sub-arrays. ONLY group explicit alternatives.
+2. For OR-lists of technical skills (e.g., "Java, Python, C/C++ or SQL"), group them into a single sub-array. 
+3. For AND-lists of technical skills (e.g., "unit testing, debugging, and code reviews"), do NOT group them! They are mandatory separate skills. Output them as separate single-element arrays: [["unit testing"], ["debugging"], ["code reviews"]].
 3. For DEGREE requirements that list multiple alternative majors or fields of study, do NOT extract the specific acronyms or majors. Condense them into a single general requirement (e.g., "Bachelor's degree", "Master's degree", or "PhD"). This prevents false matches on short acronyms and keeps the system generic for all professions.
 4. If a skill is a standalone requirement (e.g., "Agile"), it should be in its own single-element sub-array.
 5. Extract ONLY what is explicitly stated. Do not invent synonyms.
@@ -480,18 +481,22 @@ async def improve_resume(
 
     known_missing = ""
     known_matched = ""
+    known_optional = ""
     if analysis_id:
         try:
-            res = supabase.table("analyses").select("missing_keywords, matched_keywords").eq("id", analysis_id).execute()
+            res = supabase.table("analyses").select("missing_keywords, matched_keywords, improvement_suggestions").eq("id", analysis_id).execute()
             if res.data:
-                known_missing = ", ".join(res.data[0].get("missing_keywords", []))
-                known_matched = ", ".join(res.data[0].get("matched_keywords", []))
+                row = res.data[0]
+                known_missing = ", ".join(row.get("missing_keywords", []))
+                known_matched = ", ".join(row.get("matched_keywords", []))
+                suggestions = row.get("improvement_suggestions", {})
+                known_optional = ", ".join(suggestions.get("optional_keywords", []))
         except Exception:
             pass
 
     context_str = ""
-    if known_missing or known_matched:
-        context_str = f"IMPORTANT CONTEXT:\nWe have already verified the candidate HAS these skills: {known_matched}\nWe have already verified the candidate is MISSING these skills: {known_missing}\nDo NOT hallucinate that they are missing a skill they already have. Do NOT hallucinate that they have a skill they are missing.\n\n"
+    if known_missing or known_matched or known_optional:
+        context_str = f"IMPORTANT CONTEXT:\nWe have already verified the candidate HAS these skills: {known_matched}\nWe have already verified the candidate is MISSING these mandatory skills: {known_missing}\nThese skills are strictly OPTIONAL (do not list them as critical gaps): {known_optional}\nDo NOT hallucinate missing skills. Only advise on actual mandatory gaps.\n\n"
 
     prompt = f"""You are a brutally honest senior resume coach. Recruiters spend 6 seconds on a resume. Every word must earn its place.
 
