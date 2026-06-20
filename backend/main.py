@@ -234,7 +234,7 @@ def fuzzy_match(word: str, text: str, threshold: float = 0.78) -> bool:
         return True
 
     kw_stopwords = {"and", "or", "of", "in", "to", "for", "with", "on", "at", "by", "from", "the", "a", "an", "skills", "experience", "knowledge", "expertise"}
-    kw_words = [w for w in re.findall(r'\b\w[\w+#.\-]*\b', word_lower) if w not in kw_stopwords]
+    kw_words = [w for w in re.findall(r'\b\w[\w+#.\-+]*\b', word_lower) if w not in kw_stopwords]
 
     if len(kw_words) >= 2:
         match_count = sum(1 for w in kw_words if w in text_lower or any(syn in text_lower for syn in expand_synonyms(w)))
@@ -247,7 +247,7 @@ def fuzzy_match(word: str, text: str, threshold: float = 0.78) -> bool:
 
     return any(
         SequenceMatcher(None, word_lower, tw).ratio() >= threshold
-        for tw in re.findall(r'\b\w[\w+#.\-]*\b', text_lower)
+        for tw in re.findall(r'\b\w[\w+#.\-+]*\b', text_lower)
     )
 
 
@@ -290,7 +290,7 @@ def calculate_scores(resume_text: str, jd_keyword_groups: list):
         flat_keywords = jd_keyword_groups # fallback if flat list was passed
 
     jd_words = {
-        w for w in re.findall(r'\b[a-zA-Z][a-zA-Z0-9+#.\-]{2,}\b', " ".join(flat_keywords).lower())
+        w for w in re.findall(r'\b[a-zA-Z][a-zA-Z0-9+#.\-+]{2,}\b', " ".join(flat_keywords).lower())
         if w not in stopwords
     }
     matched_semantic = sum(1 for w in jd_words if fuzzy_match(w, resume_text.lower()))
@@ -481,9 +481,24 @@ async def improve_resume(
     cleaned_resume = clean_text(resume_text)
     cleaned_jd = clean_text(job_description)
 
+    known_missing = ""
+    known_matched = ""
+    if analysis_id:
+        try:
+            res = supabase.table("analyses").select("missing_keywords, matched_keywords").eq("id", analysis_id).execute()
+            if res.data:
+                known_missing = ", ".join(res.data[0].get("missing_keywords", []))
+                known_matched = ", ".join(res.data[0].get("matched_keywords", []))
+        except Exception:
+            pass
+
+    context_str = ""
+    if known_missing or known_matched:
+        context_str = f"IMPORTANT CONTEXT:\nWe have already verified the candidate HAS these skills: {known_matched}\nWe have already verified the candidate is MISSING these skills: {known_missing}\nDo NOT hallucinate that they are missing a skill they already have. Do NOT hallucinate that they have a skill they are missing.\n\n"
+
     prompt = f"""You are a brutally honest senior resume coach. Recruiters spend 6 seconds on a resume. Every word must earn its place.
 
-RESUME:
+{context_str}RESUME:
 {cleaned_resume}
 
 JOB DESCRIPTION:
