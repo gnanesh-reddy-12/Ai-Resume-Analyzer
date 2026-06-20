@@ -278,17 +278,16 @@ def extract_jd_keywords(job_description: str) -> dict:
     cleaned_jd = clean_text(job_description)
     prompt = f"""Analyze this job description precisely.
 
-CRITICAL RULES — READ THESE FIRST:
-1. When skills or qualifications are listed as alternatives using "or", "and/or", or a comma-separated list of options (e.g., "Java, Python, C/C++ or SQL" or "CS, CE, ECE, EECS, IS, IT"), treat the ENTIRE group as ONE requirement. Extract ONLY the most common or first option as a single keyword. Do NOT list all alternatives as separate keywords. Having any ONE of them is sufficient.
-2. When a list says "include" or "such as" or "related fields", extract ONLY the most representative one — not all of them.
-3. Extract ONLY what the JD explicitly states. Do NOT infer, invent, or add related fields, synonyms, or alternatives that are not written in the JD.
-4. Preferred/desired qualifications are OPTIONAL — mark these differently or keep them minimal. Do not penalize a candidate for not having preferred/optional items.
+CRITICAL RULES:
+1. Be EXHAUSTIVE with technical skills. Extract every single programming language, tool, framework, and methodology (e.g., Java, Python, SQL, Agile, Unit Testing, Debugging) mentioned in the JD. Even if they are listed with "or", extract all of them as separate keywords so they highlight correctly in the UI.
+2. For DEGREE requirements that list multiple acceptable majors (e.g., "CS, CE, ECE, IT, EECS"), extract ONLY "Bachelor's degree" or "Computer Science Degree". Do NOT list the alternative majors, as this unfairly penalizes candidates.
+3. Extract ONLY what is explicitly stated. Do not invent synonyms.
 
 Extract:
-1. Every hard-required ATS keyword: technical skills, tools, frameworks, programming languages. For OR-listed groups, pick ONLY the most common one.
-2. Degree requirement: if the JD lists multiple acceptable majors (CS, ECE, IT etc.), extract ONLY "Bachelor's degree" or "Bachelor's degree in Computer Science" — do NOT list all majors separately.
-3. role_focus: In 2 sentences, state exactly what this role does day-to-day. Be specific to this JD — no generic statements.
-4. recruiter_needs: In 2 sentences, state exactly what kind of candidate the recruiter wants — their background, skill level, experience type, and what they must demonstrate to get hired.
+1. Every ATS keyword (skills, tools, frameworks). Be exhaustive.
+2. Degree requirements (condensed to a single keyword as per Rule 2).
+3. role_focus: In 2 sentences, state exactly what this role does day-to-day. Be specific to this JD.
+4. recruiter_needs: In 2 sentences, state exactly what kind of candidate the recruiter wants.
 
 Return ONLY valid JSON. No explanation, no markdown, no backticks.
 Format:
