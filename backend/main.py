@@ -11,13 +11,19 @@ import io
 import re
 import json
 from difflib import SequenceMatcher
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 load_dotenv()
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-supabase_key = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_ANON_KEY")
+supabase_key = os.getenv("SUPABASE_ANON_KEY")
 supabase: Client = create_client(os.getenv("SUPABASE_URL"), supabase_key)
 security = HTTPBearer()
+
+MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024  # 2MB
+limiter = Limiter(key_func=get_remote_address)
 
 ALLOWED_ORIGINS = [
     "https://ai-resume-analyzer-two-red.vercel.app",
@@ -27,6 +33,9 @@ ALLOWED_ORIGINS = [
 ]
 
 app = FastAPI()
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
@@ -345,6 +354,7 @@ Job Description:
         temperature=0,
         seed=42,
         max_tokens=600,
+        timeout=30,
     )
     raw = re.sub(r'^```[a-z]*\n?', '', response.choices[0].message.content.strip())
     raw = re.sub(r'\n?```$', '', raw)
@@ -387,7 +397,9 @@ def _parse_pdf(resume: UploadFile):
 
 
 @app.post("/analyze")
+@limiter.limit("5/minute")
 async def analyze_resume(
+    request: Request,
     resume: UploadFile = File(...),
     job_description: str = Form(...),
     company_name: str = Form(default=""),
@@ -396,14 +408,24 @@ async def analyze_resume(
 ):
     user = await verify_token(credentials)
 
-    if not resume.filename.endswith(".pdf"):
-        return {"error": "Only PDF files are supported"}
+    if not resume.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported")
+
+    if resume.content_type not in ("application/pdf", "application/octet-stream"):
+        raise HTTPException(status_code=400, detail="Invalid file type")
 
     contents = await resume.read()
+
+    if len(contents) > MAX_FILE_SIZE_BYTES:
+        raise HTTPException(status_code=413, detail="File too large. Maximum size is 2MB")
+
+    if not contents.startswith(b"%PDF"):
+        raise HTTPException(status_code=400, detail="Invalid PDF file")
+
     resume_text = extract_text_from_pdf(contents)
 
     if not resume_text.strip():
-        return {"error": "Could not extract text. Make sure the resume is not a scanned image."}
+        raise HTTPException(status_code=400, detail="Could not extract text. Make sure the resume is not a scanned image.")
 
     all_warnings = detect_pdf_warnings(contents) + detect_heading_warnings(resume_text)
 
@@ -462,7 +484,9 @@ async def analyze_resume(
 
 
 @app.post("/improve")
+@limiter.limit("5/minute")
 async def improve_resume(
+    request: Request,
     resume: UploadFile = File(...),
     job_description: str = Form(...),
     analysis_id: str = Form(default=""),
@@ -470,14 +494,24 @@ async def improve_resume(
 ):
     await verify_token(credentials)
 
-    if not resume.filename.endswith(".pdf"):
-        return {"error": "Only PDF files are supported"}
+    if not resume.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported")
+
+    if resume.content_type not in ("application/pdf", "application/octet-stream"):
+        raise HTTPException(status_code=400, detail="Invalid file type")
 
     contents = await resume.read()
+
+    if len(contents) > MAX_FILE_SIZE_BYTES:
+        raise HTTPException(status_code=413, detail="File too large. Maximum size is 2MB")
+
+    if not contents.startswith(b"%PDF"):
+        raise HTTPException(status_code=400, detail="Invalid PDF file")
+
     resume_text = extract_text_from_pdf(contents)
 
     if not resume_text.strip():
-        return {"error": "Could not extract text. Make sure the resume is not a scanned image."}
+        raise HTTPException(status_code=400, detail="Could not extract text. Make sure the resume is not a scanned image.")
 
     cleaned_resume = clean_text(resume_text)
     cleaned_jd = clean_text(job_description)
@@ -578,6 +612,7 @@ Return ONLY valid JSON. No markdown, no backticks, no explanation:
             temperature=0.3,
             seed=42,
             max_tokens=3000,
+            timeout=30,
         )
         raw = re.sub(r'^```[a-z]*\n?', '', response.choices[0].message.content.strip())
         raw = re.sub(r'\n?```$', '', raw)
@@ -598,24 +633,36 @@ Return ONLY valid JSON. No markdown, no backticks, no explanation:
 
 
 @app.post("/analyze/guest")
+@limiter.limit("2/minute")
 async def analyze_guest(
+    request: Request,
     resume: UploadFile = File(...),
     job_description: str = Form(...)
 ):
-    if not resume.filename.endswith(".pdf"):
-        return {"error": "Only PDF files are supported"}
+    if not resume.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported")
+
+    if resume.content_type not in ("application/pdf", "application/octet-stream"):
+        raise HTTPException(status_code=400, detail="Invalid file type")
 
     contents = await resume.read()
+
+    if len(contents) > MAX_FILE_SIZE_BYTES:
+        raise HTTPException(status_code=413, detail="File too large. Maximum size is 2MB")
+
+    if not contents.startswith(b"%PDF"):
+        raise HTTPException(status_code=400, detail="Invalid PDF file")
+
     resume_text = extract_text_from_pdf(contents)
 
     if not resume_text.strip():
-        return {"error": "Could not extract text. Make sure the resume is not a scanned image."}
+        raise HTTPException(status_code=400, detail="Could not extract text. Make sure the resume is not a scanned image.")
 
     try:
         jd_data = extract_jd_keywords(job_description)
-        matched_keywords, missing_keywords, keyword_score, semantic_score, ats_score = calculate_scores(resume_text, jd_data.get("keywords", []))
+        matched_keywords, missing_keywords, optional_keywords, keyword_score, semantic_score, ats_score = calculate_scores(resume_text, jd_data.get("keyword_groups", []))
     except Exception as e:
-        return {"error": f"Analysis error: {str(e)}"}
+        raise HTTPException(status_code=500, detail=f"Analysis error: {str(e)}")
 
     return {
         "ats_score": ats_score,
