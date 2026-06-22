@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { ResumeContext } from "../context/ResumeContext"
 import KofiButton from "../components/KofiButton"
 
-const ease = [0.16, 1, 0.3, 1]
+
 
 function HighlightedJobDescription({ text, matched, missing }) {
   if (!text) return <p style={{ color: "var(--text-3)", fontSize: 13 }}>No job description provided.</p>

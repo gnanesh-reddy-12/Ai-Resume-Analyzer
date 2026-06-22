@@ -31,7 +31,7 @@ export default function ResetPassword() {
     setError("")
     
     // Password Validation
-    if (password.length < 8 || !/[A-Z]/.test(password) || !/[!@#$%^&*()_+\-=\[\]{}|':"\\<>?]/.test(password)) {
+    if (password.length < 8 || !/[A-Z]/.test(password) || !/[!@#$%^&*()_+\-=[\]{}|':"\\<>?]/.test(password)) {
       return setError("Password must be at least 8 characters, and include at least one uppercase letter and one special character.")
     }
 
@@ -133,7 +133,7 @@ export default function ResetPassword() {
                           {[
                             { label: "At least 8 characters", valid: password.length >= 8 },
                             { label: "One uppercase letter", valid: /[A-Z]/.test(password) },
-                            { label: "One special character", valid: /[!@#$%^&*()_+\-=\[\]{}|':"\\<>?]/.test(password) }
+                            { label: "One special character", valid: /[!@#$%^&*()_+\-=[\]{}|':"\\<>?]/.test(password) }
                           ].map((req, i) => (
                             <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: req.valid ? 600 : 500, color: req.valid ? "var(--success)" : "var(--text-3)", transition: "all 0.2s ease" }}>
                               {req.valid ? (

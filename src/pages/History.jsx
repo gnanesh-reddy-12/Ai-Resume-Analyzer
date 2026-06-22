@@ -30,14 +30,24 @@ function ScoreRing({ score, size = 52, stroke = 4.5 }) {
   )
 }
 
-function InfoCard({ label, value, accent }) {
-  const bd = accent ? `var(--${accent}-bd)` : "var(--border)"
-  const col = accent ? `var(--${accent})` : "var(--text-3)"
+function Toast({ message, type, onClose }) {
+  useEffect(() => { const t = setTimeout(onClose, 3000); return () => clearTimeout(t) }, [onClose])
   return (
-    <div style={{ background: accent ? `var(--${accent}-bg)` : "var(--bg)", border: `1px solid ${bd}`, borderRadius: "var(--r-md)", padding: "12px 14px" }}>
-      <p style={{ fontSize: 10.5, fontWeight: 700, color: col, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 }}>{label}</p>
-      <p style={{ fontSize: 12.5, color: "var(--text-2)", lineHeight: 1.6, whiteSpace: "pre-line" }}>{value}</p>
-    </div>
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 20, scale: 0.95 }}
+      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+      style={{
+        position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
+        zIndex: 500, background: "var(--text-1)", color: "#fff",
+        padding: "12px 20px", borderRadius: 99, fontSize: 13, fontWeight: 600,
+        display: "flex", alignItems: "center", gap: 8, boxShadow: "var(--shadow-lg)", whiteSpace: "nowrap"
+      }}
+    >
+      <div style={{ width: 8, height: 8, borderRadius: "50%", background: type === "success" ? "#4ade80" : "#f87171" }} />
+      {message}
+    </motion.div>
   )
 }
 
@@ -50,6 +60,7 @@ export default function History() {
   const [search, setSearch] = useState("")
   const [sortBy, setSortBy] = useState("date")
   const [activeMenuId, setActiveMenuId] = useState(null)
+  const [toast, setToast] = useState(null)
 
   useEffect(() => {
     if (!user) { navigate("/login"); return }
@@ -108,6 +119,12 @@ export default function History() {
     const prev = analyses[idx + 1]
     if (!prev) return null
     return (a.ats_score || 0) - (prev.ats_score || 0)
+  }
+
+  const handleViewAnalysis = (e, a) => {
+    e.stopPropagation()
+    setActiveMenuId(null)
+    navigate(`/results/${a.id}`)
   }
 
   return (
@@ -223,6 +240,7 @@ export default function History() {
                       </p>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+
                       {/* Menu */}
                       <div className="hist-menu-container" style={{ position: "relative" }}>
                         <button
@@ -245,11 +263,7 @@ export default function History() {
                               }}
                             >
                               <button
-                                onClick={e => {
-                                  e.stopPropagation();
-                                  setActiveMenuId(null);
-                                  setSelected(a);
-                                }}
+                                onClick={e => handleViewAnalysis(e, a)}
                                 style={{
                                   width: "100%", padding: "12px 16px", textAlign: "left", background: "none", border: "none",
                                   fontSize: 13, fontWeight: 500, color: "var(--text-1)", cursor: "pointer", fontFamily: "inherit",
@@ -288,278 +302,9 @@ export default function History() {
         )}
       </div>
 
-      {/* Detail Drawer */}
       <AnimatePresence>
-        {selected && (
-          <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 100, overflow: "hidden" }}>
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setSelected(null)}
-              style={{ position: "absolute", inset: 0, background: "rgba(13,15,18,0.4)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }}
-            />
-            <div style={{ position: "absolute", inset: "0 0 0 auto", display: "flex" }}>
-              <motion.div
-                initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
-                transition={{ type: "spring", damping: 28, stiffness: 260 }}
-                style={{
-                  width: "min(660px,100vw)", background: "var(--surface)", height: "100%",
-                  boxShadow: "var(--shadow-lg)", display: "flex", flexDirection: "column",
-                  overflow: "hidden", borderLeft: "1px solid var(--border)"
-                }}
-              >
-                {/* Drawer header */}
-                <div style={{ borderBottom: "1px solid var(--border)", padding: "20px 24px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", background: "var(--bg)", flexShrink: 0 }}>
-                  <div style={{ minWidth: 0, flex: 1, paddingRight: 16 }}>
-                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                      <h2 style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.5px", margin: 0 }}>
-                        {selected.company_name || "Analysis Details"}
-                      </h2>
-                      {selected.job_role && <span className="badge badge-accent">{selected.job_role}</span>}
-                    </div>
-                    <p style={{ fontSize: 12, color: "var(--text-3)" }}>{selected.filename}</p>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "6px 14px" }}>
-                      <span style={{ fontSize: 16, fontWeight: 800, color: "var(--accent)", lineHeight: 1 }}>{selected.ats_score}%</span>
-                      <span style={{ fontSize: 9.5, fontWeight: 600, color: "var(--text-3)", marginTop: 2 }}>ATS Score</span>
-                    </div>
-                    <button
-                      onClick={() => setSelected(null)}
-                      style={{ width: 36, height: 36, borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-3)", cursor: "pointer" }}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Drawer body */}
-                <div className="custom-scrollbar" style={{ flex: 1, overflowY: "auto", padding: "24px" }}>
-                  <DrawerContent selected={selected} />
-                </div>
-              </motion.div>
-            </div>
-          </div>
-        )}
+        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       </AnimatePresence>
-    </div>
-  )
-}
-
-function HighlightedJD({ text, matched, missing, optional }) {
-  if (!text) return null
-  const allKeywords = [
-    ...(matched || []).map(k => ({ word: k, type: "matched" })),
-    ...(missing || []).map(k => ({ word: k, type: "missing" })),
-    ...(optional || []).map(k => ({ word: k, type: "optional" })),
-  ].sort((a, b) => b.word.length - a.word.length)
-  
-  if (!allKeywords.length) {
-    return <div className="custom-scrollbar" style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "13px 15px", fontSize: 12.5, whiteSpace: "pre-wrap", maxHeight: 130, overflowY: "auto", color: "var(--text-2)", lineHeight: 1.65 }}>{text}</div>
-  }
-  
-  const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-  const pattern = new RegExp(`\\b(${allKeywords.map(k => escape(k.word)).join("|")})\\b`, "gi")
-  const parts = text.split(pattern)
-  
-  return (
-    <div className="custom-scrollbar" style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "13px 15px", fontSize: 12.5, whiteSpace: "pre-wrap", maxHeight: 130, overflowY: "auto", color: "var(--text-2)", lineHeight: 1.65 }}>
-      {parts.map((part, i) => {
-        const kw = allKeywords.find(k => k.word.toLowerCase() === part.toLowerCase())
-        if (kw?.type === "matched") return <mark key={i} style={{ background: "transparent", borderBottom: "2px solid var(--success)", color: "var(--text-1)", padding: "0 1px", fontWeight: 600 }}>{part}</mark>
-        if (kw?.type === "missing") return <mark key={i} style={{ background: "transparent", borderBottom: "2px solid var(--danger)", color: "var(--text-1)", padding: "0 1px", fontWeight: 600 }}>{part}</mark>
-        if (kw?.type === "optional") return <mark key={i} style={{ background: "transparent", borderBottom: "2px solid var(--warning)", color: "var(--text-1)", padding: "0 1px", fontWeight: 600 }}>{part}</mark>
-        return <span key={i}>{part}</span>
-      })}
-    </div>
-  )
-}
-
-function DrawerContent({ selected }) {
-  const suggestionsData = selected.improvement_suggestions || {}
-  const isNewFormat = suggestionsData && !Array.isArray(suggestionsData) && typeof suggestionsData === "object"
-  const eligibility = isNewFormat ? suggestionsData.eligibility : null
-  const warnings = isNewFormat ? suggestionsData.warnings : null
-  const jobAnalysis = eligibility?.job_analysis
-  const legacySuggestions = Array.isArray(suggestionsData) ? suggestionsData : null
-  const suggestions = suggestionsData.suggestions
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-
-      {selected.job_description_preview && (
-        <DrawerSection label="Job Description">
-          <HighlightedJD 
-            text={selected.job_description_preview} 
-            matched={selected.matched_keywords} 
-            missing={selected.missing_keywords} 
-            optional={selected.optional_keywords} 
-          />
-        </DrawerSection>
-      )}
-
-      {jobAnalysis && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          <InfoCard label="Role Focus" value={jobAnalysis.role_focus} />
-          <InfoCard label="Recruiter Needs" value={jobAnalysis.recruiter_needs} />
-        </div>
-      )}
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        {selected.keyword_score !== undefined && (
-          <div style={{ background: "var(--accent-soft)", border: "1px solid var(--accent-mid)", borderRadius: "var(--r-md)", padding: "14px 16px" }}>
-            <p style={{ fontSize: 10.5, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 }}>Keyword Score</p>
-            <p style={{ fontSize: 24, fontWeight: 800, color: "var(--text-1)", letterSpacing: "-1px" }}>{selected.keyword_score}%</p>
-          </div>
-        )}
-        {selected.semantic_score !== undefined && (
-          <div style={{ background: "var(--success-bg)", border: "1px solid var(--success-bd)", borderRadius: "var(--r-md)", padding: "14px 16px" }}>
-            <p style={{ fontSize: 10.5, fontWeight: 700, color: "var(--success)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 }}>Semantic Score</p>
-            <p style={{ fontSize: 24, fontWeight: 800, color: "var(--text-1)", letterSpacing: "-1px" }}>{selected.semantic_score}%</p>
-          </div>
-        )}
-      </div>
-
-      {warnings?.length > 0 && (
-        <div style={{ background: "var(--warning-bg)", border: "1px solid var(--warning-bd)", borderRadius: "var(--r-md)", padding: "14px 16px" }}>
-          <p style={{ fontSize: 10.5, fontWeight: 700, color: "var(--warning)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>⚠ Warnings ({warnings.length})</p>
-          <ul style={{ paddingLeft: 16, display: "flex", flexDirection: "column", gap: 5 }}>
-            {warnings.map((w, i) => <li key={i} style={{ fontSize: 13, color: "var(--warning)", lineHeight: 1.5 }}>{w}</li>)}
-          </ul>
-        </div>
-      )}
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        {selected.matched_keywords?.length > 0 && (
-          <div style={{ background: "var(--success-bg)", border: "1px solid var(--success-bd)", borderRadius: "var(--r-md)", padding: "14px 16px" }}>
-            <p style={{ fontSize: 10.5, fontWeight: 700, color: "var(--success)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 10 }}>
-              ✓ Matched <span style={{ background: "var(--success-bd)", borderRadius: 99, padding: "1px 7px", fontSize: 10, marginLeft: 4 }}>{selected.matched_keywords.length}</span>
-            </p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-              {selected.matched_keywords.map((kw, i) => <span key={i} className="tag tag-green" style={{ fontSize: 11 }}>{kw}</span>)}
-            </div>
-          </div>
-        )}
-        {selected.missing_keywords?.length > 0 && (
-          <div style={{ background: "var(--danger-bg)", border: "1px solid var(--danger-bd)", borderRadius: "var(--r-md)", padding: "14px 16px" }}>
-            <p style={{ fontSize: 10.5, fontWeight: 700, color: "var(--danger)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 10 }}>
-              ✗ Missing <span style={{ background: "var(--danger-bd)", borderRadius: 99, padding: "1px 7px", fontSize: 10, marginLeft: 4 }}>{selected.missing_keywords.length}</span>
-            </p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-              {selected.missing_keywords.map((kw, i) => <span key={i} className="tag tag-red" style={{ fontSize: 11 }}>{kw}</span>)}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {legacySuggestions?.length > 0 && (
-        <DrawerSection label="Action Items">
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {legacySuggestions.map((item, i) => (
-              <div key={i} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "12px 14px", fontSize: 13, color: "var(--text-2)", lineHeight: 1.65 }}>
-                <span style={{ fontWeight: 700, color: "var(--text-1)" }}>Issue:</span> {item.issue}<br />
-                <span style={{ fontWeight: 700, color: "var(--text-1)" }}>Fix:</span> {item.fix}
-              </div>
-            ))}
-          </div>
-        </DrawerSection>
-      )}
-
-      {suggestions && (
-        <div style={{ borderTop: "1px solid var(--border)", paddingTop: 20, display: "flex", flexDirection: "column", gap: 16 }}>
-          <p style={{ fontSize: 10.5, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Saved AI Suggestions</p>
-
-          {suggestions.summary && (
-            <DrawerSection label="Professional Summary">
-              <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "14px 16px", fontSize: 13.5, color: "var(--text-1)", lineHeight: 1.75 }}>
-                {suggestions.summary}
-              </div>
-            </DrawerSection>
-          )}
-
-          {suggestions.ai_snapshot && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
-              <InfoCard label="Keep" value={suggestions.ai_snapshot.keep} accent="success" />
-              <InfoCard label="Missing" value={suggestions.ai_snapshot.missing} accent="warning" />
-              <InfoCard label="Gaps" value={suggestions.ai_snapshot.experience_gap} accent="danger" />
-            </div>
-          )}
-
-          {suggestions.skills_recommendation && (
-            <DrawerSection label="Skills">
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                <div style={{ background: "var(--success-bg)", border: "1px solid var(--success-bd)", borderRadius: "var(--r-md)", padding: "12px 14px" }}>
-                  <p style={{ fontSize: 10.5, fontWeight: 700, color: "var(--success)", marginBottom: 8 }}>✓ Keep</p>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                    {suggestions.skills_recommendation.keep_skills?.map((sk, i) => <span key={i} className="tag tag-green" style={{ fontSize: 10.5 }}>{sk}</span>)}
-                  </div>
-                </div>
-                <div style={{ background: "var(--accent-soft)", border: "1px solid var(--accent-mid)", borderRadius: "var(--r-md)", padding: "12px 14px" }}>
-                  <p style={{ fontSize: 10.5, fontWeight: 700, color: "var(--accent)", marginBottom: 8 }}>+ Add</p>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                    {suggestions.skills_recommendation.add_skills?.map((sk, i) => <span key={i} className="tag tag-blue" style={{ fontSize: 10.5 }}>{sk}</span>)}
-                  </div>
-                </div>
-              </div>
-              {suggestions.skills_recommendation.integration_advice && (
-                <div style={{ marginTop: 10, background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "12px 14px", fontSize: 13, color: "var(--text-2)", lineHeight: 1.65 }}>
-                  <span style={{ fontWeight: 700, color: "var(--text-1)" }}>Advice: </span>{suggestions.skills_recommendation.integration_advice}
-                </div>
-              )}
-            </DrawerSection>
-          )}
-
-          {suggestions.sections?.length > 0 && (
-            <DrawerSection label="Bullet Rewrites">
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                {suggestions.sections.map((sect, i) => (
-                  <div key={i}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.06em", background: "var(--accent-soft)", border: "1px solid var(--accent-mid)", borderRadius: "var(--r-xs)", padding: "3px 10px", display: "inline-block", marginBottom: 9 }}>{sect.title}</span>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                      {sect.bullets?.map((b, bi) => (
-                        <div key={bi} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "12px 14px" }}>
-                          <div>
-                            <p style={{ fontSize: 10, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>Original</p>
-                            <p style={{ fontSize: 12.5, color: "var(--text-3)", textDecoration: "line-through", lineHeight: 1.55 }}>{b.original}</p>
-                          </div>
-                          <div style={{ borderLeft: "1px solid var(--border)", paddingLeft: 12 }}>
-                            <p style={{ fontSize: 10, fontWeight: 700, color: "var(--success)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>Rewrite</p>
-                            <p style={{ fontSize: 12.5, color: "var(--text-1)", fontWeight: 500, lineHeight: 1.55 }}>{b.rewritten}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </DrawerSection>
-          )}
-        </div>
-      )}
-
-      {selected.summary_suggestion && (
-        <DrawerSection label="Summary Suggestion">
-          <div style={{ background: "var(--success-bg)", border: "1px solid var(--success-bd)", borderRadius: "var(--r-md)", padding: "14px 16px", fontSize: 13.5, color: "var(--text-1)", lineHeight: 1.75 }}>
-            {selected.summary_suggestion}
-          </div>
-        </DrawerSection>
-      )}
-
-      {selected.rewritten_bullets?.length > 0 && (
-        <DrawerSection label="Rewritten Bullets">
-          <ul style={{ paddingLeft: 16, display: "flex", flexDirection: "column", gap: 8 }}>
-            {selected.rewritten_bullets.map((b, i) => <li key={i} style={{ fontSize: 13.5, color: "var(--text-1)", lineHeight: 1.65 }}>{b}</li>)}
-          </ul>
-        </DrawerSection>
-      )}
-    </div>
-  )
-}
-
-function DrawerSection({ label, children }) {
-  return (
-    <div>
-      <p style={{ fontSize: 10.5, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>{label}</p>
-      {children}
     </div>
   )
 }

@@ -97,7 +97,9 @@ export default function Profile() {
   const [editingProfile, setEditingProfile] = useState(false)
 
   const [resumeUrl, setResumeUrl] = useState(user?.user_metadata?.default_resume_url || "")
+  // eslint-disable-next-line no-unused-vars
   const [resumeName, setResumeName] = useState(user?.user_metadata?.default_resume_name || "")
+  // eslint-disable-next-line no-unused-vars
   const [uploadingResume, setUploadingResume] = useState(false)
   const [removingResume, setRemovingResume] = useState(false)
   const [dragOver, setDragOver] = useState(false)
@@ -120,23 +122,6 @@ export default function Profile() {
   const initials = name
     ? name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
     : user?.email?.charAt(0).toUpperCase() || "U"
-
-  useEffect(() => {
-    if (!user) return
-    loadProfile()
-    loadStats()
-    loadApplications()
-  }, [user])
-
-  useEffect(() => {
-    const handleClick = (e) => {
-      if (!e.target.closest('.app-menu-container')) {
-        setActiveMenuId(null)
-      }
-    }
-    document.addEventListener('click', handleClick)
-    return () => document.removeEventListener('click', handleClick)
-  }, [])
 
   const loadProfile = async () => {
     const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single()
@@ -176,6 +161,25 @@ export default function Profile() {
       .order("created_at", { ascending: false })
     setApplications(data || [])
   }
+
+  useEffect(() => {
+    if (!user) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadProfile()
+    loadStats()
+    loadApplications()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user])
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (!e.target.closest('.app-menu-container')) {
+        setActiveMenuId(null)
+      }
+    }
+    document.addEventListener('click', handleClick)
+    return () => document.removeEventListener('click', handleClick)
+  }, [])
 
   const handleUpdateProfile = async () => {
     if (!name.trim()) return
@@ -231,6 +235,7 @@ export default function Profile() {
       setRemovingResume(false) }
   }
 
+  // eslint-disable-next-line no-unused-vars
   const addCompany = () => {
     const v = companyInput.trim()
     if (!v || targetCompanies.includes(v)) return

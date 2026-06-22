@@ -93,6 +93,18 @@ async def get_history(user=Depends(verify_token)):
     return {"analyses": result.data}
 
 
+@app.get("/history/{analysis_id}")
+async def get_single_history(analysis_id: str, user=Depends(verify_token)):
+    result = supabase.table("analyses") \
+        .select("*") \
+        .eq("id", analysis_id) \
+        .eq("user_id", user["user_id"]) \
+        .execute()
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Analysis not found or unauthorized")
+    return {"analysis": result.data[0]}
+
+
 @app.delete("/history/{analysis_id}")
 async def delete_analysis(analysis_id: str, user=Depends(verify_token)):
     supabase.table("analyses") \
@@ -677,3 +689,203 @@ async def analyze_guest(
         },
         "message": "Guest analysis complete"
     }
+
+
+@app.post("/cover-letter")
+@limiter.limit("5/minute")
+async def generate_cover_letter(
+    request: Request,
+    resume: UploadFile = File(...),
+    job_description: str = Form(...),
+    company_name: str = Form(default=""),
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    await verify_token(credentials)
+
+    if not resume.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported")
+
+    if resume.content_type not in ("application/pdf", "application/octet-stream"):
+        raise HTTPException(status_code=400, detail="Invalid file type")
+
+    contents = await resume.read()
+
+    if len(contents) > MAX_FILE_SIZE_BYTES:
+        raise HTTPException(status_code=413, detail="File too large. Maximum size is 2MB")
+
+    if not contents.startswith(b"%PDF"):
+        raise HTTPException(status_code=400, detail="Invalid PDF file")
+
+    resume_text = extract_text_from_pdf(contents)
+
+    if not resume_text.strip():
+        raise HTTPException(status_code=400, detail="Could not extract text. Make sure the resume is not a scanned image.")
+
+    cleaned_resume = clean_text(resume_text)
+    cleaned_jd = clean_text(job_description)
+
+    prompt = f"""You are an expert career coach writing a cover letter for a job applicant.
+
+STRICT RULES:
+1. Use ONLY facts, skills, and experiences explicitly present in the resume. Do not invent anything.
+2. Banned words: passionate, results-driven, dynamic, detail-oriented, seeking, synergize, leverage, motivated, hardworking, team player, self-starter, excited, thrilled.
+3. Do NOT start the letter with "I". Open with the role, company, or a specific accomplishment.
+4. Exactly 3 paragraphs, maximum 80 words each.
+   - Paragraph 1: The role you are applying for and one specific reason this company over others.
+   - Paragraph 2: Two specific accomplishments from the resume with measurable impact that directly match the JD.
+   - Paragraph 3: One forward-looking sentence about what you bring to this team, then a call to action.
+5. Write in first person, professional but direct tone. No fluff.
+6. Do not include subject line, date, address headers, or sign-off. Body only.
+
+Company: {company_name}
+Job Description: {cleaned_jd}
+Resume: {cleaned_resume}"""
+
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": "You are a professional cover letter writer. Return only the cover letter text. No markdown formatting, no preambles."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.4,
+            seed=42,
+            max_tokens=1500,
+            timeout=30,
+        )
+        return {"cover_letter": response.choices[0].message.content.strip()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Cover letter generation failed: {str(e)}")
+
+
+@app.post("/mock-interview")
+@limiter.limit("5/minute")
+async def generate_mock_interview(
+    request: Request,
+    job_description: str = Form(...),
+    experience_years: float = Form(default=0),
+    resume: UploadFile = File(None),
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    await verify_token(credentials)
+    cleaned_jd = clean_text(job_description)
+
+    resume_text = "No resume provided. Generate mock interview questions based solely on the JD and experience level."
+    if resume and resume.filename:
+        try:
+            contents = await resume.read()
+            if len(contents) <= MAX_FILE_SIZE_BYTES and contents.startswith(b"%PDF"):
+                extracted = extract_text_from_pdf(contents)
+                if extracted.strip():
+                    resume_text = clean_text(extracted)
+        except Exception:
+            pass
+
+    if experience_years == 0:
+        seniority = "fresher (0 years experience, focus on fundamentals, DSA basics, internship projects)"
+    elif experience_years <= 2:
+        seniority = "junior (1-2 years experience, focus on practical coding, debugging, small system design)"
+    elif experience_years <= 5:
+        seniority = "mid-level (3-5 years experience, focus on system design, code quality, ownership, LLD)"
+    else:
+        seniority = "senior (6+ years experience, focus on HLD, architecture decisions, leadership, mentoring)"
+
+    prompt = f"""You are a senior hiring manager and technical interviewer with 15 years of experience at top-tier product companies. You have conducted thousands of real interviews across all roles and seniority levels.
+
+Your job is to generate a REALISTIC, COMPLETE mock interview plan that mirrors what this specific company actually asks in their real interviews for this exact role.
+
+INPUTS:
+- Job Description: {cleaned_jd}
+- Candidate Profile: {resume_text}
+- Stated Experience: {seniority}
+
+STEP 1 — DETECT ROLE CATEGORY
+Read the JD carefully. Classify into one of: Software Engineer, Data Engineer, Data Analyst, ML Engineer, DevOps/SRE, Product Manager, Marketing, Sales, Finance, Design, Operations, or Other. This controls which round types you generate.
+
+STEP 2 — DETECT COMPANY TIER
+- FAANG/Top-tier (Google, Apple, Meta, Amazon, Microsoft, Netflix, etc): heavy DSA, system design scales with seniority
+- Product startups: practical coding, real-world problem solving, cultural fit
+- Service companies (TCS, Infosys, Wipro, Accenture, etc): aptitude, basic coding, HR rounds
+- Domain-specific (finance, healthcare, etc): domain knowledge rounds added
+
+STEP 3 — DETECT CANDIDATE LEVEL from resume, NOT just experience_years input
+- Has shipped production systems with real metrics = junior, not fresher
+- Has only coursework and no deployed projects = fresher
+- 3-5 years real work = mid-level
+- 6+ years = senior
+
+STEP 4 — GENERATE ROUNDS based on all three factors above
+
+ROUND RULES BY ROLE:
+Software Engineer:
+- Fresher/Junior: Online Assessment (DSA easy-medium) → Technical (OOP, debugging, unit testing) → Behavioral → HR
+- Mid: DSA medium-hard → System Design (API design, database schema, NOT distributed systems) → Behavioral → HR  
+- Senior: DSA hard → HLD/System Design → Leadership/Behavioral → HR
+
+Data Analyst: SQL round → Statistics/Analytics thinking → Case study (given a dataset, find insights) → Behavioral → HR. NO DSA rounds.
+
+ML Engineer: Python/coding → ML concepts (bias-variance, model selection, metrics) → Case study (build a model for X problem) → System Design (ML pipeline, not software architecture) → Behavioral
+
+Marketing/Sales: Campaign thinking round → Case study → Stakeholder communication → Behavioral → HR. NO technical rounds.
+
+DevOps/SRE: Linux/networking fundamentals → CI/CD and infrastructure → Incident response scenario → Behavioral
+
+CRITICAL SENIORITY RULES:
+- Experience under 3 years OR early careers JD: NEVER ask HLD, microservices, distributed systems
+- Fresher with strong projects (deployed APIs, real metrics): treat as junior, ask light system design (design a REST API for X, design a database schema for Y)
+- FAANG early careers: DSA is mandatory but keep it easy-medium (arrays, strings, trees). One light design round maximum.
+- Service company fresher: aptitude + verbal reasoning round first, then basic coding, then HR
+
+QUESTION QUALITY RULES:
+- Every question must be specific to THIS job description and THIS candidate's resume
+- Reference the candidate's actual projects when relevant (e.g. "You built an ML classifier — how would you handle class imbalance in a larger dataset?")
+- Include the exact technologies mentioned in the JD in technical questions
+- Behavioral questions must use STAR format prompts
+- Situational questions must be realistic day-to-day scenarios from this specific role
+- Do NOT ask generic questions like "Tell me about yourself" or "What are your strengths"
+- Each round must have 3-4 questions. No more, no less.
+- Total rounds: minimum 3, maximum 5
+
+PREPARATION TIPS:
+For each round, add a "prep_tip" field — one specific, actionable tip on how to prepare for that round based on this JD and candidate profile.
+
+Return ONLY valid JSON. No markdown, no backticks:
+{{
+  "role_category": "",
+  "company_tier": "",
+  "seniority_detected": "",
+  "total_rounds": 0,
+  "rounds": [
+    {{
+      "round": "",
+      "interviewer": "",
+      "duration": "",
+      "focus": "",
+      "prep_tip": "",
+      "questions": ["", "", ""]
+    }}
+  ]
+}}"""
+
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": "You are an expert hiring manager. Return ONLY valid JSON. No backticks, no explanation."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.4,
+            seed=42,
+            max_tokens=1500,
+            timeout=30,
+        )
+        raw = re.sub(r'^```[a-z]*\n?', '', response.choices[0].message.content.strip())
+        raw = re.sub(r'\n?```$', '', raw)
+        result = json.loads(raw)
+
+        if not isinstance(result, dict) or "rounds" not in result:
+            raise ValueError("Invalid format returned by AI")
+
+        return {"interview_plan": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Mock interview generation failed: {str(e)}")

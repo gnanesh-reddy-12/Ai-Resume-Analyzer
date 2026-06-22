@@ -20,6 +20,7 @@ export default function AnalyzeSection() {
   const [fetchingSaved, setFetchingSaved] = useState(false)
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (defaultResumeUrl && !resumeFile) setUploadMode("saved")
   }, [defaultResumeUrl, resumeFile])
 
@@ -46,7 +47,7 @@ export default function AnalyzeSection() {
         const blob = await res.blob()
         const file = new File([blob], defaultResumeName, { type: "application/pdf" })
         setResumeFile(file)
-      } catch (err) {
+      } catch {
         alert("Failed to load saved resume.")
         setFetchingSaved(false)
         return

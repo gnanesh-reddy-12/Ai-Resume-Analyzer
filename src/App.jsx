@@ -48,6 +48,7 @@ function App() {
             <Route path="/guest-results" element={<GuestResults />} />
             <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
             <Route path="/results" element={<ProtectedRoute><Results /></ProtectedRoute>} />
+            <Route path="/results/:id" element={<ProtectedRoute><Results /></ProtectedRoute>} />
             <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/privacy" element={<Privacy />} />

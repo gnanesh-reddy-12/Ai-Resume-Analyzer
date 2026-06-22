@@ -27,13 +27,13 @@ export default function Signup() {
     }
     
     const validatePassword = (pwd) => {
-      return pwd.length >= 8 && /[A-Z]/.test(pwd) && /[!@#$%^&*()_+\-=\[\]{}|':"\\<>?]/.test(pwd)
+      return pwd.length >= 8 && /[A-Z]/.test(pwd) && /[!@#$%^&*()_+\-=[\]{}|':"\\<>?]/.test(pwd)
     }
     if (!validatePassword(password)) return setError("Password must be at least 8 characters, and include at least one uppercase letter and one special character.")
 
     setLoading(true)
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -135,7 +135,7 @@ export default function Signup() {
                       {[
                         { label: "At least 8 characters", valid: password.length >= 8 },
                         { label: "One uppercase letter", valid: /[A-Z]/.test(password) },
-                        { label: "One special character", valid: /[!@#$%^&*()_+\-=\[\]{}|':"\\<>?]/.test(password) }
+                        { label: "One special character", valid: /[!@#$%^&*()_+\-=[\]{}|':"\\<>?]/.test(password) }
                       ].map((req, i) => (
                         <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: req.valid ? 600 : 500, color: req.valid ? "var(--success)" : "var(--text-3)", transition: "all 0.2s ease" }}>
                           {req.valid ? (
