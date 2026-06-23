@@ -5,13 +5,71 @@ import { ResumeContext } from "../context/ResumeContext"
 import Footer from "../components/Footer"
 import { KofiFloating } from "../components/KofiButton"
 
-const ease = [0.22, 1, 0.36, 1]
+/* ---- Design tokens ---- */
+const T = {
+  bg: "#FAF8F5",
+  surface: "#FFFFFF",
+  text1: "#1A1410",
+  text2: "#4A4540",
+  text3: "#9C9690",
+  accent: "#5C6B4E",
+  accentSoft: "#EEF1EA",
+  border: "rgba(26,20,16,0.08)",
+  shadowSm: "0 1px 2px rgba(26,20,16,0.05)",
+}
 
-const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 22 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6, delay, ease }
+/* Only animation allowed: a 150ms opacity fade */
+const fade = (delay = 0) => ({
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  transition: { duration: 0.15, delay },
 })
+
+const fadeInView = (delay = 0) => ({
+  initial: { opacity: 0 },
+  whileInView: { opacity: 1 },
+  viewport: { once: true },
+  transition: { duration: 0.15, delay },
+})
+
+/* ---- Reusable styles ---- */
+const cardStyle = {
+  background: T.surface,
+  border: `1px solid ${T.border}`,
+  borderRadius: 14,
+  padding: 24,
+  boxShadow: T.shadowSm,
+}
+
+const btnBase = {
+  height: 36,
+  borderRadius: 10,
+  padding: "0 18px",
+  fontSize: 14,
+  fontWeight: 600,
+  fontFamily: "inherit",
+  cursor: "pointer",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 6,
+  border: "1px solid transparent",
+  transition: "opacity 150ms ease",
+  whiteSpace: "nowrap",
+}
+
+const btnAccent = { ...btnBase, background: T.accent, color: "#fff" }
+const btnGhost = { ...btnBase, background: "transparent", color: T.text2, border: `1px solid ${T.border}` }
+
+const sectionLabel = {
+  display: "inline-block",
+  fontSize: 12,
+  fontWeight: 700,
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
+  color: T.accent,
+  marginBottom: 14,
+}
 
 const features = [
   {
@@ -103,93 +161,89 @@ export default function Landing() {
   }
 
   return (
-    <div style={{ background: "linear-gradient(160deg, var(--accent-soft) 0%, var(--bg) 55%)", color: "var(--text-1)", minHeight: "100vh" }}>
+    <div style={{ background: T.bg, color: T.text1, minHeight: "100vh", fontFamily: "Inter, sans-serif" }}>
 
-      {/* Nav */}
+      {/* Nav — full width top bar, 56px, border-bottom */}
       <nav style={{
         position: "sticky", top: 0, zIndex: 50,
-        background: "rgba(244,246,249,0.9)", backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        borderBottom: "1px solid var(--border)",
-        padding: "0 clamp(20px,5vw,56px)", height: 58,
-        display: "flex", alignItems: "center", justifyContent: "space-between"
+        background: T.surface,
+        borderBottom: `1px solid ${T.border}`,
+        height: 56,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "0 clamp(20px,5vw,40px)",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{
-            width: 32, height: 32, background: "var(--accent)", borderRadius: 10,
+            width: 30, height: 30, background: T.accent, borderRadius: 8,
             display: "flex", alignItems: "center", justifyContent: "center"
           }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
             </svg>
           </div>
-          <span style={{ fontWeight: 800, fontSize: 20, letterSpacing: "-1px", color: "var(--text-1)" }}>
-            Resume<span style={{ color: "var(--accent)" }}>AI</span>
+          <span style={{ fontWeight: 700, fontSize: 17, letterSpacing: "-0.02em", color: T.text1 }}>
+            Resume<span style={{ color: T.accent }}>AI</span>
           </span>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <button className="btn-ghost" style={{ padding: "8px 18px", fontSize: 13 }} onClick={() => navigate("/login")}>Sign In</button>
-          <button className="btn-accent" style={{ padding: "8px 18px", fontSize: 13 }} onClick={() => navigate("/signup")}>Get Started</button>
+          <button style={btnGhost} onClick={() => navigate("/login")}>Sign In</button>
+          <button style={btnAccent} onClick={() => navigate("/signup")}>Get Started</button>
         </div>
       </nav>
 
       {/* Hero */}
       <section style={{
-        maxWidth: 820, margin: "0 auto",
-        padding: "clamp(64px,10vw,112px) clamp(20px,5vw,32px) 72px",
-        textAlign: "center"
+        maxWidth: 880, margin: "0 auto",
+        padding: "clamp(72px,11vw,128px) clamp(20px,5vw,32px) 80px",
+        textAlign: "center",
+        display: "flex", flexDirection: "column", alignItems: "center",
       }}>
-        <motion.div {...fadeUp(0)}>
+        <motion.div {...fade(0)}>
           <span style={{
-            display: "inline-flex", alignItems: "center", gap: 6,
-            background: "var(--accent-soft)", color: "var(--accent)",
-            fontSize: 11.5, fontWeight: 700, padding: "5px 14px",
-            borderRadius: 99, letterSpacing: "0.04em",
-            border: "1px solid var(--accent-mid)", marginBottom: 32
+            display: "inline-flex", alignItems: "center", gap: 7,
+            background: T.accentSoft, color: T.accent,
+            fontSize: 12, fontWeight: 600, padding: "6px 14px",
+            borderRadius: 8, letterSpacing: "0.02em",
+            border: `1px solid ${T.border}`, marginBottom: 32,
           }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)" }} />
-            AI-POWERED RESUME ANALYSIS
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: T.accent }} />
+            AI-Powered Resume Analysis
           </span>
         </motion.div>
 
-        <motion.h1 {...fadeUp(0.07)} style={{
-          fontSize: "clamp(38px,6.5vw,68px)", fontWeight: 800,
-          lineHeight: 1.04, letterSpacing: "-0.04em", marginBottom: 22,
-          color: "var(--text-1)"
+        <motion.h1 {...fade(0.05)} style={{
+          fontSize: "clamp(40px,6vw,64px)", fontWeight: 800,
+          lineHeight: 1.05, letterSpacing: "-0.04em", marginBottom: 24,
+          color: T.text1, maxWidth: 760,
         }}>
-          Get hired faster with<br />
-          <span style={{ color: "var(--accent)" }}>smarter resume analysis</span>
+          Get hired faster with{" "}
+          <span style={{ color: T.accent }}>smarter resume analysis</span>
         </motion.h1>
 
-        <motion.p {...fadeUp(0.14)} style={{
-          fontSize: 17, color: "var(--text-2)",
-          lineHeight: 1.75, maxWidth: 520, margin: "0 auto 40px", fontWeight: 400
+        <motion.p {...fade(0.1)} style={{
+          fontSize: 17, color: T.text2,
+          lineHeight: 1.6, maxWidth: 540, margin: "0 auto 36px", fontWeight: 400
         }}>
           Analyze ATS compatibility, skill alignment, and keyword gaps in seconds.
           Built for job seekers who want real results.
         </motion.p>
 
-        <motion.div {...fadeUp(0.2)} style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-          <button
-            className="btn-primary"
-            style={{ padding: "14px 32px", fontSize: 15 }}
-            onClick={() => navigate("/signup")}
-          >
+        <motion.div {...fade(0.15)} style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+          <button style={btnAccent} onClick={() => navigate("/signup")}>
             Sign Up Free
           </button>
           <button
-            className="btn-ghost"
-            style={{ padding: "14px 26px", fontSize: 15 }}
+            style={btnGhost}
             onClick={() => document.getElementById("try-free").scrollIntoView({ behavior: "smooth" })}
           >
             Try Without Signup →
           </button>
         </motion.div>
 
-        <motion.div {...fadeUp(0.28)} style={{ display: "flex", gap: 28, justifyContent: "center", marginTop: 44, flexWrap: "wrap" }}>
+        <motion.div {...fade(0.2)} style={{ display: "flex", gap: 28, justifyContent: "center", marginTop: 40, flexWrap: "wrap" }}>
           {["ATS Optimized", "Instant Results", "No Credit Card"].map(t => (
-            <span key={t} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 13, color: "var(--text-3)", fontWeight: 500 }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5">
+            <span key={t} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 13, color: T.text3, fontWeight: 500 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="2.5">
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
               {t}
@@ -200,105 +254,89 @@ export default function Landing() {
 
       {/* Social proof strip */}
       <motion.div
-        initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}
-        viewport={{ once: true }} transition={{ duration: 0.5 }}
-        style={{
-          maxWidth: 820, margin: "0 auto 80px",
-          padding: "0 clamp(20px,5vw,32px)"
-        }}
+        {...fadeInView()}
+        style={{ maxWidth: 880, margin: "0 auto 88px", padding: "0 clamp(20px,5vw,32px)" }}
       >
         <div style={{
-          display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12
+          display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16
         }}>
           {[
             { num: "2x", label: "More Interview Callbacks" },
             { num: "< 5s", label: "Instant Resume Feedback" },
             { num: "500+", label: "Active Job Seekers" },
           ].map(s => (
-            <div key={s.label} className="ek-card" style={{
-              background: "var(--surface)", border: "1px solid var(--border)",
-              borderRadius: "var(--r-xl)", padding: "24px 20px", textAlign: "center",
-              display: "flex", flexDirection: "column", justifyContent: "center"
-            }}>
-              <p style={{ fontSize: "clamp(26px,4vw,36px)", fontWeight: 800, color: "var(--text-1)", letterSpacing: "-1.5px", marginBottom: 6 }}>{s.num}</p>
-              <p style={{ fontSize: 13, color: "var(--text-3)", lineHeight: 1.4, fontWeight: 500 }}>{s.label}</p>
+            <div key={s.label} style={{ ...cardStyle, textAlign: "center" }}>
+              <p style={{ fontSize: "clamp(28px,4vw,36px)", fontWeight: 800, color: T.text1, letterSpacing: "-0.03em", marginBottom: 6 }}>{s.num}</p>
+              <p style={{ fontSize: 13, color: T.text3, lineHeight: 1.4, fontWeight: 500 }}>{s.label}</p>
             </div>
           ))}
         </div>
       </motion.div>
 
       {/* Free Trial */}
-      <section id="try-free" style={{ maxWidth: 900, margin: "0 auto 96px", padding: "0 clamp(16px,4vw,24px)" }}>
-        <motion.div
-          initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }} transition={{ duration: 0.6, ease }}
-          style={{
-            background: "var(--surface)", border: "1px solid var(--border)",
-            borderRadius: "var(--r-2xl)", padding: "clamp(32px,5vw,52px)"
-          }}
-        >
-          <div style={{ textAlign: "center", marginBottom: 36 }}>
-            <span className="section-label">Free Trial</span>
-            <h2 style={{ fontSize: "clamp(22px,4vw,30px)", fontWeight: 800, letterSpacing: "-1px", marginBottom: 10, color: "var(--text-1)" }}>
+      <section id="try-free" style={{ maxWidth: 920, margin: "0 auto 104px", padding: "0 clamp(16px,4vw,24px)" }}>
+        <motion.div {...fadeInView()} style={{ ...cardStyle, padding: "clamp(28px,5vw,48px)" }}>
+          <div style={{ textAlign: "center", marginBottom: 32 }}>
+            <span style={sectionLabel}>Free Trial</span>
+            <h2 style={{ fontSize: "clamp(24px,4vw,32px)", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 10, color: T.text1 }}>
               Try it now — no signup needed
             </h2>
-            <p style={{ color: "var(--text-3)", fontSize: 14, lineHeight: 1.65 }}>
+            <p style={{ color: T.text3, fontSize: 14, lineHeight: 1.6, maxWidth: 460, margin: "0 auto" }}>
               Get your ATS score and keyword match instantly. Sign up to unlock full AI suggestions.
             </p>
           </div>
 
           {error && (
             <div style={{
-              background: "var(--danger-bg)", border: "1px solid var(--danger-bd)",
-              color: "var(--danger)", borderRadius: "var(--r-md)",
-              padding: "10px 16px", fontSize: 13, marginBottom: 24
+              background: "#FDECEC", border: "1px solid #F5C2C2",
+              color: "#B42318", borderRadius: 10,
+              padding: "10px 16px", fontSize: 13, marginBottom: 24, textAlign: "center"
             }}>
               {error}
             </div>
           )}
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16, marginBottom: 24 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16, marginBottom: 28 }}>
             {/* Upload */}
             <div
               onDragOver={e => { e.preventDefault(); setDragOver(true) }}
               onDragLeave={() => setDragOver(false)}
               onDrop={handleDrop}
               style={{
-                border: `2px dashed ${dragOver ? "var(--accent)" : "var(--border-2)"}`,
-                background: dragOver ? "var(--accent-soft)" : "var(--bg)",
-                borderRadius: "var(--r-xl)", padding: "36px 24px",
+                border: `1px ${dragOver ? "solid" : "dashed"} ${dragOver ? T.accent : T.border}`,
+                background: dragOver ? T.accentSoft : T.bg,
+                borderRadius: 14, padding: "32px 24px",
                 display: "flex", flexDirection: "column", alignItems: "center",
-                justifyContent: "center", textAlign: "center", minHeight: 220,
-                transition: "border-color 0.18s, background 0.18s"
+                justifyContent: "center", textAlign: "center", minHeight: 224,
               }}
             >
               <div style={{
-                width: 48, height: 48, background: "var(--accent-soft)",
-                borderRadius: "var(--r-md)", display: "flex", alignItems: "center",
-                justifyContent: "center", marginBottom: 16, color: "var(--accent)",
-                border: "1px solid var(--accent-mid)"
+                width: 44, height: 44, background: T.accentSoft,
+                borderRadius: 10, display: "flex", alignItems: "center",
+                justifyContent: "center", marginBottom: 16, color: T.accent,
+                border: `1px solid ${T.border}`
               }}>
                 <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                 </svg>
               </div>
-              <p style={{ fontWeight: 700, fontSize: 14, marginBottom: 4, color: "var(--text-1)" }}>Upload Resume</p>
-              <p style={{ fontSize: 12.5, color: "var(--text-3)", marginBottom: 18 }}>PDF or DOCX · drag & drop</p>
-              <label className="btn-primary" style={{ padding: "9px 20px", fontSize: 13, cursor: "pointer" }}>
+              <p style={{ fontWeight: 700, fontSize: 14, marginBottom: 4, color: T.text1 }}>Upload Resume</p>
+              <p style={{ fontSize: 12.5, color: T.text3, marginBottom: 18 }}>PDF or DOCX · drag & drop</p>
+              <label style={{ ...btnAccent, cursor: "pointer" }}>
                 Choose File
                 <input type="file" accept=".pdf,.docx" style={{ display: "none" }} onChange={handleFile} />
               </label>
               {file && (
                 <motion.div
-                  initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                  {...fade(0)}
                   style={{
-                    marginTop: 14, background: "var(--success-bg)",
-                    border: "1px solid var(--success-bd)", borderRadius: "var(--r-sm)",
-                    padding: "6px 12px", fontSize: 12, color: "var(--success)",
+                    marginTop: 14, background: T.accentSoft,
+                    border: `1px solid ${T.border}`, borderRadius: 8,
+                    padding: "6px 12px", fontSize: 12, color: T.accent,
                     display: "flex", alignItems: "center", gap: 6, maxWidth: "100%", wordBreak: "break-all"
                   }}
                 >
-                  <svg width="12" height="12" fill="var(--success)" viewBox="0 0 20 20">
+                  <svg width="12" height="12" fill={T.accent} viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
                   </svg>
                   {file.name}
@@ -310,145 +348,120 @@ export default function Landing() {
             <div
               onClick={() => setJdOpen(true)}
               style={{
-                border: `1.5px solid ${jobDescription ? "var(--accent)" : "var(--border-2)"}`,
-                borderRadius: "var(--r-xl)", padding: "24px",
-                display: "flex", flexDirection: "column", minHeight: 220,
-                cursor: "pointer", background: "var(--bg)", transition: "border-color 0.18s, box-shadow 0.18s"
+                border: `1px solid ${jobDescription ? T.accent : T.border}`,
+                borderRadius: 14, padding: 24,
+                display: "flex", flexDirection: "column", minHeight: 224,
+                cursor: "pointer", background: T.bg,
               }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.boxShadow = "var(--shadow-md)" }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = jobDescription ? "var(--accent)" : "var(--border-2)"; e.currentTarget.style.boxShadow = "none" }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                <p style={{ fontWeight: 700, fontSize: 14, color: "var(--text-1)" }}>Job Description</p>
-                <span className={`badge ${jobDescription ? "badge-success" : "badge-accent"}`}>
+                <p style={{ fontWeight: 700, fontSize: 14, color: T.text1 }}>Job Description</p>
+                <span style={{
+                  fontSize: 11.5, fontWeight: 600, padding: "3px 10px", borderRadius: 8,
+                  background: jobDescription ? T.accent : T.accentSoft,
+                  color: jobDescription ? "#fff" : T.accent,
+                }}>
                   {jobDescription ? "✓ Added" : "Click to add"}
                 </span>
               </div>
               <div className="custom-scrollbar" style={{ flex: 1, overflowY: "auto", maxHeight: 120 }}>
                 {jobDescription
-                  ? <p style={{ fontSize: 13, color: "var(--text-2)", lineHeight: 1.65, whiteSpace: "pre-wrap", margin: 0 }}>{jobDescription}</p>
-                  : <p style={{ fontSize: 13, color: "var(--text-3)", margin: 0 }}>Paste the full job description for best results...</p>
+                  ? <p style={{ fontSize: 13, color: T.text2, lineHeight: 1.6, whiteSpace: "pre-wrap", margin: 0 }}>{jobDescription}</p>
+                  : <p style={{ fontSize: 13, color: T.text3, margin: 0 }}>Paste the full job description for best results...</p>
                 }
               </div>
-              <p style={{ fontSize: 11.5, color: "var(--text-3)", textAlign: "right", marginTop: 12 }}>{jobDescription.length} characters</p>
+              <p style={{ fontSize: 11.5, color: T.text3, textAlign: "right", marginTop: 12 }}>{jobDescription.length} characters</p>
             </div>
           </div>
 
           <div style={{ display: "flex", justifyContent: "center" }}>
-            <motion.button
-              whileTap={{ scale: 0.97 }}
-              className="btn-accent"
-              style={{ padding: "14px 48px", fontSize: 15 }}
-              onClick={handleGuestAnalyze}
-            >
+            <button style={{ ...btnAccent, padding: "0 32px" }} onClick={handleGuestAnalyze}>
               Analyze Free →
-            </motion.button>
+            </button>
           </div>
         </motion.div>
       </section>
 
       {/* Features */}
-      <section style={{ maxWidth: 1100, margin: "0 auto 96px", padding: "0 clamp(16px,4vw,24px)" }}>
-        <div style={{ textAlign: "center", marginBottom: 52 }}>
-          <span className="section-label">Features</span>
-          <h2 style={{ fontSize: "clamp(26px,4vw,38px)", fontWeight: 800, letterSpacing: "-1.2px", color: "var(--text-1)" }}>
+      <section style={{ maxWidth: 1120, margin: "0 auto 104px", padding: "0 clamp(16px,4vw,24px)" }}>
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <span style={sectionLabel}>Features</span>
+          <h2 style={{ fontSize: "clamp(26px,4vw,38px)", fontWeight: 800, letterSpacing: "-0.03em", color: T.text1 }}>
             Everything you need to land the role
           </h2>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 14 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 16 }}>
           {features.map((f, i) => (
-            <motion.div
-              key={f.title}
-              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }} transition={{ duration: 0.45, delay: i * 0.05, ease }}
-              whileHover={{ y: -4, scale: 1.015, transition: { type: "spring", stiffness: 400, damping: 25 } }}
-              style={{
-                background: "var(--surface)", border: "1px solid var(--border)",
-                borderRadius: "var(--r-xl)", padding: "28px 28px 24px",
-                transition: "box-shadow 0.3s ease"
-              }}
-              className="ek-card"
-            >
+            <motion.div key={f.title} {...fadeInView(Math.min(i * 0.03, 0.12))} style={cardStyle}>
               <div style={{
-                width: 44, height: 44, background: "var(--accent-soft)",
-                borderRadius: "var(--r-md)", display: "flex", alignItems: "center",
-                justifyContent: "center", color: "var(--accent)", marginBottom: 18,
-                border: "1px solid var(--accent-mid)"
+                width: 40, height: 40, background: T.accentSoft,
+                borderRadius: 10, display: "flex", alignItems: "center",
+                justifyContent: "center", color: T.accent, marginBottom: 16,
+                border: `1px solid ${T.border}`
               }}>
                 {f.icon}
               </div>
-              <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8, color: "var(--text-1)", letterSpacing: "-0.3px" }}>{f.title}</h3>
-              <p style={{ fontSize: 13.5, color: "var(--text-3)", lineHeight: 1.7 }}>{f.desc}</p>
+              <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8, color: T.text1, letterSpacing: "-0.01em" }}>{f.title}</h3>
+              <p style={{ fontSize: 13.5, color: T.text3, lineHeight: 1.6 }}>{f.desc}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
       {/* How it works */}
-      <section style={{ maxWidth: 900, margin: "0 auto 96px", padding: "0 clamp(16px,4vw,24px)" }}>
-        <div style={{ textAlign: "center", marginBottom: 52 }}>
-          <span className="section-label">How it works</span>
-          <h2 style={{ fontSize: "clamp(24px,4vw,36px)", fontWeight: 800, letterSpacing: "-1px", color: "var(--text-1)" }}>
+      <section style={{ maxWidth: 920, margin: "0 auto 104px", padding: "0 clamp(16px,4vw,24px)" }}>
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <span style={sectionLabel}>How it works</span>
+          <h2 style={{ fontSize: "clamp(24px,4vw,36px)", fontWeight: 800, letterSpacing: "-0.03em", color: T.text1 }}>
             From resume to interview in 3 steps
           </h2>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 16 }}>
           {[
             { step: "01", title: "Upload your resume", desc: "Drop your PDF or DOCX. We parse it instantly with no data stored without your consent." },
             { step: "02", title: "Paste the job description", desc: "Copy the full job posting. The more detail, the more precise the keyword and semantic match." },
             { step: "03", title: "Get your ATS report", desc: "See your match score, missing keywords, AI-rewritten bullets, and exactly what to fix." },
           ].map(s => (
-            <div key={s.step} className="ek-card" style={{
-              background: "var(--surface)", border: "1px solid var(--border)",
-              borderRadius: "var(--r-xl)", padding: "28px 24px"
-            }}>
-              <p style={{ fontSize: 11, fontWeight: 800, color: "var(--accent)", letterSpacing: "0.1em", marginBottom: 14 }}>{s.step}</p>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--text-1)", marginBottom: 10, letterSpacing: "-0.3px" }}>{s.title}</h3>
-              <p style={{ fontSize: 13.5, color: "var(--text-3)", lineHeight: 1.7 }}>{s.desc}</p>
+            <div key={s.step} style={cardStyle}>
+              <p style={{ fontSize: 12, fontWeight: 800, color: T.accent, letterSpacing: "0.08em", marginBottom: 14 }}>{s.step}</p>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: T.text1, marginBottom: 10, letterSpacing: "-0.01em" }}>{s.title}</h3>
+              <p style={{ fontSize: 13.5, color: T.text3, lineHeight: 1.6 }}>{s.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* CTA */}
-      <section style={{ maxWidth: 680, margin: "0 auto 96px", padding: "0 clamp(16px,4vw,24px)", textAlign: "center" }}>
+      <section style={{ maxWidth: 720, margin: "0 auto 104px", padding: "0 clamp(16px,4vw,24px)", textAlign: "center" }}>
         <motion.div
-          initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }} transition={{ duration: 0.55, ease }}
+          {...fadeInView()}
           style={{
-            background: "var(--text-1)", borderRadius: "var(--r-2xl)",
-            padding: "clamp(44px,7vw,64px) clamp(32px,5vw,56px)"
+            background: T.text1, borderRadius: 14,
+            padding: "clamp(40px,7vw,60px) clamp(28px,5vw,52px)",
+            boxShadow: T.shadowSm,
           }}
         >
-          <h2 style={{ fontSize: "clamp(26px,4vw,36px)", fontWeight: 800, letterSpacing: "-1px", marginBottom: 14, color: "#fff" }}>
+          <h2 style={{ fontSize: "clamp(26px,4vw,36px)", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 14, color: "#fff" }}>
             Ready to beat the ATS?
           </h2>
-          <p style={{ color: "rgba(255,255,255,0.55)", marginBottom: 36, fontSize: 16, lineHeight: 1.7 }}>
+          <p style={{ color: "rgba(255,255,255,0.6)", marginBottom: 32, fontSize: 16, lineHeight: 1.6 }}>
             Join students and professionals who use ResumeAI to land more interviews.
           </p>
           <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-            <button
-              className="btn-accent"
-              style={{ padding: "14px 36px", fontSize: 15 }}
-              onClick={() => navigate("/signup")}
-            >
+            <button style={btnAccent} onClick={() => navigate("/signup")}>
               Get Started Free
             </button>
-            <motion.button
-              whileHover={{ scale: 1.015, y: -2 }}
-              whileTap={{ scale: 0.97 }}
+            <button
               style={{
-                padding: "14px 28px", fontSize: 15, background: "rgba(255,255,255,0.1)",
-                color: "#fff", border: "1px solid rgba(255,255,255,0.15)",
-                borderRadius: 99, cursor: "pointer", fontFamily: "inherit", fontWeight: 500,
-                transition: "background 0.15s, box-shadow 0.3s ease"
+                ...btnBase,
+                background: "rgba(255,255,255,0.1)",
+                color: "#fff",
+                border: "1px solid rgba(255,255,255,0.18)",
               }}
               onClick={() => document.getElementById("try-free").scrollIntoView({ behavior: "smooth" })}
-              onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; e.currentTarget.style.boxShadow = "0 10px 20px rgba(0,0,0,0.1)" }}
-              onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.boxShadow = "none" }}
             >
               Try it free →
-            </motion.button>
+            </button>
           </div>
         </motion.div>
       </section>
@@ -461,24 +474,22 @@ export default function Landing() {
         {jdOpen && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
+            transition={{ duration: 0.15 }}
             style={{
               position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 50,
               display: "flex", alignItems: "center", justifyContent: "center",
-              padding: "16px", background: "rgba(13,15,18,0.5)", backdropFilter: "blur(8px)",
-              WebkitBackdropFilter: "blur(8px)"
+              padding: 16, background: "rgba(26,20,16,0.45)",
             }}
             onClick={e => { if (e.target === e.currentTarget) setJdOpen(false) }}
           >
             <motion.div
-              initial={{ opacity: 0, y: 32, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 32, scale: 0.97 }}
-              transition={{ type: "spring", stiffness: 360, damping: 32 }}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
               style={{
-                background: "var(--surface)", width: "100%", maxWidth: 640,
-                borderRadius: "var(--r-2xl)", maxHeight: "88vh",
-                boxShadow: "var(--shadow-lg)", display: "flex", flexDirection: "column"
+                background: T.surface, width: "100%", maxWidth: 640,
+                borderRadius: 14, maxHeight: "88vh",
+                border: `1px solid ${T.border}`, boxShadow: "0 12px 32px rgba(26,20,16,0.16)",
+                display: "flex", flexDirection: "column"
               }}
             >
               <div style={{
@@ -486,16 +497,16 @@ export default function Landing() {
                 padding: "22px 24px 14px"
               }}>
                 <div>
-                  <h3 style={{ fontSize: 17, fontWeight: 700, color: "var(--text-1)", letterSpacing: "-0.4px" }}>Job Description</h3>
-                  <p style={{ fontSize: 12.5, color: "var(--text-3)", marginTop: 3 }}>Paste the complete job posting for best results</p>
+                  <h3 style={{ fontSize: 17, fontWeight: 700, color: T.text1, letterSpacing: "-0.01em" }}>Job Description</h3>
+                  <p style={{ fontSize: 12.5, color: T.text3, marginTop: 4 }}>Paste the complete job posting for best results</p>
                 </div>
                 <button
                   onClick={() => setJdOpen(false)}
                   style={{
-                    width: 34, height: 34, borderRadius: "50%",
-                    background: "var(--bg)", border: "1px solid var(--border)",
+                    width: 34, height: 34, borderRadius: 10,
+                    background: T.bg, border: `1px solid ${T.border}`,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    color: "var(--text-3)", cursor: "pointer", transition: "background 0.15s", flexShrink: 0
+                    color: T.text3, cursor: "pointer", transition: "opacity 150ms ease", flexShrink: 0
                   }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -510,21 +521,21 @@ export default function Landing() {
                   style={{
                     width: "100%", height: "100%", minHeight: 300,
                     border: "none", outline: "none", resize: "none",
-                    fontSize: 14, color: "var(--text-1)", lineHeight: 1.75,
+                    fontSize: 14, color: T.text1, lineHeight: 1.7,
                     fontFamily: "Inter, sans-serif", background: "transparent"
                   }}
                 />
               </div>
               <div style={{
                 display: "flex", justifyContent: "space-between", alignItems: "center",
-                padding: "14px 24px", borderTop: "1px solid var(--border)"
+                padding: "14px 24px", borderTop: `1px solid ${T.border}`
               }}>
-                <span style={{ fontSize: 12.5, color: "var(--text-3)" }}>{jobDescription.length} characters</span>
+                <span style={{ fontSize: 12.5, color: T.text3 }}>{jobDescription.length} characters</span>
                 <div style={{ display: "flex", gap: 8 }}>
                   {jobDescription.length > 0 && (
-                    <button className="btn-ghost" style={{ padding: "8px 16px", fontSize: 13 }} onClick={() => setJobDescription("")}>Clear</button>
+                    <button style={btnGhost} onClick={() => setJobDescription("")}>Clear</button>
                   )}
-                  <button className="btn-accent" style={{ padding: "9px 22px", fontSize: 13 }} onClick={() => setJdOpen(false)}>Done ✓</button>
+                  <button style={btnAccent} onClick={() => setJdOpen(false)}>Done ✓</button>
                 </div>
               </div>
             </motion.div>
