@@ -58,10 +58,10 @@ export default function Login() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease }}
           className="ek-card"
-          style={{ width: "100%", maxWidth: 400, padding: "clamp(32px, 6vw, 44px)" }}
+          style={{ width: "100%", maxWidth: 400, padding: "clamp(32px, 6vw, 44px)", boxShadow: "var(--shadow-md)" }}
         >
           <div style={{ textAlign: "center", marginBottom: 32 }}>
-            <div style={{ width: 52, height: 52, borderRadius: "50%", background: "var(--accent-soft)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: "var(--accent)" }}>
+            <div style={{ width: 52, height: 52, borderRadius: "50%", background: "var(--accent-soft)", border: "1px solid var(--accent-mid)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: "var(--accent)" }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
                 <circle cx="12" cy="7" r="4" />
@@ -101,11 +101,11 @@ export default function Login() {
           </div>
 
           <motion.button
-            className="btn-ek btn-primary"
+            className="btn-primary"
             onClick={handleSubmit}
             disabled={loading}
             whileTap={{ scale: 0.97 }}
-            style={{ width: "100%", marginTop: 24, padding: "12px", fontSize: "var(--text-sm)" }}
+            style={{ width: "100%", marginTop: 24, padding: "13px", fontSize: "var(--text-sm)" }}
           >
             {loading ? "Signing in…" : "Sign In"}
           </motion.button>

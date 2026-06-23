@@ -90,7 +90,7 @@ export default function ResetPassword() {
           ) : (
             <>
               <div style={{ textAlign: "center", marginBottom: 32 }}>
-                <div style={{ width: 52, height: 52, borderRadius: "50%", background: "var(--accent-soft)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: "var(--accent)" }}>
+                <div style={{ width: 52, height: 52, borderRadius: "50%", background: "var(--accent-soft)", border: "1px solid var(--accent-mid)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: "var(--accent)" }}>
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
@@ -129,7 +129,7 @@ export default function ResetPassword() {
                         exit={{ opacity: 0, height: 0 }}
                         style={{ overflow: "hidden" }}
                       >
-                        <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 6, padding: "12px 14px", background: "var(--bg)", border: "1px solid var(--border-2)", borderRadius: "var(--r-md)" }}>
+                        <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 6, padding: "12px 14px", background: "var(--surface-2)", border: "1px solid var(--border-2)", borderRadius: "var(--r-md)" }}>
                           {[
                             { label: "At least 8 characters", valid: password.length >= 8 },
                             { label: "One uppercase letter", valid: /[A-Z]/.test(password) },
@@ -153,11 +153,11 @@ export default function ResetPassword() {
               </div>
 
               <motion.button
-                className="btn-ek btn-primary"
+                className="btn-primary"
                 onClick={handleSubmit}
                 disabled={loading}
                 whileTap={{ scale: 0.97 }}
-                style={{ width: "100%", marginTop: 24, padding: "12px", fontSize: "var(--text-sm)" }}
+                style={{ width: "100%", marginTop: 24, padding: "13px", fontSize: "var(--text-sm)" }}
               >
                 {loading ? "Updating…" : "Update Password"}
               </motion.button>

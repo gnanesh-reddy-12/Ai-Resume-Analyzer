@@ -16,7 +16,7 @@ function ScoreRing({ score, size = 52, stroke = 4.5 }) {
   return (
     <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
       <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--bg)" strokeWidth={stroke}/>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--bg-2)" strokeWidth={stroke}/>
         <motion.circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke}
           strokeLinecap="round" strokeDasharray={circ}
           initial={{ strokeDashoffset: circ }} animate={{ strokeDashoffset: offset }}
@@ -137,7 +137,7 @@ export default function History() {
           style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
           <div>
             <span className="section-label">History</span>
-            <h1 style={{ fontSize: "clamp(22px,4vw,30px)", fontWeight: 800, letterSpacing: "-0.8px", marginBottom: 4 }}>Analysis History</h1>
+            <h1 style={{ fontSize: "clamp(22px,4vw,30px)", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 4 }}>Analysis History</h1>
             <p style={{ fontSize: 13, color: "var(--text-3)" }}>{analyses.length} {analyses.length === 1 ? "analysis" : "analyses"} saved</p>
           </div>
           <button className="btn-accent" style={{ padding: "10px 22px", fontSize: 13 }} onClick={() => navigate("/")}>+ New Analysis</button>
@@ -214,7 +214,7 @@ export default function History() {
                     userSelect: "none",
                     transition: "border-color 0.15s, background 0.15s, box-shadow 0.15s"
                   }}
-                  onMouseEnter={e => { if (!isSelected) { e.currentTarget.style.borderColor = "var(--border-2)"; e.currentTarget.style.boxShadow = "var(--shadow-md)" } }}
+                  onMouseEnter={e => { if (!isSelected) { e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.boxShadow = "var(--shadow-md)" } }}
                   onMouseLeave={e => { if (!isSelected) { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.boxShadow = "none" } }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 16 }}>

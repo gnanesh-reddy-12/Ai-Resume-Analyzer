@@ -40,7 +40,7 @@ function ScoreRing({ score, size = 128, stroke = 9 }) {
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
       <div style={{ position: "relative", width: size, height: size, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
-          <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--bg)" strokeWidth={stroke}/>
+          <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--bg-2)" strokeWidth={stroke}/>
           <motion.circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke}
             strokeLinecap="round" strokeDasharray={circ}
             initial={{ strokeDashoffset: circ }} animate={{ strokeDashoffset: offset }}
@@ -72,7 +72,7 @@ function ScoreBar({ label, value, color }) {
         <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-2)" }}>{label}</span>
         <span style={{ fontSize: 12, fontWeight: 800, color: "var(--text-1)" }}>{value}%</span>
       </div>
-      <div style={{ height: 6, background: "var(--bg)", borderRadius: 99, overflow: "hidden" }}>
+      <div style={{ height: 6, background: "var(--bg-2)", borderRadius: 99, overflow: "hidden" }}>
         <motion.div
           initial={{ width: 0 }} animate={{ width: `${value}%` }}
           transition={{ duration: 0.9, ease: "easeOut" }}
@@ -113,7 +113,7 @@ function SectionCard({ title, children, style }) {
       className="ek-card"
       style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-xl)", overflow: "hidden", ...style }}>
       {title && (
-        <div style={{ padding: "16px 22px", borderBottom: "1px solid var(--border)" }}>
+        <div style={{ padding: "16px 22px", borderBottom: "1px solid var(--border)", background: "var(--surface-2)" }}>
           <h2 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-1)" }}>{title}</h2>
         </div>
       )}
@@ -375,16 +375,16 @@ export default function Results() {
 
       <div className="container" style={{ paddingTop: "clamp(24px,4vw,40px)", paddingBottom: 96 }}>
         {id && coreData && (
-          <div style={{ background: "var(--surface-2)", color: "var(--text-muted)", borderRadius: "var(--r-md)", border: "1px solid var(--border)", padding: "12px 20px", marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ background: "var(--accent-soft)", color: "var(--text-2)", borderRadius: "var(--r-md)", border: "1px solid var(--accent-mid)", padding: "12px 20px", marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: 13 }}>You are viewing a past analysis from {coreData?.created_at ? new Date(coreData.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "history"}.</span>
-            <button onClick={() => navigate('/history')} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 13, textDecoration: "underline" }}>← Back to History</button>
+            <button onClick={() => navigate('/history')} style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", fontSize: 13, fontWeight: 600, textDecoration: "none", fontFamily: "inherit" }}>← Back to History</button>
           </div>
         )}
 
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={spring} style={{ marginBottom: 28 }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
             <div>
-              <h1 style={{ fontSize: "clamp(22px,4vw,30px)", fontWeight: 800, letterSpacing: "-0.8px", marginBottom: 5 }}>
+              <h1 style={{ fontSize: "clamp(22px,4vw,30px)", fontWeight: 800, letterSpacing: "-0.04em", marginBottom: 5 }}>
                 {coreData.company_name || company ? `${coreData.company_name || company} — ATS Report` : "ATS Report"}
               </h1>
               <p style={{ fontSize: 13.5, color: "var(--text-3)" }}>
@@ -412,7 +412,11 @@ export default function Results() {
         )}
 
         {/* TAB 0: OVERVIEW */}
-        <div style={{ display: activeTab === 0 ? "flex" : "none", flexDirection: "column", gap: 16 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.15, ease: "easeOut" }}
+          style={{ display: activeTab === 0 ? "flex" : "none", flexDirection: "column", gap: 16 }}
+        >
           <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 16, alignItems: "stretch" }}>
             <SectionCard style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 0, minWidth: 200 }}>
               <div style={{ padding: "28px 32px", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
@@ -429,7 +433,7 @@ export default function Results() {
                 {coreData.semantic_score !== undefined && (
                   <ScoreBar label="Semantic Alignment" value={coreData.semantic_score} color="var(--success)" />
                 )}
-                <ScoreBar label="Overall ATS Score" value={coreData.ats_score || 0} color={coreData.ats_score >= 75 ? "var(--success)" : coreData.ats_score >= 55 ? "var(--warning)" : "var(--danger)"} />
+                <ScoreBar label="Overall ATS Score" value={coreData.ats_score || 0} color="var(--text-1)" />
               </div>
             </SectionCard>
           </div>
@@ -491,7 +495,7 @@ export default function Results() {
             </div>
             <HighlightedJD text={jobDescription || coreData.job_description_preview} matched={coreData.matched_keywords} missing={coreData.missing_keywords} optional={coreData.optional_keywords} />
           </SectionCard>
-        </div>
+        </motion.div>
 
         {/* TAB 1: AI IMPROVE */}
         <div style={{ display: activeTab === 1 ? "flex" : "none", flexDirection: "column", gap: 16 }}>
@@ -595,7 +599,7 @@ export default function Results() {
                                   <p style={{ fontSize: 13, color: "var(--text-3)", textDecoration: "line-through", lineHeight: 1.6 }}>{b.original}</p>
                                 </div>
                                 <div style={{ borderLeft: "1px solid var(--border)", paddingLeft: 14 }}>
-                                  <p style={{ fontSize: 10, fontWeight: 700, color: "var(--success)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>Rewrite</p>
+                                  <p style={{ fontSize: 10, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>Rewrite</p>
                                   <p style={{ fontSize: 13, color: "var(--text-1)", fontWeight: 500, lineHeight: 1.6 }}>{b.rewritten}</p>
                                 </div>
                               </div>
@@ -658,7 +662,7 @@ export default function Results() {
             {displayInterview ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 {displayInterview.rounds?.map((round, idx) => (
-                  <div key={idx} style={{ background: "var(--bg)", borderRadius: "var(--r-md)", padding: "16px 18px", border: "1px solid var(--border)" }}>
+                  <div key={idx} style={{ background: "var(--bg)", borderRadius: "var(--r-md)", padding: "16px 18px", border: "1px solid var(--border)", borderLeft: "3px solid var(--accent-mid)" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10, flexWrap: "wrap", gap: 10 }}>
                       <div>
                         <span className="badge badge-accent" style={{ marginBottom: 6 }}>{round.round}</span>
@@ -704,11 +708,11 @@ export default function Results() {
         </div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring, delay: 0.3 }}
-          style={{ 
-            background: "linear-gradient(135deg, rgba(255, 94, 91, 0.08) 0%, rgba(255, 94, 91, 0.02) 100%)", 
-            border: "1px solid rgba(255, 94, 91, 0.2)", 
-            borderRadius: "var(--r-xl)", 
-            padding: "clamp(24px, 5vw, 36px)", 
+          style={{
+            background: "var(--accent-soft)",
+            border: "1px solid var(--accent-mid)",
+            borderRadius: "var(--r-xl)",
+            padding: "clamp(24px, 5vw, 36px)",
             textAlign: "center",
             marginTop: 32
           }}>

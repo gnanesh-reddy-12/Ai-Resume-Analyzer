@@ -87,7 +87,7 @@ export default function Home() {
           transition={spring}
           style={{ marginBottom: stats ? 28 : 40 }}
         >
-          <h1 style={{ fontSize: "clamp(24px,4vw,34px)", fontWeight: 800, letterSpacing: "-1px", marginBottom: 6 }}>
+          <h1 style={{ fontSize: "clamp(24px,4vw,34px)", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 6 }}>
             Welcome back, {name}
           </h1>
           <p style={{ fontSize: 15, color: "var(--text-3)", fontWeight: 400 }}>
@@ -107,13 +107,20 @@ export default function Home() {
               { label: "Avg Score", value: `${stats.avg}%` },
               { label: "Best Score", value: `${stats.best}%` },
             ].map(s => (
-              <div key={s.label} className="ek-card" style={{
-                background: "var(--surface)", border: "1px solid var(--border)",
-                borderRadius: "var(--r-lg)", padding: "16px 18px"
-              }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 }}>{s.label}</p>
-                <p style={{ fontSize: "clamp(20px,3vw,26px)", fontWeight: 800, color: "var(--text-1)", letterSpacing: "-1px", lineHeight: 1 }}>{s.value}</p>
-              </div>
+              <motion.div
+                key={s.label}
+                className="ek-card"
+                whileHover={{ y: -2, scale: 1.01 }}
+                transition={{ type: "spring", stiffness: 350, damping: 28 }}
+                style={{
+                  background: "var(--surface)", border: "1px solid var(--border)",
+                  borderTop: "3px solid var(--accent)",
+                  borderRadius: "var(--r-lg)", padding: "16px 18px"
+                }}
+              >
+                <p style={{ fontSize: 11, fontWeight: 600, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 }}>{s.label}</p>
+                <p style={{ fontSize: "clamp(20px,3vw,28px)", fontWeight: 700, color: "var(--text-1)", letterSpacing: "-1px", lineHeight: 1 }}>{s.value}</p>
+              </motion.div>
             ))}
           </motion.div>
         )}
@@ -195,6 +202,7 @@ export default function Home() {
             {tips.map((t, i) => (
               <div key={i} className="ek-card" style={{
                 background: "var(--bg)", border: "1px solid var(--border)",
+                borderLeft: "3px solid var(--accent-mid)",
                 borderRadius: "var(--r-lg)", padding: "18px 18px 16px"
               }}>
                 <div style={{

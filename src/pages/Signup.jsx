@@ -79,10 +79,10 @@ export default function Signup() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease }}
           className="ek-card"
-          style={{ width: "100%", maxWidth: 400, padding: "clamp(32px, 6vw, 44px)" }}
+          style={{ width: "100%", maxWidth: 400, padding: "clamp(32px, 6vw, 44px)", boxShadow: "var(--shadow-md)" }}
         >
           <div style={{ textAlign: "center", marginBottom: 32 }}>
-            <div style={{ width: 52, height: 52, borderRadius: "50%", background: "var(--accent-soft)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: "var(--accent)" }}>
+            <div style={{ width: 52, height: 52, borderRadius: "50%", background: "var(--accent-soft)", border: "1px solid var(--accent-mid)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: "var(--accent)" }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/>
                 <circle cx="9" cy="7" r="4"/>
@@ -131,7 +131,7 @@ export default function Signup() {
                     exit={{ opacity: 0, height: 0 }}
                     style={{ overflow: "hidden" }}
                   >
-                    <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 6, padding: "12px 14px", background: "var(--bg)", border: "1px solid var(--border-2)", borderRadius: "var(--r-md)" }}>
+                    <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 6, padding: "12px 14px", background: "var(--surface-2)", border: "1px solid var(--border-2)", borderRadius: "var(--r-md)" }}>
                       {[
                         { label: "At least 8 characters", valid: password.length >= 8 },
                         { label: "One uppercase letter", valid: /[A-Z]/.test(password) },
@@ -168,11 +168,11 @@ export default function Signup() {
           </div>
 
           <motion.button
-            className="btn-ek btn-primary"
+            className="btn-primary"
             onClick={handleSubmit}
             disabled={loading}
             whileTap={{ scale: 0.97 }}
-            style={{ width: "100%", marginTop: 24, padding: "12px", fontSize: "var(--text-sm)" }}
+            style={{ width: "100%", marginTop: 24, padding: "13px", fontSize: "var(--text-sm)" }}
           >
             {loading ? "Creating account…" : "Create Account"}
           </motion.button>

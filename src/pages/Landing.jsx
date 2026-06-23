@@ -103,7 +103,7 @@ export default function Landing() {
   }
 
   return (
-    <div style={{ background: "var(--bg)", color: "var(--text-1)", minHeight: "100vh" }}>
+    <div style={{ background: "linear-gradient(160deg, var(--accent-soft) 0%, var(--bg) 55%)", color: "var(--text-1)", minHeight: "100vh" }}>
 
       {/* Nav */}
       <nav style={{
@@ -154,7 +154,7 @@ export default function Landing() {
 
         <motion.h1 {...fadeUp(0.07)} style={{
           fontSize: "clamp(38px,6.5vw,68px)", fontWeight: 800,
-          lineHeight: 1.04, letterSpacing: "-2.5px", marginBottom: 22,
+          lineHeight: 1.04, letterSpacing: "-0.04em", marginBottom: 22,
           color: "var(--text-1)"
         }}>
           Get hired faster with<br />
@@ -162,16 +162,16 @@ export default function Landing() {
         </motion.h1>
 
         <motion.p {...fadeUp(0.14)} style={{
-          fontSize: "clamp(15px,2vw,18px)", color: "var(--text-3)",
-          lineHeight: 1.8, maxWidth: 520, margin: "0 auto 40px", fontWeight: 400
+          fontSize: 17, color: "var(--text-2)",
+          lineHeight: 1.75, maxWidth: 520, margin: "0 auto 40px", fontWeight: 400
         }}>
           Analyze ATS compatibility, skill alignment, and keyword gaps in seconds.
           Built for job seekers who want real results.
         </motion.p>
 
-        <motion.div {...fadeUp(0.2)} style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+        <motion.div {...fadeUp(0.2)} style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
           <button
-            className="btn-accent"
+            className="btn-primary"
             style={{ padding: "14px 32px", fontSize: 15 }}
             onClick={() => navigate("/signup")}
           >
