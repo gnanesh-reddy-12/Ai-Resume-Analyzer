@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react"
+import { useContext, useEffect, useState, useRef } from "react"
 import { useNavigate, useParams, useLocation } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { ResumeContext } from "../context/ResumeContext"
@@ -130,6 +130,16 @@ function Tag({ children, type }) {
   )
 }
 
+function useWindowWidth() {
+  const [width, setWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 640)
+  useEffect(() => {
+    const onResize = () => setWidth(window.innerWidth)
+    window.addEventListener("resize", onResize)
+    return () => window.removeEventListener("resize", onResize)
+  }, [])
+  return width
+}
+
 export default function Results() {
   const { resumeFile, jobDescription, company, role, resetContext } = useContext(ResumeContext)
   const { token } = useAuth()
@@ -148,8 +158,18 @@ export default function Results() {
   const [errors, setErrors] = useState({ core: null, improve: null, cover: null, interview: null })
 
   const [copied, setCopied] = useState(false)
+  const windowWidth = useWindowWidth()
   const [coverLetterCopied, setCoverLetterCopied] = useState(false)
   const [toast, setToast] = useState(null)
+
+  const navbarRef = useRef(null)
+  const [navHeight, setNavHeight] = useState(57)
+
+  useEffect(() => {
+    if (navbarRef.current) {
+      setNavHeight(navbarRef.current.getBoundingClientRect().height)
+    }
+  }, [])
 
   const showToast = (text, type = "success") => setToast({ text, type })
 
@@ -329,23 +349,38 @@ export default function Results() {
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
-      <Navbar />
+      <Navbar ref={navbarRef} />
       <AnimatePresence>{toast && <Toast message={toast.text} type={toast.type} onClose={() => setToast(null)} />}</AnimatePresence>
 
-      <div style={{ position: "sticky", top: 64, zIndex: 10, display: "flex", gap: 24, padding: "4px 24px 0", borderBottom: "1px solid var(--border)", overflowX: "auto", whiteSpace: "nowrap", background: "var(--bg)" }}>
-        {tabs.map((t, i) => (
-          <button key={i} onClick={() => setActiveTab(i)} style={{ padding: "14px 0", background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: activeTab === i ? "var(--text-1)" : "var(--text-3)", borderBottom: activeTab === i ? "2px solid var(--accent)" : "2px solid transparent", transition: "color 0.2s, border-color 0.2s" }}>{t}</button>
-        ))}
+      <div style={{
+        position: "sticky",
+        top: navHeight,
+        zIndex: 90,
+        background: "var(--surface)",
+        borderBottom: "1px solid var(--border)",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+      }}>
+        <div className="container" style={{
+          display: "flex",
+          gap: "clamp(20px, 4vw, 32px)",
+          overflowX: "auto",
+          WebkitOverflowScrolling: "touch",
+          whiteSpace: "nowrap",
+        }}>
+          {tabs.map((t, i) => (
+            <button key={i} onClick={() => setActiveTab(i)} style={{ padding: "16px 0", background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: activeTab === i ? "var(--text-1)" : "var(--text-3)", borderBottom: activeTab === i ? "2px solid var(--accent)" : "2px solid transparent", transition: "color 0.2s, border-color 0.2s", outline: "none", whiteSpace: "nowrap" }}>{t}</button>
+          ))}
+        </div>
       </div>
 
-      {id && coreData && (
-        <div style={{ background: "var(--surface-2)", color: "var(--text-muted)", borderBottom: "1px solid var(--border)", padding: "8px 24px", width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: 13 }}>You are viewing a past analysis from {coreData?.created_at ? new Date(coreData.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "history"}.</span>
-          <button onClick={() => navigate('/history')} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 13, textDecoration: "underline" }}>← Back to History</button>
-        </div>
-      )}
-
       <div className="container" style={{ paddingTop: "clamp(24px,4vw,40px)", paddingBottom: 96 }}>
+        {id && coreData && (
+          <div style={{ background: "var(--surface-2)", color: "var(--text-muted)", borderRadius: "var(--r-md)", border: "1px solid var(--border)", padding: "12px 20px", marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 13 }}>You are viewing a past analysis from {coreData?.created_at ? new Date(coreData.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "history"}.</span>
+            <button onClick={() => navigate('/history')} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 13, textDecoration: "underline" }}>← Back to History</button>
+          </div>
+        )}
+
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={spring} style={{ marginBottom: 28 }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
             <div>

@@ -1,11 +1,11 @@
 import { useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../context/useAuth"
 import { motion, AnimatePresence } from "framer-motion"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, forwardRef } from "react"
 
 const spring = { type: "spring", stiffness: 420, damping: 32 }
 
-export default function Navbar() {
+const Navbar = forwardRef(function Navbar(props, forwardedRef) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -16,11 +16,11 @@ export default function Navbar() {
   const [name] = useState(
     localStorage.getItem("display_name") || user?.user_metadata?.full_name || "User"
   )
-  const ref = useRef(null)
+  const accountMenuRef = useRef(null)
 
   useEffect(() => {
     const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setShowAccount(false)
+      if (accountMenuRef.current && !accountMenuRef.current.contains(e.target)) setShowAccount(false)
     }
     document.addEventListener("mousedown", handler)
     return () => document.removeEventListener("mousedown", handler)
@@ -35,10 +35,18 @@ export default function Navbar() {
   return (
     <>
       <motion.div
+        ref={forwardedRef}
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={spring}
         className="ek-navbar"
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 100,
+          background: "var(--surface)",
+          boxShadow: "0 1px 0 var(--border)",
+        }}
       >
         <div style={{
           width: "100%",
@@ -88,7 +96,7 @@ export default function Navbar() {
           <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
             {user ? (
               <>
-                <div ref={ref} style={{ position: "relative" }} className="hidden-mobile">
+                <div ref={accountMenuRef} style={{ position: "relative" }} className="hidden-mobile">
                   <motion.button
                     whileTap={{ scale: 0.96 }}
                     onClick={() => setShowAccount(v => !v)}
@@ -257,7 +265,9 @@ export default function Navbar() {
       </AnimatePresence>
     </>
   )
-}
+})
+
+export default Navbar
 
 function NavLink({ label, onClick, active }) {
   return (
