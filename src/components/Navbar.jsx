@@ -44,8 +44,11 @@ const Navbar = forwardRef(function Navbar(props, forwardedRef) {
           position: "sticky",
           top: 0,
           zIndex: 100,
-          background: "var(--surface)",
-          boxShadow: "0 1px 0 var(--border)",
+          background: "rgba(255,255,255,0.6)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          boxShadow: "0 1px 0 rgba(0,0,0,0.05)",
+
         }}
       >
         <div style={{

@@ -1,11 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* Backgrounds — warm cream, not cold white */
-  --bg:            #FAF8F5;
-  --bg-2:          #F0ECE6;
+  /* Backgrounds */
+  --bg:            #EEF0EB;
+  --bg-2:          #E4E8DF;
   --surface:       #FFFFFF;
-  --surface-2:     #FAF8F5;
+  --surface-2:     #F4F6F2;
 
   /* Text — warm near-blacks, not cold slate */
   --text-1:        #1A1410;
@@ -19,8 +19,8 @@
   /* Accent — muted sage-green */
   --accent:        #5C6B4E;
   --accent-hover:  #4A5A3C;
-  --accent-soft:   #EEF1EA;
-  --accent-mid:    #C8D4BE;
+  --accent-soft:   #DFE8D9;
+  --accent-mid:    #B8CAAD;
 
   /* Semantic */
   --success:       #1A7A45;
@@ -48,13 +48,13 @@
   --text-2xl:  1.5rem;
   --text-3xl:  clamp(1.75rem, 3vw + 0.5rem, 2.5rem);
 
-  /* Radius */
-  --r-xs:  3px;
-  --r-sm:  6px;
-  --r-md:  10px;
-  --r-lg:  14px;
-  --r-xl:  18px;
-  --r-2xl: 24px;
+  /* Radius — rounded everywhere */
+  --r-xs:  5px;
+  --r-sm:  10px;
+  --r-md:  14px;
+  --r-lg:  20px;
+  --r-xl:  24px;
+  --r-2xl: 32px;
 }
 
 *, *::before, *::after {
@@ -69,7 +69,8 @@ html { font-size: 16px; }
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: var(--bg);
+  background: linear-gradient(135deg, #E8EDE3 0%, #EEF1EA 40%, #E4E9DF 100%);
+  min-height: 100vh;
   color: var(--text-1);
   line-height: 1.6;
   overflow-x: hidden;
@@ -469,7 +470,191 @@ button { font-family: inherit; }
   position: relative;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.stat-card:hover {
+
+/* ── Responsive Grids (Results Page) ── */
+.res-grid-2-1 { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; align-items: stretch; }
+.res-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.res-grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+.res-bullet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.res-bullet-divider { border-left: 1px solid var(--border); padding-left: 14px; }
+
+@media (max-width: 768px) {
+  .res-grid-2-1, .res-grid-2, .res-grid-auto, .res-bullet-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .res-bullet-divider {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+  }
+  /* Flatten SectionCard (ek-card) on mobile to prevent boxes in boxes */
+  .results-section-card {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-left: -12px !important;
+    margin-right: -12px !important;
+  }
+  .results-section-header {
+    background: transparent !important;
+    padding: 0 16px 12px 16px !important;
+    border-bottom: none !important;
+  }
+  .results-section-body {
+    padding: 0 16px !important;
+  }
+}
+/* ══════════════════════════════════════════════
+   Results Glass Nav Bar — Liquid Morphism
+   ══════════════════════════════════════════════ */
+.results-glass-nav {
+  position: sticky;
+  top: 12px;
+  z-index: 50;
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  background: rgba(255,255,255,0.75);
+  border: 1px solid rgba(92,107,78,0.12);
+  border-radius: 99px;
+  box-shadow:
+    0 8px 40px rgba(92,107,78,0.12),
+    0 2px 12px rgba(0,0,0,0.04),
+    inset 0 1px 0 rgba(255,255,255,0.85);
+  margin: 0 auto 24px;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  width: max-content;
+  max-width: calc(100% - 24px);
+}
+
+/* ← Back arrow button */
+.glass-back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(92,107,78,0.08);
+  color: var(--accent);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+  flex-shrink: 0;
+}
+.glass-back-btn:hover {
+  background: rgba(92,107,78,0.16);
+  transform: translateX(-2px);
+}
+
+/* History badge pill */
+.history-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(92,107,78,0.10);
+  color: var(--accent);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Tab container */
+.results-glass-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  white-space: nowrap;
+  scrollbar-width: none;
+  padding: 4px;
+}
+.results-glass-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+/* Olive capsule tabs */
+.olive-tab {
+  padding: 7px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 99px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  transition: background 0.15s, color 0.15s, transform 0.15s ease-out;
+  outline: none;
+  white-space: nowrap;
+}
+.olive-tab:hover {
+  background: rgba(92,107,78,0.10);
+  color: var(--accent);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md) !important;
+}
+.olive-tab-active {
+  padding: 7px 16px;
+  background: var(--accent);
+  border: none;
+  border-radius: 99px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  outline: none;
+  white-space: nowrap;
+  box-shadow: none;
+  transition: transform 0.15s ease-out;
+}
+.olive-tab-active:hover {
+  transform: translateY(-2px);
+}
+
+/* ── Mobile Responsive ── */
+@media (max-width: 768px) {
+  .results-glass-nav {
+    top: 52px;
+    padding: 4px 6px;
+    margin: 0 auto 16px;
+  }
+  .results-glass-tabs {
+    gap: 4px;
+    padding: 4px;
+  }
+  .olive-tab,
+  .olive-tab-active {
+    font-size: 11.5px;
+    padding: 6px 12px;
+  }
+  .glass-back-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+  }
+  .history-badge {
+    font-size: 10.5px;
+    padding: 3px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .results-glass-nav {
+    border-radius: 14px;
+    padding: 6px;
+  }
+  .results-glass-tabs {
+    gap: 2px;
+  }
+  .olive-tab,
+  .olive-tab-active {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
 }

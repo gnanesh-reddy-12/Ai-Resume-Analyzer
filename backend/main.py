@@ -482,7 +482,12 @@ async def analyze_resume(
             "semantic_score": semantic_score,
             "matched_keywords": matched_keywords,
             "missing_keywords": missing_keywords,
-            "improvement_suggestions": {"eligibility": eligibility, "warnings": all_warnings, "optional_keywords": optional_keywords},
+            "improvement_suggestions": {
+                "eligibility": eligibility, 
+                "warnings": all_warnings, 
+                "optional_keywords": optional_keywords,
+                "resume_snapshot_text": resume_text
+            },
             "job_description_preview": job_description[:5000]
         }
         
@@ -499,49 +504,63 @@ async def analyze_resume(
 @limiter.limit("5/minute")
 async def improve_resume(
     request: Request,
-    resume: UploadFile = File(...),
-    job_description: str = Form(...),
+    job_description: str = Form(default=""),
     analysis_id: str = Form(default=""),
+    resume: UploadFile = File(None),
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
     await verify_token(credentials)
 
-    if not resume.filename.lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Only PDF files are supported")
-
-    if resume.content_type not in ("application/pdf", "application/octet-stream"):
-        raise HTTPException(status_code=400, detail="Invalid file type")
-
-    contents = await resume.read()
-
-    if len(contents) > MAX_FILE_SIZE_BYTES:
-        raise HTTPException(status_code=413, detail="File too large. Maximum size is 2MB")
-
-    if not contents.startswith(b"%PDF"):
-        raise HTTPException(status_code=400, detail="Invalid PDF file")
-
-    resume_text = extract_text_from_pdf(contents)
-
-    if not resume_text.strip():
-        raise HTTPException(status_code=400, detail="Could not extract text. Make sure the resume is not a scanned image.")
-
-    cleaned_resume = clean_text(resume_text)
+    resume_text = ""
     cleaned_jd = clean_text(job_description)
-
+    
     known_missing = ""
     known_matched = ""
     known_optional = ""
+    
     if analysis_id:
         try:
-            res = supabase.table("analyses").select("missing_keywords, matched_keywords, improvement_suggestions").eq("id", analysis_id).execute()
+            res = supabase.table("analyses").select("missing_keywords, matched_keywords, improvement_suggestions, job_description_preview").eq("id", analysis_id).execute()
             if res.data:
                 row = res.data[0]
                 known_missing = ", ".join(row.get("missing_keywords", []))
                 known_matched = ", ".join(row.get("matched_keywords", []))
-                suggestions = row.get("improvement_suggestions", {})
+                suggestions = row.get("improvement_suggestions") or {}
                 known_optional = ", ".join(suggestions.get("optional_keywords", []))
+                
+                # Use stored snapshot and JD if not provided
+                resume_text = suggestions.get("resume_snapshot_text", "")
+                if not cleaned_jd and row.get("job_description_preview"):
+                    cleaned_jd = clean_text(row.get("job_description_preview"))
+                    
+                # If suggestions already exist, just return them
+                if suggestions.get("suggestions"):
+                    return {"suggestions": suggestions.get("suggestions")}
         except Exception:
             pass
+
+    if not resume_text:
+        if not resume or not resume.filename:
+            raise HTTPException(status_code=400, detail="Resume file is required if no analysis_id is provided.")
+        if not resume.filename.lower().endswith(".pdf"):
+            raise HTTPException(status_code=400, detail="Only PDF files are supported")
+        if resume.content_type not in ("application/pdf", "application/octet-stream"):
+            raise HTTPException(status_code=400, detail="Invalid file type")
+        contents = await resume.read()
+        if len(contents) > MAX_FILE_SIZE_BYTES:
+            raise HTTPException(status_code=413, detail="File too large. Maximum size is 2MB")
+        if not contents.startswith(b"%PDF"):
+            raise HTTPException(status_code=400, detail="Invalid PDF file")
+        resume_text = extract_text_from_pdf(contents)
+
+    if not resume_text.strip():
+        raise HTTPException(status_code=400, detail="Could not extract text. Make sure the resume is not a scanned image.")
+
+    if not cleaned_jd:
+        raise HTTPException(status_code=400, detail="Job description is required.")
+
+    cleaned_resume = clean_text(resume_text)
+
 
     context_str = ""
     if known_missing or known_matched or known_optional:
@@ -695,31 +714,43 @@ async def analyze_guest(
 @limiter.limit("5/minute")
 async def generate_cover_letter(
     request: Request,
-    resume: UploadFile = File(...),
     job_description: str = Form(...),
     company_name: str = Form(default=""),
+    analysis_id: str = Form(default=""),
+    resume: UploadFile = File(None),
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
     await verify_token(credentials)
 
-    if not resume.filename.lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Only PDF files are supported")
+    resume_text = ""
+    if analysis_id:
+        try:
+            res = supabase.table("analyses").select("improvement_suggestions").eq("id", analysis_id).execute()
+            if res.data:
+                suggestions = res.data[0].get("improvement_suggestions") or {}
+                known_cover_letter = suggestions.get("cover_letter_text")
+                if known_cover_letter:
+                    return {"cover_letter": known_cover_letter}
+                resume_text = suggestions.get("resume_snapshot_text", "")
+        except Exception:
+            pass
 
-    if resume.content_type not in ("application/pdf", "application/octet-stream"):
-        raise HTTPException(status_code=400, detail="Invalid file type")
-
-    contents = await resume.read()
-
-    if len(contents) > MAX_FILE_SIZE_BYTES:
-        raise HTTPException(status_code=413, detail="File too large. Maximum size is 2MB")
-
-    if not contents.startswith(b"%PDF"):
-        raise HTTPException(status_code=400, detail="Invalid PDF file")
-
-    resume_text = extract_text_from_pdf(contents)
+    if not resume_text:
+        if not resume or not resume.filename:
+            raise HTTPException(status_code=400, detail="Resume file is required if no analysis_id is provided.")
+        if not resume.filename.lower().endswith(".pdf"):
+            raise HTTPException(status_code=400, detail="Only PDF files are supported")
+        if resume.content_type not in ("application/pdf", "application/octet-stream"):
+            raise HTTPException(status_code=400, detail="Invalid file type")
+        contents = await resume.read()
+        if len(contents) > MAX_FILE_SIZE_BYTES:
+            raise HTTPException(status_code=413, detail="File too large. Maximum size is 2MB")
+        if not contents.startswith(b"%PDF"):
+            raise HTTPException(status_code=400, detail="Invalid PDF file")
+        resume_text = extract_text_from_pdf(contents)
 
     if not resume_text.strip():
-        raise HTTPException(status_code=400, detail="Could not extract text. Make sure the resume is not a scanned image.")
+        raise HTTPException(status_code=400, detail="Could not extract text from resume.")
 
     cleaned_resume = clean_text(resume_text)
     cleaned_jd = clean_text(job_description)
@@ -753,7 +784,19 @@ Resume: {cleaned_resume}"""
             max_tokens=1500,
             timeout=30,
         )
-        return {"cover_letter": response.choices[0].message.content.strip()}
+        cover_letter_result = response.choices[0].message.content.strip()
+
+        if analysis_id:
+            try:
+                select_res = supabase.table("analyses").select("improvement_suggestions").eq("id", analysis_id).execute()
+                if select_res.data:
+                    existing = select_res.data[0].get("improvement_suggestions") or {}
+                    existing["cover_letter_text"] = cover_letter_result
+                    supabase.table("analyses").update({"improvement_suggestions": existing}).eq("id", analysis_id).execute()
+            except Exception as e:
+                print("Failed to save cover letter:", str(e))
+
+        return {"cover_letter": cover_letter_result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Cover letter generation failed: {str(e)}")
 
@@ -764,22 +807,39 @@ async def generate_mock_interview(
     request: Request,
     job_description: str = Form(...),
     experience_years: float = Form(default=0),
+    analysis_id: str = Form(default=""),
     resume: UploadFile = File(None),
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
     await verify_token(credentials)
     cleaned_jd = clean_text(job_description)
 
-    resume_text = "No resume provided. Generate mock interview questions based solely on the JD and experience level."
-    if resume and resume.filename:
+    resume_text = ""
+    if analysis_id:
         try:
-            contents = await resume.read()
-            if len(contents) <= MAX_FILE_SIZE_BYTES and contents.startswith(b"%PDF"):
-                extracted = extract_text_from_pdf(contents)
-                if extracted.strip():
-                    resume_text = clean_text(extracted)
+            res = supabase.table("analyses").select("improvement_suggestions").eq("id", analysis_id).execute()
+            if res.data:
+                suggestions = res.data[0].get("improvement_suggestions") or {}
+                known_interview = suggestions.get("interview_questions")
+                if known_interview:
+                    return {"interview_plan": known_interview}
+                resume_text = suggestions.get("resume_snapshot_text", "")
         except Exception:
             pass
+
+    if not resume_text:
+        if resume and resume.filename:
+            try:
+                contents = await resume.read()
+                if len(contents) <= MAX_FILE_SIZE_BYTES and contents.startswith(b"%PDF"):
+                    extracted = extract_text_from_pdf(contents)
+                    if extracted.strip():
+                        resume_text = clean_text(extracted)
+            except Exception:
+                pass
+
+    if not resume_text:
+        resume_text = "No resume provided. Generate mock interview questions based solely on the JD and experience level."
 
     if experience_years == 0:
         seniority = "fresher (0 years experience, focus on fundamentals, DSA basics, internship projects)"
@@ -885,6 +945,16 @@ Return ONLY valid JSON. No markdown, no backticks:
 
         if not isinstance(result, dict) or "rounds" not in result:
             raise ValueError("Invalid format returned by AI")
+
+        if analysis_id:
+            try:
+                select_res = supabase.table("analyses").select("improvement_suggestions").eq("id", analysis_id).execute()
+                if select_res.data:
+                    existing = select_res.data[0].get("improvement_suggestions") or {}
+                    existing["interview_questions"] = result
+                    supabase.table("analyses").update({"improvement_suggestions": existing}).eq("id", analysis_id).execute()
+            except Exception as e:
+                print("Failed to save interview prep:", str(e))
 
         return {"interview_plan": result}
     except Exception as e:

@@ -1,8 +1,8 @@
 <div align="center">
 
-# ResumeAI — AI-Powered ATS Resume Analyzer
+# ResumeAI — ATS Resume Analyzer
 
-**Beat the Applicant Tracking System. Land the interview.**
+**Optimize resumes against modern Applicant Tracking Systems.**
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://ai-resume-analyzer-two-red.vercel.app)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
@@ -15,25 +15,45 @@
 
 ## 🚀 Overview
 
-ResumeAI is a full-stack platform designed to help job seekers optimize their resumes against the strict algorithms of modern Applicant Tracking Systems (ATS). 
+ResumeAI is a full-stack web application designed to help users optimize their resumes for Applicant Tracking Systems (ATS). 
 
-Instead of relying on basic keyword matching, ResumeAI uses advanced Large Language Models (Groq LLaMA-3.3-70b) and a custom Python extraction engine to semantically analyze resumes. It provides users with an instant ATS score, missing keyword identification, and actionable AI-generated suggestions to rewrite their bullet points for maximum impact.
+Rather than relying on basic keyword matching, the platform utilizes Groq's LLaMA-3.3-70b model and a Python-based extraction engine to perform semantic analysis on uploaded resumes. It provides an ATS compatibility score, identifies missing skills based on the provided job description, and generates actionable suggestions to improve bullet points.
 
 ## ✨ Key Features
 
-- **Semantic ATS Scoring:** Go beyond exact-match keywords. Our engine understands context, synonyms, and variations to give you a highly accurate ATS compatibility score.
-- **Smart Keyword Analysis:** Instantly identify exactly which crucial skills from the job description are missing from your resume.
-- **AI-Powered Suggestions:** Receive section-by-section feedback and rewritten bullet points tailored to the specific role you are applying for.
-- **Guest Trial & Secure Authentication:** Try the platform instantly as a guest, or create an account (secured by JWT and Supabase) to save your analysis history permanently.
-- **Multi-Column PDF Parsing:** Robust document extraction utilizing `pdfplumber` to handle complex, highly-formatted resume templates.
+- **Semantic ATS Scoring:** Evaluates resume content against job descriptions using natural language processing to understand context and synonyms.
+- **Skill Gap Analysis:** Identifies critical skills and keywords missing from the resume.
+- **Automated Feedback:** Provides section-by-section suggestions and rewrites for resume bullet points to improve clarity and impact.
+- **Authentication & History:** Secure user authentication via Supabase, allowing users to save and review past analysis results.
+- **PDF Parsing:** Robust document extraction using `pdfplumber` to process complex resume layouts.
+
+## 📁 Project Structure
+
+```text
+ai-resume-analyzer/
+├── backend/                  # Python/FastAPI backend
+│   ├── main.py               # Core API endpoints and LLM integration
+│   ├── requirements.txt      # Python dependencies
+│   └── Procfile              # Deployment configuration
+├── src/                      # React frontend
+│   ├── components/           # Reusable UI components
+│   ├── context/              # React Context for state management
+│   ├── pages/                # Application routes
+│   ├── App.jsx               # Main application layout and routing
+│   ├── index.css             # Tailwind configuration and global styles
+│   └── supabase.js           # Supabase client initialization
+├── public/                   # Static assets
+├── package.json              # Node dependencies and scripts
+└── vite.config.js            # Vite configuration
+```
 
 ## 🛠️ Technology Stack
 
 - **Frontend:** React 19, Vite, Tailwind CSS, Framer Motion
 - **Backend:** Python 3.11, FastAPI
-- **Artificial Intelligence:** Groq API (LLaMA-3.3-70b-versatile)
-- **Database & Auth:** Supabase (PostgreSQL), JWT
-- **Deployment:** Vercel (Frontend), Render & Docker (Backend)
+- **AI Integration:** Groq API (LLaMA-3.3-70b-versatile)
+- **Database & Auth:** Supabase (PostgreSQL)
+- **Deployment:** Vercel (Frontend), Render (Backend)
 
 ---
 

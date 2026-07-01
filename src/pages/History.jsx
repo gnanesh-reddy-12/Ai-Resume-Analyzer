@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import CompanyLogo from "../components/CompanyLogo"
 import { useAuth } from "../context/useAuth"
-import Navbar from "../components/Navbar"
+import AppLayout from "../components/AppLayout"
 import { supabase } from "../supabase"
 
 const ease = [0.22, 1, 0.36, 1]
@@ -128,9 +128,8 @@ export default function History() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
-      <Navbar />
-      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "clamp(28px,4vw,48px) clamp(16px,4vw,24px) 96px" }}>
+    <AppLayout activeId="history">
+      <div style={{ display: "flex", flexDirection: "column", flex: 1, paddingBottom: 64 }}>
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease }}
@@ -305,6 +304,6 @@ export default function History() {
       <AnimatePresence>
         {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       </AnimatePresence>
-    </div>
+    </AppLayout>
   )
 }

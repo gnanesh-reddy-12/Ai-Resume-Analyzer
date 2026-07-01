@@ -3,7 +3,7 @@ import { useAuth } from "../context/useAuth"
 import { supabase } from "../supabase"
 import { motion, AnimatePresence } from "framer-motion"
 import { useNavigate } from "react-router-dom"
-import Navbar from "../components/Navbar"
+import AppLayout from "../components/AppLayout"
 
 const spring = { type: "spring", stiffness: 400, damping: 30 }
 const INDUSTRIES = ["Software Development" , "Frontend Engineer", "Backend Engineer", "Full-Stack Engineer", "DevOps Engineer", "Google Cloud Engineer", 
@@ -301,14 +301,12 @@ export default function Profile() {
   }))
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
-      <Navbar />
-
+    <AppLayout activeId="profile">
       <AnimatePresence>
         {toast && <Toast message={toast.text} type={toast.type} onClose={() => setToast(null)} />}
       </AnimatePresence>
 
-      <div className="container" style={{ paddingTop: "clamp(28px,5vw,48px)", paddingBottom: 96, maxWidth: 960 }}>
+      <div className="container" style={{ display: "flex", flexDirection: "column", flex: 1, paddingBottom: 64 }}>
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={spring}
@@ -847,6 +845,6 @@ export default function Profile() {
           </div>
         </motion.div>
       </div>
-    </div>
+    </AppLayout>
   )
 }
