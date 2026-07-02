@@ -129,19 +129,19 @@ export default function Home() {
           >
             {/* Stats row */}
             {stats && (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 24 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "clamp(8px, 2vw, 16px)", marginBottom: 24 }}>
                 {[
                   { label: "ANALYZED", value: stats.total },
-                  { label: "AVG. ATS SCORE", value: `${stats.avg}%` },
+                  { label: "AVG SCORE", value: `${stats.avg}%` },
                   { label: "BEST SCORE", value: `${stats.best}%` },
                 ].map(s => (
                   <div key={s.label} style={{
                     background: T.surface, border: `1px solid ${T.border}`,
-                    borderRadius: 10, padding: "16px 20px",
-                    boxShadow: T.shadowSm,
+                    borderRadius: 10, padding: "clamp(12px, 3vw, 16px) clamp(8px, 2vw, 20px)",
+                    boxShadow: T.shadowSm, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center"
                   }}>
-                    <p style={{ fontSize: 9.5, fontWeight: 700, color: T.text3, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>{s.label}</p>
-                    <p style={{ fontSize: 28, fontWeight: 800, color: T.text1, letterSpacing: "-0.04em", lineHeight: 1 }}>{s.value}</p>
+                    <p style={{ fontSize: "clamp(8px, 2vw, 9.5px)", fontWeight: 700, color: T.text3, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 6 }}>{s.label}</p>
+                    <p style={{ fontSize: "clamp(20px, 5vw, 28px)", fontWeight: 800, color: T.text1, letterSpacing: "-0.04em", lineHeight: 1 }}>{s.value}</p>
                   </div>
                 ))}
               </div>
@@ -173,11 +173,10 @@ export default function Home() {
                       onMouseEnter={e => e.currentTarget.style.background = T.bg}
                       onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                     >
-                      <ScoreBadge score={item.ats_score} />
+                      <CompanyLogo name={item.company_name || "?"} size={36} />
                       
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                          {item.company_name && <CompanyLogo company={item.company_name} size={14} />}
                           <span style={{ fontSize: 14, fontWeight: 600, color: T.text1 }}>
                             {item.company_name || "General"}
                           </span>
@@ -185,6 +184,7 @@ export default function Home() {
                           <span style={{ fontSize: 13, color: T.text2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                             {item.job_role || "Resume Analysis"}
                           </span>
+                          <ScoreBadge score={item.ats_score} />
                         </div>
                         <div style={{ fontSize: 12, color: T.text3, display: "flex", alignItems: "center", gap: 6 }}>
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
