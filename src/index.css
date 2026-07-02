@@ -490,6 +490,13 @@ button { font-family: inherit; }
     overflow-wrap: break-word !important;
     word-break: break-word !important;
   }
+  /* But allow absolutely-positioned dropdown menus to size freely */
+  .hist-menu-container > div {
+    max-width: none !important;
+    word-break: normal !important;
+    right: 0 !important;
+    left: auto !important;
+  }
   .res-grid-2-1, .res-grid-2, .res-grid-auto, .res-bullet-grid {
     grid-template-columns: 1fr !important;
   }
@@ -509,11 +516,16 @@ button { font-family: inherit; }
   }
   .results-section-header {
     background: transparent !important;
-    padding: 0 4px 12px 4px !important;
+    padding: 0 16px 12px 16px !important;
     border-bottom: none !important;
   }
+  /* Results page container — remove double padding on mobile so it matches History */
+  .results-page-container {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
   .results-section-body {
-    padding: 0 4px !important;
+    padding: 0 16px !important;
   }
 }
 /* ══════════════════════════════════════════════

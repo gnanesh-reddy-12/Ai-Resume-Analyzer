@@ -343,7 +343,7 @@ export default function Results() {
   return (
     <AppLayout activeId={isHistoryMode ? "history" : "dashboard"}>
 
-      <div className="container" style={{ paddingTop: 0, paddingBottom: 96 }}>
+      <div className="container results-page-container" style={{ paddingTop: 0, paddingBottom: 96 }}>
 
         <AnimatePresence>{toast && <Toast message={toast.text} type={toast.type} onClose={() => setToast(null)} />}</AnimatePresence>
 
@@ -366,7 +366,7 @@ export default function Results() {
 
         {/* History mode: page title with back button */}
         {isHistoryMode && coreData && (
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={spring} style={{ marginBottom: 20 }}>
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={spring} style={{ marginBottom: 20, paddingTop: 8 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
               <button onClick={() => navigate("/history")} className="glass-back-btn" aria-label="Go back to history" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
                 <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
