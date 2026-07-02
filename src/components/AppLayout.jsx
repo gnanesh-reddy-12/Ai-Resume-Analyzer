@@ -19,7 +19,7 @@ export default function AppLayout({ children, activeId }) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#FAF8F5" }}>
         <Navbar />
-        <main style={{ flex: 1, padding: "16px", display: "flex", flexDirection: "column", maxWidth: "100%", overflowX: "hidden" }}>
+        <main style={{ flex: 1, padding: "16px", boxSizing: "border-box", display: "flex", flexDirection: "column", maxWidth: "100%", overflowX: "hidden" }}>
           {children}
         </main>
       </div>
