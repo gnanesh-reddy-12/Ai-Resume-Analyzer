@@ -347,7 +347,7 @@ export default function Profile() {
         {/* Score trend */}
         {scoreHistory.length > 1 && (
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring, delay: 0.06 }}
-            className="ek-card"
+            className="ek-card profile-section-card"
             style={{
               background: "var(--surface)", border: "1px solid var(--border)",
               borderRadius: "var(--r-xl)", padding: "18px 22px", marginBottom: 20,
@@ -367,7 +367,7 @@ export default function Profile() {
           {/* LEFT: Profile card and Target Companies */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring, delay: 0.08 }}
-              className="ek-card"
+              className="ek-card profile-section-card"
               style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-xl)", overflow: "hidden" }}>
 
             {/* Avatar header */}
@@ -514,6 +514,7 @@ export default function Profile() {
 
             {/* Resume card */}
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring, delay: 0.1 }}
+              className="profile-section-card"
               style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-xl)", overflow: "hidden" }}>
               <div style={{ padding: "22px 22px 18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -582,6 +583,7 @@ export default function Profile() {
 
         {/* Application Tracker */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring, delay: 0.14 }}
+          className="profile-section-card"
           style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-xl)", marginBottom: 16 }}>
           <div style={{ padding: "16px 18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
