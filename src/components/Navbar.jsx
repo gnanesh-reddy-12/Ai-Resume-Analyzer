@@ -150,6 +150,7 @@ const Navbar = forwardRef(function Navbar(props, forwardedRef) {
                           <MenuBtn label="Profile Settings" onClick={() => { navigate("/profile"); setShowAccount(false) }} />
                           <MenuBtn label="Analyze Resume" onClick={() => { navigate("/"); setShowAccount(false) }} />
                           <MenuBtn label="History" onClick={() => { navigate("/history"); setShowAccount(false) }} />
+                          <MenuBtn label="Job Tracker" onClick={() => { navigate("/applications"); setShowAccount(false) }} />
                         </div>
                         <div style={{ padding: 6, borderTop: "1px solid var(--border)" }}>
                           <MenuBtn label="Log out" onClick={() => { logout(); navigate("/landing") }} danger />
@@ -234,6 +235,7 @@ const Navbar = forwardRef(function Navbar(props, forwardedRef) {
               {[
                 { label: "Analyze Resume", path: "/" },
                 { label: "History", path: "/history" },
+                { label: "Job Tracker", path: "/applications" },
                 { label: "Profile Settings", path: "/profile" },
               ].map(l => (
                 <button

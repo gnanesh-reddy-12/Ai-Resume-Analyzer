@@ -15,13 +15,6 @@ const INDUSTRIES = ["Software Development" , "Frontend Engineer", "Backend Engin
 "BizOps Manager", "IT Systems Administrator", "Chief of Staff"]
 const APP_STATUSES = ["Applied","Interview","Offer","Rejected"]
 
-const statusMeta = {
-  Applied:   { color: "var(--text-3)",   bg: "var(--bg)",         bd: "var(--border)" },
-  Interview: { color: "var(--warning)",  bg: "var(--warning-bg)", bd: "var(--warning-bd)" },
-  Offer:     { color: "var(--success)",  bg: "var(--success-bg)", bd: "var(--success-bd)" },
-  Rejected:  { color: "var(--danger)",   bg: "var(--danger-bg)",  bd: "var(--danger-bd)" },
-}
-
 import CompanyLogo from "../components/CompanyLogo"
 
 function Toast({ message, type, onClose }) {
@@ -107,9 +100,6 @@ export default function Profile() {
 
   const [stats, setStats] = useState(null)
   const [scoreHistory, setScoreHistory] = useState([])
-  const [applications, setApplications] = useState([])
-  const [newApp, setNewApp] = useState({ company: "", role: "", status: "Applied", job_id: "" })
-  const [addingApp, setAddingApp] = useState(false)
 
   const [toast, setToast] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState("")
@@ -153,33 +143,15 @@ export default function Profile() {
     setScoreHistory(scores)
   }
 
-  const loadApplications = async () => {
-    const { data } = await supabase
-      .from("applications")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-    setApplications(data || [])
-  }
-
   useEffect(() => {
     if (!user) return
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadProfile()
     loadStats()
-    loadApplications()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
-  useEffect(() => {
-    const handleClick = (e) => {
-      if (!e.target.closest('.app-menu-container')) {
-        setActiveMenuId(null)
-      }
-    }
-    document.addEventListener('click', handleClick)
-    return () => document.removeEventListener('click', handleClick)
-  }, [])
+  // No activeMenuId to click out of anymore in Profile
 
   const handleUpdateProfile = async () => {
     if (!name.trim()) return
@@ -243,34 +215,7 @@ export default function Profile() {
     setCompanyInput("")
   }
 
-  const addApplication = async () => {
-    if (!newApp.company.trim() || !newApp.role.trim()) return
-    setAddingApp(true)
-    const payload = { company: newApp.company, role: newApp.role, status: newApp.status, user_id: user.id }
-    if (newApp.job_id.trim()) payload.job_id = newApp.job_id.trim()
-    const { data, error } = await supabase.from("applications").insert(payload).select().single()
-    setAddingApp(false)
-    
-    if (error) {
-      console.error("Supabase error:", error)
-      showToast(error.message || "Failed to add application", "error")
-      return
-    }
-    
-    if (data) setApplications(p => [data, ...p])
-    setNewApp({ company: "", role: "", status: "Applied", job_id: "" })
-    showToast("Application added.")
-  }
-
-  const updateAppStatus = async (id, status) => {
-    await supabase.from("applications").update({ status }).eq("id", id)
-    setApplications(p => p.map(a => a.id === id ? { ...a, status } : a))
-  }
-
-  const deleteApp = async (id) => {
-    await supabase.from("applications").delete().eq("id", id)
-    setApplications(p => p.filter(a => a.id !== id))
-  }
+  // Tracker functions moved to Applications.jsx
 
   const handleDeleteAccount = async () => {
     if (deleteConfirm !== "DELETE") return
@@ -293,12 +238,6 @@ export default function Profile() {
 
   const profileFields = [name, phone, linkedin, github, portfolio]
   const profilePct = Math.round((profileFields.filter(Boolean).length / profileFields.length) * 100)
-
-  const appFunnel = APP_STATUSES.map(s => ({
-    status: s,
-    count: applications.filter(a => a.status === s).length,
-    ...statusMeta[s]
-  }))
 
   return (
     <AppLayout activeId="profile">
@@ -538,7 +477,7 @@ export default function Profile() {
                 <input type="file" accept=".pdf" ref={fileInputRef} style={{ display: "none" }} id="resume-upload" onChange={e => handleUploadResume(e.target.files[0])} />
                 {resumeUrl ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                    <iframe src={`https://docs.google.com/gview?url=${encodeURIComponent(resumeUrl)}&embedded=true`} style={{ width: "100%", height: 313, border: "none", borderRadius: "var(--r-md)", background: "#f8f8f8" }} title="Resume" />
+                    <iframe src={`${resumeUrl}#view=FitH`} style={{ width: "100%", height: 313, border: "none", borderRadius: "var(--r-md)", background: "#f8f8f8" }} title="Resume" />
                     <div style={{ display: "flex", justifyContent: "center", marginTop: 4 }}>
                       <label htmlFor="resume-upload" className="btn-secondary" style={{ cursor: "pointer", padding: "8px 24px", fontSize: 13, borderRadius: 99 }}>
                         Replace Resume
@@ -581,170 +520,7 @@ export default function Profile() {
         </div>
 
 
-        {/* Application Tracker */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring, delay: 0.14 }}
-          className="profile-section-card"
-          style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-xl)", marginBottom: 16 }}>
-          <div style={{ padding: "16px 18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.2" strokeLinecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-              <h2 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-1)" }}>Application Tracker</h2>
-            </div>
-            {/* Funnel pills */}
-            {applications.length > 0 && (
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {appFunnel.map(f => f.count > 0 && (
-                  <span key={f.status} style={{
-                    display: "inline-flex", alignItems: "center", gap: 5,
-                    background: f.bg, color: f.color, border: `1px solid ${f.bd}`,
-                    fontSize: 11.5, fontWeight: 700, padding: "3px 10px", borderRadius: 99
-                  }}>
-                    {f.status} <span style={{ opacity: 0.7 }}>{f.count}</span>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-          <div style={{ padding: "18px 12px" }}>
-            {/* Add form */}
-            <div className="app-tracker-form" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto auto", gap: 10, marginBottom: 20, alignItems: "end" }}>
-              <div>
-                <label style={{ display: "block", fontSize: 10.5, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Company</label>
-                <input className="input-ek" value={newApp.company} onChange={e => setNewApp(p => ({ ...p, company: e.target.value }))} placeholder="Google" />
-              </div>
-              <div>
-                <label style={{ display: "block", fontSize: 10.5, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Role</label>
-                <input className="input-ek" value={newApp.role} onChange={e => setNewApp(p => ({ ...p, role: e.target.value }))} placeholder="Software Engineer" />
-              </div>
-              <div>
-                <label style={{ display: "block", fontSize: 10.5, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Job ID</label>
-                <input className="input-ek" value={newApp.job_id} onChange={e => setNewApp(p => ({ ...p, job_id: e.target.value }))} placeholder="REQ-123 (Opt)" />
-              </div>
-              <div>
-                <label style={{ display: "block", fontSize: 10.5, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Status</label>
-                <select className="input-ek" value={newApp.status} onChange={e => setNewApp(p => ({ ...p, status: e.target.value }))} style={{ minWidth: 110 }}>
-                  {APP_STATUSES.map(s => <option key={s}>{s}</option>)}
-                </select>
-              </div>
-              <button className="btn-accent" onClick={addApplication} disabled={addingApp} style={{ padding: "10px 20px", alignSelf: "end" }}>
-                {addingApp ? "…" : "Add"}
-              </button>
-            </div>
 
-            {applications.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "32px 0", border: "1.5px dashed var(--border-2)", borderRadius: "var(--r-lg)" }}>
-                <div style={{ width: 40, height: 40, background: "var(--accent-soft)", borderRadius: "var(--r-md)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px", color: "var(--accent)" }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-                </div>
-                <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text-1)", marginBottom: 4 }}>No applications tracked yet</p>
-                <p style={{ fontSize: 12.5, color: "var(--text-3)" }}>Add your first application above to start tracking</p>
-              </div>
-            ) : (
-              <div>
-                <div className="custom-scrollbar" style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 580, overflowY: "auto", overflowX: "hidden", paddingRight: 4 }}>
-                {applications.map((app, idx) => (
-                  <motion.div
-                    key={app.id}
-                    initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    whileHover={{ scale: 1.015, y: -2, transition: { type: "spring", stiffness: 400, damping: 25 } }}
-                    className="app-table-row ek-card"
-                    style={{ 
-                      zIndex: activeMenuId === app.id ? 50 : 1,
-                      display: "grid", gridTemplateColumns: "1.4fr 1.1fr auto auto auto", 
-                      alignItems: "center", gap: 16, 
-                      background: "var(--surface)", border: "1px solid var(--border)", 
-                      borderRadius: "var(--r-md)", padding: "12px 16px",
-                      boxShadow: "var(--shadow-xs)", position: "relative"
-                    }}
-                  >
-                    {/* Company */}
-                    <div className="app-company-col" style={{ minWidth: 0 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <CompanyLogo name={app.company} />
-                        <h4 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-1)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{app.company}</h4>
-                      </div>
-                      {app.job_id && <span style={{ fontSize: 11, color: "var(--text-3)", display: "block", marginTop: 2, marginLeft: 32 }}>ID: {app.job_id}</span>}
-                    </div>
-
-                    {/* Role */}
-                    <div className="app-role-col" style={{ fontSize: 13.5, fontWeight: 500, color: "var(--text-2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {app.role}
-                    </div>
-
-                    {/* Status Pill */}
-                    <div className="app-status-col">
-                      <select
-                        value={app.status}
-                        onChange={e => updateAppStatus(app.id, e.target.value)}
-                        style={{
-                          fontSize: 11.5, fontWeight: 700, padding: "4px 10px",
-                          borderRadius: "99px", border: "none",
-                          cursor: "pointer",
-                          background: statusMeta[app.status]?.bg || "var(--bg)",
-                          color: statusMeta[app.status]?.color || "var(--text-2)",
-                          outline: "none", appearance: "none",
-                          fontFamily: "inherit", textAlign: "center",
-                          height: 26
-                        }}
-                      >
-                        {APP_STATUSES.map(s => <option key={s}>{s}</option>)}
-                      </select>
-                    </div>
-
-                    {/* Date */}
-                    <div className="app-date" style={{ fontSize: 12.5, color: "var(--text-3)", whiteSpace: "nowrap" }}>
-                      {new Date(app.applied_date || app.created_at).toLocaleDateString("en-US", { day: 'numeric', month: 'short', year: 'numeric' })}
-                    </div>
-
-                    {/* Actions */}
-                    <div className="app-menu-container" style={{ position: "relative" }}>
-                      <button
-                        className="app-delete-btn"
-                        onClick={() => setActiveMenuId(activeMenuId === app.id ? null : app.id)}
-                        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-1)", padding: "4px", transition: "all 0.15s", display: "flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, borderRadius: "50%" }}
-                        onMouseEnter={e => e.currentTarget.style.color = "var(--accent)"}
-                        onMouseLeave={e => e.currentTarget.style.color = "var(--text-1)"}
-                      >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="12" cy="19" r="2"/></svg>
-                      </button>
-
-                      <AnimatePresence>
-                        {activeMenuId === app.id && (
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-                            transition={{ duration: 0.1 }}
-                            style={{
-                              position: "absolute", top: "100%", right: 0, marginTop: 4,
-                              background: "#fff", border: "1px solid var(--border)", borderRadius: "var(--r-md)",
-                              boxShadow: "0 4px 12px rgba(0,0,0,0.1)", zIndex: 10, width: 180, overflow: "hidden"
-                            }}
-                          >
-                            <button
-                              onClick={() => {
-                                setActiveMenuId(null);
-                                deleteApp(app.id);
-                              }}
-                              style={{
-                                width: "100%", padding: "12px 16px", textAlign: "left", background: "none", border: "none",
-                                fontSize: 13, fontWeight: 500, color: "var(--danger)", cursor: "pointer", fontFamily: "inherit"
-                              }}
-                              onMouseEnter={e => e.currentTarget.style.background = "var(--danger-bg)"}
-                              onMouseLeave={e => e.currentTarget.style.background = "none"}
-                            >
-                              Withdraw Application
-                            </button>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </motion.div>
-                ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </motion.div>
 
         {/* Account */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring, delay: 0.16 }}
