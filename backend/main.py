@@ -363,10 +363,10 @@ _token_budget = deque()
 _lock = Lock()
 
 ENDPOINT_TOKEN_ESTIMATE = {
-    "analyze": 1200,
-    "improve": 3500,
-    "cover_letter": 1800,
-    "mock_interview": 2000,
+    "analyze": 3600,
+    "improve": 6300,
+    "cover_letter": 3200,
+    "mock_interview": 5400,
 }
 
 def _throttle(estimated_tokens=2500):
@@ -375,7 +375,7 @@ def _throttle(estimated_tokens=2500):
         while _token_budget and now - _token_budget[0][0] > 60:
             _token_budget.popleft()
         used = sum(t for _, t in _token_budget)
-        if used + estimated_tokens > 6000:
+        if used + estimated_tokens > 7500:
             wait = 60 - (now - _token_budget[0][0])
             time.sleep(max(wait, 0))
         _token_budget.append((time.time(), estimated_tokens))
