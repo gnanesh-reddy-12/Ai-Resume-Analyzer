@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from groq import Groq
 from dotenv import load_dotenv
+import google.generativeai as genai
 from supabase import create_client, Client
 import os
 import pdfplumber
@@ -17,7 +18,8 @@ from slowapi.errors import RateLimitExceeded
 
 load_dotenv()
 
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 supabase_key = os.getenv("SUPABASE_ANON_KEY")
 supabase: Client = create_client(os.getenv("SUPABASE_URL"), supabase_key)
 security = HTTPBearer()
@@ -324,6 +326,184 @@ def calculate_scores(resume_text: str, jd_keyword_groups: list):
     return matched[:20], missing[:20], optional[:20], keyword_score, semantic_score, ats_score
 
 
+
+def _gemini(prompt: str, schema: dict) -> dict:
+    def strip_props(d):
+        if not isinstance(d, dict): return d
+        return {k: strip_props(v) if isinstance(v, dict) else [strip_props(i) for i in v] if isinstance(v, list) else v for k, v in d.items() if k != "additionalProperties"}
+    
+    model = genai.GenerativeModel("gemini-2.5-flash")
+    r = model.generate_content(
+        prompt,
+        generation_config={"response_mime_type": "application/json", "response_schema": strip_props(schema)},
+        request_options={"timeout": 5}
+    )
+    return json.loads(r.text)
+
+def _groq(prompt: str, schema: dict, max_tokens: int = 3000) -> dict:
+    raw = groq_client.chat.completions.with_raw_response.create(
+        model="openai/gpt-oss-120b",
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_schema", "json_schema": {"name": "analysis", "schema": schema, "strict": True}},
+        max_completion_tokens=max_tokens,
+        temperature=0.3,
+        timeout=15,
+    )
+    print(f"[Groq RateLimit] remaining_tokens: {raw.headers.get('x-ratelimit-remaining-tokens')}")
+    print(f"[Groq RateLimit] remaining_requests: {raw.headers.get('x-ratelimit-remaining-requests')}")
+    completion = raw.parse()
+    return json.loads(completion.choices[0].message.content)
+
+import time
+from collections import deque
+from threading import Lock
+
+_token_budget = deque()
+_lock = Lock()
+
+ENDPOINT_TOKEN_ESTIMATE = {
+    "analyze": 1200,
+    "improve": 2800,
+    "cover_letter": 1200,
+    "mock_interview": 2800,
+}
+
+def _throttle(estimated_tokens=2500):
+    with _lock:
+        now = time.time()
+        while _token_budget and now - _token_budget[0][0] > 60:
+            _token_budget.popleft()
+        used = sum(t for _, t in _token_budget)
+        if used + estimated_tokens > 7800:
+            wait = 60 - (now - _token_budget[0][0])
+            time.sleep(max(wait, 0))
+        _token_budget.append((time.time(), estimated_tokens))
+
+def generate_with_fallback(prompt: str, schema: dict, quality_first: bool = False, max_tokens: int = 3000) -> dict:
+    providers = [("gemini", _gemini), ("groq", _groq)] if quality_first else [("groq", _groq), ("gemini", _gemini)]
+    for name, fn in providers:
+        try:
+            t0 = time.perf_counter()
+            result = fn(prompt, schema, max_tokens) if name == "groq" else fn(prompt, schema)
+            t1 = time.perf_counter()
+            print(f"[generate_with_fallback] served by: {name} in {t1 - t0:.2f}s")
+            return result
+        except Exception as e:
+            t1 = time.perf_counter()
+            print(f"Provider {name} failed in {t1 - t0:.2f}s: {e}")
+            continue
+    raise RuntimeError("Both AI providers exhausted")
+
+JD_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "keyword_groups": {
+            "type": "array",
+            "items": {
+                "type": "array",
+                "items": {"type": "string"}
+            }
+        },
+        "role_focus": {"type": "string"},
+        "recruiter_needs": {"type": "string"}
+    },
+    "required": ["keyword_groups", "role_focus", "recruiter_needs"],
+    "additionalProperties": False
+}
+
+IMPROVE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "summary": {"type": "string"},
+        "ai_snapshot": {
+            "type": "object",
+            "properties": {
+                "keep": {"type": "string"},
+                "missing": {"type": "string"},
+                "experience_gap": {"type": "string"}
+            },
+            "required": ["keep", "missing", "experience_gap"],
+            "additionalProperties": False
+        },
+        "skills_recommendation": {
+            "type": "object",
+            "properties": {
+                "keep_skills": {"type": "array", "items": {"type": "string"}},
+                "add_skills": {"type": "array", "items": {"type": "string"}},
+                "integration_advice": {"type": "string"}
+            },
+            "required": ["keep_skills", "add_skills", "integration_advice"],
+            "additionalProperties": False
+        },
+        "sections": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string"},
+                    "bullets": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "original": {"type": "string"},
+                                "rewritten": {"type": "string"}
+                            },
+                            "required": ["original", "rewritten"],
+                            "additionalProperties": False
+                        }
+                    }
+                },
+                "required": ["title", "bullets"],
+                "additionalProperties": False
+            }
+        }
+    },
+    "required": ["summary", "ai_snapshot", "skills_recommendation", "sections"],
+    "additionalProperties": False
+}
+
+COVER_LETTER_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "cover_letter": {"type": "string"}
+    },
+    "required": ["cover_letter"],
+    "additionalProperties": False
+}
+
+INTERVIEW_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "role_category": {"type": "string"},
+        "company_tier": {"type": "string"},
+        "seniority_detected": {"type": "string"},
+        "total_rounds": {"type": "integer"},
+        "rounds": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "round": {"type": "string"},
+                    "interviewer": {"type": "string"},
+                    "duration": {"type": "string"},
+                    "focus": {"type": "string"},
+                    "prep_tip": {"type": "string"},
+                    "questions": {
+                        "type": "array",
+                        "items": {"type": "string"}
+                    }
+                },
+                "required": ["round", "interviewer", "duration", "focus", "prep_tip", "questions"],
+                "additionalProperties": False
+            }
+        }
+    },
+    "required": ["role_category", "company_tier", "seniority_detected", "total_rounds", "rounds"],
+    "additionalProperties": False
+}
+
+
 def extract_jd_keywords(job_description: str) -> dict:
     cleaned_jd = clean_text(job_description)
     prompt = f"""Analyze this job description precisely.
@@ -357,36 +537,20 @@ Format:
 Job Description:
 {cleaned_jd}"""
 
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {"role": "system", "content": "You analyze job descriptions. Return only valid JSON."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0,
-        seed=42,
-        max_tokens=600,
-        timeout=30,
-    )
-    raw = re.sub(r'^```[a-z]*\n?', '', response.choices[0].message.content.strip())
-    raw = re.sub(r'\n?```$', '', raw)
     try:
-        data = json.loads(raw)
-        if isinstance(data, dict):
-            if "keyword_groups" not in data and "keywords" in data:
-                # Fallback if model returns flat list
-                data["keyword_groups"] = [[k] for k in data["keywords"]]
-            elif "keyword_groups" not in data:
-                data["keyword_groups"] = []
-            return data
+        _throttle(ENDPOINT_TOKEN_ESTIMATE["analyze"])
+        data = generate_with_fallback(prompt, JD_SCHEMA)
+        if "keyword_groups" not in data and "keywords" in data:
+            data["keyword_groups"] = [[k] for k in data["keywords"]]
+        elif "keyword_groups" not in data:
+            data["keyword_groups"] = []
+        return data
     except Exception:
-        pass
-    kws = [k for k in re.findall(r'"([^"]+)"', raw) if k not in ("keyword_groups", "keywords", "role_focus", "recruiter_needs")]
-    return {
-        "keyword_groups": [[k] for k in sorted(kws)],
-        "role_focus": "Core software developer role focused on technical requirements.",
-        "recruiter_needs": "A candidate possessing the listed technical skills and qualifications."
-    }
+        return {
+            "keyword_groups": [],
+            "role_focus": "Core software developer role focused on technical requirements.",
+            "recruiter_needs": "A candidate possessing the listed technical skills and qualifications."
+        }
 
 
 def analyze_eligibility(resume_text: str, job_description: str) -> dict:
@@ -634,20 +798,8 @@ Return ONLY valid JSON. No markdown, no backticks, no explanation:
 }}"""
 
     try:
-        response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": "You are a senior resume coach. Return ONLY valid JSON. No markdown, no backticks. Be specific to this person's resume — no generic advice."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.3,
-            seed=42,
-            max_tokens=3000,
-            timeout=30,
-        )
-        raw = re.sub(r'^```[a-z]*\n?', '', response.choices[0].message.content.strip())
-        raw = re.sub(r'\n?```$', '', raw)
-        result = json.loads(raw)
+        _throttle(ENDPOINT_TOKEN_ESTIMATE["improve"])
+        result = generate_with_fallback(prompt, IMPROVE_SCHEMA, quality_first=False, max_tokens=4096)
 
         if analysis_id:
             try:
@@ -659,8 +811,10 @@ Return ONLY valid JSON. No markdown, no backticks, no explanation:
                 print("Failed to save suggestions to history:", str(db_err))
 
         return {"suggestions": result}
+    except HTTPException:
+        raise
     except Exception as e:
-        return {"error": f"Failed to generate improvements: {str(e)}"}
+        raise HTTPException(status_code=502, detail=f"Failed to generate improvements: {str(e)}")
 
 
 @app.post("/analyze/guest")
@@ -773,18 +927,9 @@ Job Description: {cleaned_jd}
 Resume: {cleaned_resume}"""
 
     try:
-        response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": "You are a professional cover letter writer. Return only the cover letter text. No markdown formatting, no preambles."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.4,
-            seed=42,
-            max_tokens=1500,
-            timeout=30,
-        )
-        cover_letter_result = response.choices[0].message.content.strip()
+        _throttle(ENDPOINT_TOKEN_ESTIMATE["cover_letter"])
+        result = generate_with_fallback(prompt, COVER_LETTER_SCHEMA)
+        cover_letter_result = result.get("cover_letter", "")
 
         if analysis_id:
             try:
@@ -928,20 +1073,8 @@ Return ONLY valid JSON. No markdown, no backticks:
 }}"""
 
     try:
-        response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": "You are an expert hiring manager. Return ONLY valid JSON. No backticks, no explanation."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.4,
-            seed=42,
-            max_tokens=1500,
-            timeout=30,
-        )
-        raw = re.sub(r'^```[a-z]*\n?', '', response.choices[0].message.content.strip())
-        raw = re.sub(r'\n?```$', '', raw)
-        result = json.loads(raw)
+        _throttle(ENDPOINT_TOKEN_ESTIMATE["mock_interview"])
+        result = generate_with_fallback(prompt, INTERVIEW_SCHEMA)
 
         if not isinstance(result, dict) or "rounds" not in result:
             raise ValueError("Invalid format returned by AI")
