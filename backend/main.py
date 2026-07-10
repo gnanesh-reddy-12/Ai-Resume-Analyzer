@@ -352,6 +352,7 @@ def _groq(prompt: str, schema: dict, max_tokens: int = 3000) -> dict:
     print(f"[Groq RateLimit] remaining_tokens: {raw.headers.get('x-ratelimit-remaining-tokens')}")
     print(f"[Groq RateLimit] remaining_requests: {raw.headers.get('x-ratelimit-remaining-requests')}")
     completion = raw.parse()
+    print(f"[Groq Usage] total_tokens: {completion.usage.total_tokens}")
     return json.loads(completion.choices[0].message.content)
 
 import time
@@ -363,9 +364,9 @@ _lock = Lock()
 
 ENDPOINT_TOKEN_ESTIMATE = {
     "analyze": 1200,
-    "improve": 2800,
-    "cover_letter": 1200,
-    "mock_interview": 2800,
+    "improve": 3500,
+    "cover_letter": 1800,
+    "mock_interview": 2000,
 }
 
 def _throttle(estimated_tokens=2500):
@@ -374,7 +375,7 @@ def _throttle(estimated_tokens=2500):
         while _token_budget and now - _token_budget[0][0] > 60:
             _token_budget.popleft()
         used = sum(t for _, t in _token_budget)
-        if used + estimated_tokens > 7800:
+        if used + estimated_tokens > 6000:
             wait = 60 - (now - _token_budget[0][0])
             time.sleep(max(wait, 0))
         _token_budget.append((time.time(), estimated_tokens))
