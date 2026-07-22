@@ -1,27 +1,64 @@
 <div align="center">
 
-# ResumeAI — Full-Stack ATS Resume Analyzer
+# 📄 ResumeAI — Full-Stack ATS Resume Analyzer & Career Suite
 
-**A tool to grade resumes, rewrite weak bullet points, and generate interview prep using a hybrid local/LLM architecture.**
+**A high-performance resume optimizer, bullet-point rewriter, and interview simulator built on a hybrid 60/40 Local & LLM architecture.**
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://ai-resume-analyzer-two-red.vercel.app)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
 ![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
 
 </div>
 
 ---
 
-## 🚀 Overview
+## 🎯 What This Project Does
 
-ResumeAI is a full-stack web application that helps job seekers align their resumes with specific Job Descriptions (JDs). 
+ResumeAI solves the primary bottleneck candidates face with modern **Applicant Tracking Systems (ATS)**: resumes getting filtered out due to missing keywords, weak bullet phrasing, or poor job alignment.
 
-Instead of routing the entire process through an LLM, the application uses a **hybrid 60/40 architecture** to maximize speed and minimize API costs:
-- **60% Local Python Processing:** PDF text extraction, fuzzy string matching, ATS scoring, and keyword gap analysis are all handled locally on the backend. This costs zero API tokens and runs instantly.
-- **40% AI Generation:** The Groq API (with Gemini as a fallback) is invoked strictly for complex generation tasks, such as rewriting weak bullet points and creating interview plans.
+The app takes a candidate's **PDF resume** and a target **Job Description (JD)** and delivers:
+1. **Instant ATS Score & Keyword Gap Analysis** (Matched vs. Missing Skills).
+2. **Impact-Driven Bullet Rewrites** using Google's **XYZ Formula** (*"Accomplished X, measured by Y, doing Z"*).
+3. **Tailored Cover Letter Generation** bridging experience gaps.
+4. **Interactive Technical & Behavioral Mock Interview Prep**.
 
-The backend also features a **custom token-aware throttle** using Python threading locks to queue concurrent requests and prevent rate-limit crashes during heavy usage.
+---
+
+## 🏗️ Technical Highlights: Hybrid 60/40 Architecture
+
+Most AI apps pass raw text back and forth to expensive LLM endpoints, causing high latency, rate-limit failures, and ballooning costs. **ResumeAI uses a hybrid engine designed for production efficiency**:
+
+```
+                               ┌──────────────────────────────────────────────┐
+                               │             USER UPLOADS PDF + JD            │
+                               └──────────────────────┬───────────────────────┘
+                                                      │
+                                                      ▼
+                               ┌──────────────────────────────────────────────┐
+                               │            FASTAPI BACKEND ENGINE            │
+                               └──────────────┬────────────────┬──────────────┘
+                                              │                │
+                      60% LOCAL (0 TOKENS)    │                │  40% AI LAYER
+                                              ▼                ▼
+                               ┌─────────────────────┐  ┌─────────────────────┐
+                               │  pdfplumber & Fuzzy │  │ Token-Aware Throttle│
+                               │  Keyword Matching   │  │   (Rolling Window)  │
+                               └──────────┬──────────┘  └──────────┬──────────┘
+                                          │                        │
+                                          ▼                        ▼
+                               ┌─────────────────────┐  ┌─────────────────────┐
+                               │ ATS Score & Missing │  │  Groq API / Gemini  │
+                               │   Keyword List      │  │  Rewrites & Prep    │
+                               └─────────────────────┘  └─────────────────────┘
+```
+
+- **60% Local Python Engine (Zero Token Overhead):** PDF text extraction (`pdfplumber`), string normalization, fuzzy keyword grouping, and ATS eligibility scoring run locally on Python. This runs in milliseconds at $0 API cost.
+- **40% Targeted AI Generation (Groq + Gemini Fallback):** Groq's high-speed inference engine generates structured JSON for bullet rewrites, cover letters, and interview questions. Fallback routing automatically fails over to Gemini 2.5 Flash if needed.
+- **Token-Aware Throttle Control:** A thread-safe sliding window rate-limiter prevents 429 errors under burst traffic by tracking consumed tokens per minute rather than simple request counts.
+
+---
 
 ## 🧠 System Architecture
 
@@ -36,26 +73,32 @@ graph TD
     end
     
     subgraph AI Layer
-        Throttle -->|3. Heavy Lifting| Groq[Groq API <br> LLaMA 3.3 70B]
-        Groq -.->|Fallback| Gemini[Gemini API]
+        Throttle -->|3. Structured Generation| Groq[Groq API <br> LLaMA 3.3 / GPT-OSS]
+        Groq -.->|Automated Fallback| Gemini[Gemini API]
     end
     
     subgraph Data Layer
-        API <-->|Auth & History| Supabase[(Supabase PostgreSQL)]
+        API <-->|Auth & Analysis History| Supabase[(Supabase PostgreSQL)]
     end
 ```
 
-## ✨ Features
+---
 
-- **ATS Scoring & Gap Analysis:** Compares the resume against a target JD. Identifies missing keywords and calculates a compatibility score entirely in local Python.
-- **AI Bullet Point Rewrite:** Rewrites weak or generic resume bullet points using the "XYZ Formula" (Action Verb + Specific Metric + Technology) to make them recruiter-friendly.
-- **Cover Letter Generation:** Generates a targeted cover letter bridging the gap between the candidate's existing experience and the specific JD.
-- **Mock Interview Simulator:** Analyzes the skill gaps and generates a multi-round technical and behavioral mock interview plan.
-- **Authentication & History:** Built on Supabase to handle secure user sign-ups, logins, and persistent storage of past resume analyses.
+## ✨ Features at a Glance
+
+| Feature | Description | Engine |
+| :--- | :--- | :--- |
+| **ATS Scoring & Gap Analysis** | Calculates ATS match %, extracts mandatory vs. optional missing keywords, flags resume format warnings. | Python Local Engine |
+| **XYZ Bullet Point Rewriter** | Rewrites weak bullets into quantified metric-driven achievements using Google's XYZ recruiter standard. | Groq API (Structured JSON) |
+| **Tailored Cover Letter** | Generates a 3-paragraph role-specific cover letter tying candidate skills directly to JD requirements. | Groq API |
+| **Mock Interview Plan** | Generates multi-round technical, behavioral, and role-specific interview questions with ideal sample answers. | Groq API |
+| **Auth & History Hub** | Secure user authentication and complete history tracking of all past scans and AI improvements. | Supabase PostgreSQL |
+
+---
 
 ## 💻 Running Locally (Testing the Project)
 
-If you'd like to test this project on your own machine, follow these steps:
+Follow these steps to run the full stack locally:
 
 ### 1. Clone the repository
 ```bash
@@ -64,14 +107,16 @@ cd Ai-Resume-Analyzer
 ```
 
 ### 2. Backend Setup (FastAPI)
-Open a new terminal in the `backend` folder:
+In the `backend` directory:
 ```bash
 cd backend
 python -m venv venv
+# Activate virtual environment:
 # Windows: venv\Scripts\activate | Mac/Linux: source venv/bin/activate
 pip install -r requirements.txt
 ```
-Create a `.env` file in the `backend` folder and add your API keys:
+
+Create a `.env` file in the `backend` directory:
 ```env
 GROQ_API_KEY=your_groq_api_key
 GEMINI_API_KEY=your_gemini_api_key
@@ -79,59 +124,65 @@ SUPABASE_URL=your_supabase_url
 SUPABASE_KEY=your_supabase_anon_key
 JWT_SECRET=your_jwt_secret
 ```
-Run the backend server:
+
+Run the backend API server:
 ```bash
 uvicorn main:app --reload
 ```
 
 ### 3. Frontend Setup (React)
-Open a separate terminal in the root folder:
+In the root directory (open a new terminal):
 ```bash
 npm install
 ```
-Create a `.env` file in the root folder for Supabase:
+
+Create a `.env` file in the root directory:
 ```env
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
-Run the frontend development server:
+
+Start the Vite development server:
 ```bash
 npm run dev
 ```
 
 ### 4. How to Test
-1. Open `http://localhost:5173` in your browser.
-2. Sign up or log in.
-3. Upload a sample PDF resume and paste a target Job Description.
-4. Click **Analyze** to see the local ATS matching engine in action.
-5. Click through the **Improve**, **Cover Letter**, and **Mock Interview** tabs to test the LLM generation (this exercises the custom token-throttle logic).
+1. Open `http://localhost:5173` in your browser and log in or create an account.
+2. Upload any PDF resume and paste a target Job Description.
+3. Click **Analyze** to test the zero-token local ATS engine.
+4. Navigate through **Improve**, **Cover Letter**, and **Mock Interview** tabs to test AI generation and the custom token-aware throttle.
+
+---
 
 ## 🛠️ Technology Stack
 
-- **Frontend:** React, Vite, Tailwind CSS, Framer Motion
-- **Backend:** Python 3.11, FastAPI
-- **AI Integration:** Groq API, Google Gemini API (Fallback routing)
+- **Frontend:** React 19, Vite, Tailwind CSS, Framer Motion
+- **Backend:** Python 3.11, FastAPI, Pydantic, pdfplumber
+- **AI Integration:** Groq API, Google Gemini API
 - **Database & Auth:** Supabase (PostgreSQL)
 - **Deployment:** Vercel (Frontend), Render (Backend)
+
+---
 
 ## 📁 Project Structure
 
 ```text
 ai-resume-analyzer/
-├── backend/                  # Python/FastAPI backend
-│   ├── main.py               # Core API endpoints, throttling, and LLM routing
-│   ├── requirements.txt      # Python dependencies
-│   ├── _scripts/             # Test scripts and database migrations
-│   └── Procfile              # Render deployment configuration
+├── backend/                  # FastAPI Python backend
+│   ├── main.py               # API endpoints, local scoring engine, and LLM throttle logic
+│   ├── requirements.txt      # Backend Python dependencies
+│   ├── _scripts/             # Test scripts & schema verification tools
+│   └── Procfile              # Production deployment config
 ├── src/                      # React frontend
-│   ├── components/           # Reusable UI components
-│   ├── context/              # React Context for state management
-│   ├── pages/                # Application routes (Analyze, Improve, Cover Letter, etc.)
-│   ├── App.jsx               # Main application layout and routing
-│   ├── index.css             # Tailwind configuration and global styles
-│   └── supabase.js           # Supabase client initialization
-├── public/                   # Static assets
-└── vite.config.js            # Vite configuration
+│   ├── components/           # UI components (Navbar, Sidebar, Modals, Cards)
+│   ├── context/              # Auth & state management context
+│   ├── pages/                # App pages (Dashboard, Improve, CoverLetter, Interview, History)
+│   ├── App.jsx               # Main layout and client-side routing
+│   ├── index.css             # Design tokens and Tailwind styles
+│   └── supabase.js           # Supabase client setup
+├── public/                   # Static web assets
+└── vite.config.js            # Vite build configuration
 ```
 
 ---
