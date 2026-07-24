@@ -346,7 +346,8 @@ def _groq(prompt: str, schema: dict, max_tokens: int = 3000) -> dict:
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_schema", "json_schema": {"name": "analysis", "schema": schema, "strict": True}},
         max_completion_tokens=max_tokens,
-        temperature=0.3,
+        temperature=0,
+        seed=42,
         timeout=15,
     )
     print(f"[Groq RateLimit] remaining_tokens: {raw.headers.get('x-ratelimit-remaining-tokens')}")
@@ -583,6 +584,7 @@ async def analyze_resume(
     job_role: str = Form(default=""),
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
+    t_start = time.perf_counter()
     user = await verify_token(credentials)
 
     if not resume.filename.lower().endswith(".pdf"):
@@ -615,6 +617,7 @@ async def analyze_resume(
             "recruiter_needs": jd_data.get("recruiter_needs", "A candidate possessing the listed technical skills and qualifications.")
         }
     except Exception as e:
+        print(f"[TOTAL /analyze] {time.perf_counter() - t_start:.2f}s")
         return {"error": f"Analysis error: {str(e)}"}
 
     can_apply = ats_score >= 60 and eligibility["education"]["status"] != "gap"
@@ -662,6 +665,7 @@ async def analyze_resume(
     except Exception as e:
         print("Database insert failed:", str(e))
 
+    print(f"[TOTAL /analyze] {time.perf_counter() - t_start:.2f}s")
     return result
 
 
@@ -674,6 +678,7 @@ async def improve_resume(
     resume: UploadFile = File(None),
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
+    t_start = time.perf_counter()
     await verify_token(credentials)
 
     resume_text = ""
@@ -700,6 +705,7 @@ async def improve_resume(
                     
                 # If suggestions already exist, just return them
                 if suggestions.get("suggestions"):
+                    print(f"[TOTAL /improve] {time.perf_counter() - t_start:.2f}s")
                     return {"suggestions": suggestions.get("suggestions")}
         except Exception:
             pass
@@ -811,6 +817,7 @@ Return ONLY valid JSON. No markdown, no backticks, no explanation:
             except Exception as db_err:
                 print("Failed to save suggestions to history:", str(db_err))
 
+        print(f"[TOTAL /improve] {time.perf_counter() - t_start:.2f}s")
         return {"suggestions": result}
     except HTTPException:
         raise
@@ -825,6 +832,7 @@ async def analyze_guest(
     resume: UploadFile = File(...),
     job_description: str = Form(...)
 ):
+    t_start = time.perf_counter()
     if not resume.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are supported")
 
@@ -850,6 +858,7 @@ async def analyze_guest(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Analysis error: {str(e)}")
 
+    print(f"[TOTAL /analyze/guest] {time.perf_counter() - t_start:.2f}s")
     return {
         "ats_score": ats_score,
         "keyword_score": keyword_score,
@@ -875,6 +884,7 @@ async def generate_cover_letter(
     resume: UploadFile = File(None),
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
+    t_start = time.perf_counter()
     await verify_token(credentials)
 
     resume_text = ""
@@ -885,6 +895,7 @@ async def generate_cover_letter(
                 suggestions = res.data[0].get("improvement_suggestions") or {}
                 known_cover_letter = suggestions.get("cover_letter_text")
                 if known_cover_letter:
+                    print(f"[TOTAL /cover-letter] {time.perf_counter() - t_start:.2f}s")
                     return {"cover_letter": known_cover_letter}
                 resume_text = suggestions.get("resume_snapshot_text", "")
         except Exception:
@@ -942,6 +953,7 @@ Resume: {cleaned_resume}"""
             except Exception as e:
                 print("Failed to save cover letter:", str(e))
 
+        print(f"[TOTAL /cover-letter] {time.perf_counter() - t_start:.2f}s")
         return {"cover_letter": cover_letter_result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Cover letter generation failed: {str(e)}")
@@ -957,6 +969,7 @@ async def generate_mock_interview(
     resume: UploadFile = File(None),
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
+    t_start = time.perf_counter()
     await verify_token(credentials)
     cleaned_jd = clean_text(job_description)
 
@@ -968,6 +981,7 @@ async def generate_mock_interview(
                 suggestions = res.data[0].get("improvement_suggestions") or {}
                 known_interview = suggestions.get("interview_questions")
                 if known_interview:
+                    print(f"[TOTAL /mock-interview] {time.perf_counter() - t_start:.2f}s")
                     return {"interview_plan": known_interview}
                 resume_text = suggestions.get("resume_snapshot_text", "")
         except Exception:
@@ -1090,6 +1104,7 @@ Return ONLY valid JSON. No markdown, no backticks:
             except Exception as e:
                 print("Failed to save interview prep:", str(e))
 
+        print(f"[TOTAL /mock-interview] {time.perf_counter() - t_start:.2f}s")
         return {"interview_plan": result}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Mock interview generation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Mock interview generation failed: {str(e)}")  
